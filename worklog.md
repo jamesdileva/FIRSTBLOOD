@@ -7,6 +7,29 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 002 · 2026-09-28 · Godot / Rendering Spike (Sprint 01)
+
+**Goal:** Prove the technical foundation — a launchable Godot project with placeholder arena, player and boss placeholders, basic third-person camera, controller input map, and debug overlay.
+
+**Scope:** `project.godot` (engine config, full input map), `game/scenes/arena/arena.tscn` (main scene), `game/scenes/player/player.tscn`, `game/scenes/bosses/boss_placeholder.tscn`, `game/scripts/player/player_controller.gd` (raw input-to-movement placeholder), `game/scripts/camera/third_person_camera.gd`, `game/scripts/debug/debug_overlay.gd`, `tools/validation/smoke_check.gd` (headless verification), `.gdignore` conventions.
+
+**Non-goals:** tuned movement feel (Sprint 02), dodge (03), combat systems (04+), real Colosseum geometry (Sprint 17), gdUnit4 integration (deferred — see D-005).
+
+**Environment — D-003 resolved (engine pin):**
+
+- Godot **4.7.2 stable** confirmed installed via winget (`GodotEngine.GodotEngine`).
+- Binary: `C:\Users\j\AppData\Local\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64.exe`
+- Invoke as `godot` in cmd/PowerShell (shim: `%LOCALAPPDATA%\Microsoft\WinGet\Links\godot.cmd`). From Git Bash use `cmd //c godot ...` — bash `which` cannot resolve `.cmd` shims, which is why Godot appeared missing from PATH.
+- Cross-check: the user's other Godot project `surfhop` ("Velocity") also targets Godot 4.7 — the engine is proven working on this machine.
+
+**Decisions:**
+
+- **D-003 (resolved):** Engine pinned to Godot 4.7.2 stable. Matches `docs/needs-review(...)` §18 ("4.7.2 is current stable") and the user's existing 4.7 project.
+- **D-005:** gdUnit4 integration deferred to Sprint 04 (where the first pure-logic combat tests arrive). Sprint 01 headless validation uses a lightweight `smoke_check.gd` SceneTree script instead. Rationale: no unit-testable logic exists yet; avoids addon setup risk before the engine version is exercised.
+- **D-006:** MVP input map defined per implementation-guide §2/§3: WASD/left-stick movement, J/X-button attack, K/LT block, L/B-button dodge, Esc/Start pause, F1 debug toggle, right-stick camera actions, and the post-MVP `spell_modifier` (LB) + `spell_a/b/x/y` actions defined now but unused, exactly as the guide specifies. No gameplay code reads physical buttons.
+
+---
+
 ## 001 · 2026-09-28 · Docs Review + Repository Bootstrap (Sprint 00)
 
 **Goal:** Review the design suite, establish repo best practices, and prepare for Sprint 01.
