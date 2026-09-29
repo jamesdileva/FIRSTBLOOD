@@ -1,0 +1,73 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="PackedScene" path="res://game/scenes/player/player.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://game/scenes/bosses/boss_placeholder.tscn" id="2"]
+[ext_resource type="Script" path="res://game/scripts/camera/third_person_camera.gd" id="3"]
+[ext_resource type="Script" path="res://game/scripts/debug/debug_overlay.gd" id="4"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(40, 40)
+
+[sub_resource type="BoxShape3D" id="BoxShape_floor"]
+size = Vector3(40, 0.5, 40)
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.55, 0.47, 0.36, 1)
+
+[sub_resource type="Environment" id="Environment_main"]
+background_mode = 1
+background_color = Color(0.1, 0.11, 0.14, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.75, 0.75, 0.8, 1)
+ambient_light_energy = 0.7
+
+[node name="Arena" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_main")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.5, 0)
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("PlaneMesh_floor")
+surface_material_override/0 = SubResource("Mat_floor")
+
+[node name="FloorShape" type="CollisionShape3D" parent="Floor"]
+position = Vector3(0, -0.25, 0)
+shape = SubResource("BoxShape_floor")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+position = Vector3(-4, 0.5, 0)
+
+[node name="BossSpawn" type="Marker3D" parent="."]
+position = Vector3(4, 0, 0)
+
+[node name="Player" parent="." instance=ExtResource("1")]
+position = Vector3(-4, 0.5, 0)
+
+[node name="Boss" parent="." instance=ExtResource("2")]
+position = Vector3(4, 0, 0)
+
+[node name="CameraRig" type="Node3D" parent="."]
+position = Vector3(-4, 8, 10)
+script = ExtResource("3")
+target = NodePath("../Player")
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+current = true
+fov = 55.0
+
+[node name="DebugOverlay" type="CanvasLayer" parent="."]
+script = ExtResource("4")
+
+[node name="Label" type="Label" parent="DebugOverlay"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 420.0
+offset_bottom = 180.0
+theme_override_font_sizes/font_size = 14
+text = "Debug overlay"
