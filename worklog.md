@@ -35,6 +35,23 @@ Result: **PASS**.
 
 ---
 
+## 007 · 2026-09-28 · Light Attack (Sprint 05)
+
+**Goal:** One responsive melee attack — the first real consumer of the Sprint 04 combat layer, with startup/active/recovery timing and a hit-reaction hook.
+
+**Scope:** `player_controller.gd` (ATTACK state: rooted, timed windows, hitbox activation), `player.tscn` (AttackHitbox node — player-faction HitboxComponent with capsule-reach box), new `tools/validation/attack_check.gd`.
+**Non-goals:** combo chain and input buffering (Sprint 06), attack↔dodge/block transition rules (Sprint 09 — attack currently triggers only from IDLE/MOVE, grounded), target hit reactions/stagger (Sprint 13), hit feedback VFX/hitstop (Sprint 15), authored animations (art pass).
+
+**Decisions:**
+
+- **D-019:** Timing lives on the controller (`attack_startup 0.10 / active 0.12 / recovery 0.25`, all exports); the payload (`damage 10.0`, `stagger_damage 5.0`, `attack_id light_01`) lives on the scene's AttackHitbox node. Controller owns timing; hitbox owns payload — Sprint 06's combo data will drive both.
+- **D-020:** The attack is rooted and committed: movement input ignored during ATTACK (decelerates to stop), grounded only, trigger from IDLE/MOVE only. Dodge input takes priority over attack when both land the same frame. Attack during dodge recovery is blocked for now — Sprint 09 owns those transitions.
+- **D-021:** Hit-reaction hook: the player re-emits its hitbox's `hit_landed` as `attack_connected(event, target)` — hitstop, VFX, and target reactions (Sprints 13/15) hang from that signal without touching the attack state machine.
+
+**Roadmap checklist coverage:** attack cannot be spammed through its own recovery (entry-gap assertion) · hitbox appears only during the active period (tick-sampled) · target receives one intended hit per swing (real boss-placeholder hurtbox via synthesized input) → `attack_check.gd`.
+
+---
+
 ---
 
 ## 005 · 2026-09-28 · Hitbox / Hurtbox Foundation (Sprint 04)
