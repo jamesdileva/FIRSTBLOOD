@@ -28,6 +28,40 @@ The entry template is at the bottom of this file.
 - **D-005:** gdUnit4 integration deferred to Sprint 04 (where the first pure-logic combat tests arrive). Sprint 01 headless validation uses a lightweight `smoke_check.gd` SceneTree script instead. Rationale: no unit-testable logic exists yet; avoids addon setup risk before the engine version is exercised.
 - **D-006:** MVP input map defined per implementation-guide §2/§3: WASD/left-stick movement, J/X-button attack, K/LT block, L/B-button dodge, Esc/Start pause, F1 debug toggle, right-stick camera actions, and the post-MVP `spell_modifier` (LB) + `spell_a/b/x/y` actions defined now but unused, exactly as the guide specifies. No gameplay code reads physical buttons.
 
+**Implemented:**
+
+- `project.godot` — Godot 4.7.2 / Forward Plus, 1280×720, main scene, 18 input actions.
+- `game/scenes/arena/arena.tscn` — placeholder arena: floor + collision, sun with shadows, environment, spawn markers, Player/Boss placeholders, camera rig, debug overlay.
+- `game/scenes/player/player.tscn` — CharacterBody3D capsule (blue) with facing indicator; `game/scenes/bosses/boss_placeholder.tscn` — StaticBody3D capsule (red).
+- `game/scripts/player/player_controller.gd` — camera-relative input-to-movement, gravity, temporary arena-bound clamp. Deliberately raw; Sprint 02 tunes feel.
+- `game/scripts/camera/third_person_camera.gd` — smoothed follow + right-stick orbit/pitch.
+- `game/scripts/debug/debug_overlay.gd` — FPS, player position/speed, boss distance; F1 toggle; auto-hidden in headless.
+- `tools/validation/smoke_check.gd` — headless SceneTree script validating input map + resource loads + main-scene instantiation.
+- `.gdignore` in `assets/blender/` and `docs/` so Godot never imports sources/docs.
+
+**Files changed:** the above plus `icon.svg`.
+
+**Verification:**
+
+- [x] Headless import (`godot --headless --path . --import`) — PASS, exit 0, no errors
+- [x] Smoke check (18 input actions, 6 resources, main-scene instantiation) — PASS
+- [x] Main scene runs 180 frames headless with zero script/runtime errors — PASS
+- [x] Project launches cleanly (headless run; GUI launch pending user's first open) — PASS
+- [ ] Controller moves the player — **manual, pending user with gamepad** (input map verified programmatically; WASD keyboard fallback wired)
+- [ ] Camera follows correctly / right-stick orbit — **manual, visual check pending**
+- [ ] Performance target on dev hardware — **manual, needs a real display** (placeholder scene is trivially light)
+
+Result: **PASS (automated)** — manual controller/camera/performance checks remain for the user.
+
+**Notes / known limitations:**
+
+- Movement feel is intentionally untuned (Sprint 02's job); attack/block/dodge actions exist in the input map but do nothing yet, matching the roadmap.
+- Arena boundary is a soft position clamp until Sprint 17 adds real walls.
+- Godot 4.7 generated `.gd.uid` sidecar files for scripts — committed as source metadata.
+- **User action:** open the project in Godot (`godot` from cmd, or the project folder), plug in a controller, and confirm movement + camera; then Sprint 02 can start.
+
+**Next:** Sprint 02 — Player Controller: tuned acceleration/deceleration, rotation toward movement, arena boundary handling, basic animation hooks. Start with a plan+scope entry.
+
 ---
 
 ## 001 · 2026-09-28 · Docs Review + Repository Bootstrap (Sprint 00)

@@ -43,7 +43,8 @@ AGENTS.md governs *how* we work.
 
 ## Godot / GDScript Conventions
 
-- Engine: Godot 4.x **stable** — pin the exact validated version in `worklog.md` at Sprint 01 and do not change it mid-project.
+- Engine: Godot **4.7.2 stable** (pinned in `worklog.md` D-003) — do not change versions mid-project.
+- This machine: Godot is winget-installed; from Git Bash invoke it as `cmd //c godot ...` (the `godot.cmd` shim in `%LOCALAPPDATA%\Microsoft\WinGet\Links` is invisible to bash `which`). `godot --headless --path .` drives all automated checks.
 - GDScript for MVP (no C#/.NET). Tabs for indentation (Godot default).
 - File and directory names: `snake_case`. Classes and nodes: `PascalCase`. Signals: past tense (`hit_registered`).
 - Read input only via `Input.is_action_just_pressed("dodge")` etc. — the input map is the single source of button truth.
