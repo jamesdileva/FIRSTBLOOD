@@ -50,6 +50,39 @@ Result: **PASS**.
 
 **Roadmap checklist coverage:** attack cannot be spammed through its own recovery (entry-gap assertion) · hitbox appears only during the active period (tick-sampled) · target receives one intended hit per swing (real boss-placeholder hurtbox via synthesized input) → `attack_check.gd`.
 
+**Implemented:**
+
+- `player_controller.gd`: `ATTACK` state — rooted (movement input ignored, decelerates), grounded trigger from IDLE/MOVE only, dodge input has priority when both land the same frame; hitbox activation gated to `[startup, startup+active)`; recovery exits to IDLE. `attack_connected(event, target)` re-emits the hitbox's `hit_landed` as the hit-reaction hook.
+- `player.tscn`: `AttackHitbox` node — player-faction HitboxComponent, box reach centered 1 m in front, payload damage 10 / stagger 5 / `light_01`.
+- `tools/validation/attack_check.gd` — end-to-end check against the real boss hurtbox.
+
+**Files changed:** the above plus `.uid` sidecars.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 11 resources)
+- [x] Attack check — PASS:
+  - hitbox active only in the intended window (observed active ticks 6–12 of the swing; silent during startup and recovery)
+  - boss hurtbox received exactly one event with the full payload (amount 10, stagger 5, `light_01`, source = player)
+  - mashing attack for ~3 s: 6 swings → 6 hits, every re-attack gap ≥ 26 ticks (28-tick commitment) — recovery cannot be bypassed
+  - hitbox inert outside ATTACK
+- [x] Regressions — movement PASS (travel 4.73 m, dots 1.00, drift 0.000), dodge PASS (commitment held, 9 entries), combat PASS (all six assertions), 180-frame run clean
+- [ ] Attack *feel* (rooting weight, reach, recovery length) — user playtest; D-019 exports are the knobs.
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No combo yet — a second attack press mid-swing is ignored (buffering arrives with Sprint 06).
+- No hit feedback beyond the event: hitstop/VFX/sound land in Sprint 15; target reactions in Sprint 13.
+- The boss is a static capsule; it neither reacts nor retaliates until Sprints 10+.
+- Attack during dodge recovery is blocked for now (Sprint 09 owns transition rules).
+
+**Check-harness note:** two false alarms were hit while building the check — walking up to the boss stalls against its collision and freezes facing (yaw is now snapped directly; facing mechanics are movement_check's job), and the idle gap between swings is shorter than a poll tick, so swing counting uses the `state_changed` signal with global physics-frame stamps. Both recorded here for future check authors.
+
+**Next:** Sprint 06 — Combo Chain: 3–4-hit chain from combo data, input buffering, chain windows, reset conditions. Plan+scope first.
+
 ---
 
 ---
