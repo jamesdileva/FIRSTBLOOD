@@ -27,6 +27,32 @@ The entry template is at the bottom of this file.
 
 **Environment:** Remote `origin` added — https://github.com/jamesdileva/FIRSTBLOOD (public, created via `gh`). All Sprint 00/01 commits pushed. Push now happens every verified commit per the sprint loop.
 
+**Implemented:**
+
+- `player_controller.gd` rewritten: camera-relative direction, `move_toward` acceleration/deceleration (D-007), yaw facing via `lerp_angle` (D-009), gravity, arena-bound clamp (now `@export arena_half_extent`), `State` enum + `state_changed` signal + `play_animation()` hook + placeholder lean (D-008). All tuning values are exports.
+- `debug_overlay.gd` shows the player state (IDLE/MOVE/AIRBORNE).
+- `tools/validation/movement_check.gd` — headless check that synthesizes input, drives the real arena scene, and asserts the roadmap's testable checklist.
+
+**Files changed:** `game/scripts/player/player_controller.gd`, `game/scripts/debug/debug_overlay.gd`, `tools/validation/movement_check.gd` (+ `.uid`), `worklog.md`.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 input actions, 6 resources, main scene instantiates)
+- [x] Movement check — PASS: travel 4.73 m in 60 frames (≈ target 5 m/s after accel ramp), direction dot 1.00 (exact camera-relative), facing dot 1.00 (body faces movement), drift 0.000 m/s after release, arena clamp holds
+- [x] Main scene runs 180 frames headless, zero errors — PASS
+- [ ] "Movement feels good" + controller consistency — **manual, pending user playtest** (Gate A input; tuning values in D-007 are starting points)
+
+Result: **PASS (automated)** — feel confirmation belongs to the user's controller session.
+
+**Known limitations:**
+
+- No authored animations yet — `play_animation("idle"/"run"/"airborne")` no-ops until an AnimationPlayer exists (art pass).
+- Arena boundary is still a soft clamp; walls arrive in Sprint 17.
+- Camera pitch/height not yet user-facing exports beyond distance; revisit in Sprint 16 tuning lab.
+
+**Next:** Sprint 03 — Dodge: dodge state, direction selection, movement burst, completion requirement, recovery vulnerability, animation hook. Plan+scope first.
+
 ---
 
 ## 002 · 2026-09-28 · Godot / Rendering Spike (Sprint 01)
