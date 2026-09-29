@@ -22,6 +22,41 @@ The entry template is at the bottom of this file.
 - **D-011:** Direction selection: held movement input (camera-relative); **neutral dodge = backward relative to camera**; grounded only — air dodge is post-MVP.
 - **D-012:** Commitment model: recovery state ignores input and cannot be re-dodged until it completes; i-frames exist **only** inside the travel window — recovery is always vulnerable. The future damage system queries `is_invulnerable()`; no HP logic exists yet, so this sprint proves the timing geometry.
 
+**Implemented:**
+
+- `player_controller.gd`: `DODGE` (travel burst, exactly `dodge_duration` at `dodge_speed`, direction from held input or camera-backward when neutral, grounded only) and `DODGE_RECOVERY` (committed, input ignored, always vulnerable). `is_invulnerable()` is true only while `state_elapsed < dodge_invulnerability` inside travel. State transitions centralized in the `state` setter (resets `state_elapsed`, emits, plays animation hooks `dodge_start`/`dodge_recover`). Horizontal velocity zeroed at travel→recovery so the burst stops cleanly with no skid.
+- `debug_overlay.gd`: shows remaining dodge/recovery time and an `i-frames ACTIVE` line — the roadmap's "recovery is observable in debug output".
+- `tools/validation/dodge_check.gd`: headless check driving the real arena scene with synthesized input.
+
+**Files changed:** `game/scripts/player/player_controller.gd`, `game/scripts/debug/debug_overlay.gd`, `tools/validation/dodge_check.gd` (+ `.uid`), `worklog.md`.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 6 resources, main scene instantiates)
+- [x] Movement check (Sprint 02 regression) — PASS: travel 4.73 m, direction dot 1.00, facing dot 1.00, drift 0.000 m/s
+- [x] Dodge check — PASS:
+  - faster than walking: peak **12.0 m/s** vs 5.0 m/s walk
+  - neutral dodge: ~3 m camera-backward, dot > 0.8
+  - i-frames present at dodge start and cleared before travel ended
+  - input spam (~3.7 s): 3 dodge entries, **all gaps ≥ 70 ticks** (75-tick commitment) — mashing cannot re-dodge or chain i-frames
+  - `DODGE_RECOVERY` observed and vulnerable throughout (no i-frames)
+  - dodge slid past the boss placeholder: 3.23 m lateral, unblocked
+  - dodge into the arena boundary held the clamp (no tunneling)
+- [x] Main scene runs 180 frames headless, zero errors — PASS
+- [ ] Dodge *feel* (speed, recovery length, i-frame generosity) — **deferred to user's playtest session**; D-010 flags `dodge_recovery` (1.0 s, the documented starting value) as the first knob if it feels sluggish.
+
+Result: **PASS (automated)** — per the user, manual feel validation is deferred to a later playtest session.
+
+**Known limitations:**
+
+- No dodge animation yet — `dodge_start`/`dodge_recover` hooks no-op until the art pass.
+- No damage system exists, so i-frames are timing-proven but not yet combat-proven; Sprint 04's hurtbox consumes `is_invulnerable()`.
+- Dodge has no input buffering near recovery end (deliberate; combo buffering lands in Sprint 06).
+- Air dodge intentionally excluded (post-MVP mobility).
+
+**Next:** Sprint 04 — Hitbox/Hurtbox Foundation: reusable Hurtbox/Hitbox components, DamageEvent payload, team filtering, hit registration, debug visualization. Plan+scope first.
+
 ---
 
 ## 003 · 2026-09-28 · Player Controller (Sprint 02)
