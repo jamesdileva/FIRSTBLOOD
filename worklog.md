@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 004 · 2026-09-28 · Dodge (Sprint 03)
+
+**Goal:** Add fast, committed dodge movement — a repositioning/escape tool constrained by commitment so input mashing can never become permanent invulnerability.
+
+**Scope:** `game/scripts/player/player_controller.gd` (DODGE + DODGE_RECOVERY states, timers, invulnerability window, `is_invulnerable()`), `game/scripts/debug/debug_overlay.gd` (dodge/recovery timer + i-frame display — "recovery is observable in debug output"), new `tools/validation/dodge_check.gd` headless verification.
+**Non-goals:** dodge cancels/interaction with block and attack (Sprint 09 integration), input buffering (Sprint 06), air dodge (post-MVP mobility ability), damage system consuming `is_invulnerable()` (Sprint 04 wires that), authored animations.
+
+**Roadmap checklist coverage:** dodge faster than walking / intended direction / recovery not bypassable by repeated input / recovery vulnerable / recovery observable in debug / no boundary tunneling / dodge around the boss → all covered by `dodge_check.gd` except final feel, which stays a manual check.
+
+**Decisions:**
+
+- **D-010:** Dodge parameters (documented starting points, all exports): travel **0.25 s at 12 m/s ≈ 3 m**; invulnerability **first 0.15 s of travel** (tuned separately from travel duration, per docs); recovery **1.0 s** per architecture §6 ("initially around one second"). Horizontal velocity is zeroed at travel→recovery transition so the burst ends cleanly (no skid). *Tuning watch: if the playtest feels sluggish, `dodge_recovery` is the first knob.*
+- **D-011:** Direction selection: held movement input (camera-relative); **neutral dodge = backward relative to camera**; grounded only — air dodge is post-MVP.
+- **D-012:** Commitment model: recovery state ignores input and cannot be re-dodged until it completes; i-frames exist **only** inside the travel window — recovery is always vulnerable. The future damage system queries `is_invulnerable()`; no HP logic exists yet, so this sprint proves the timing geometry.
+
+---
+
 ## 003 · 2026-09-28 · Player Controller (Sprint 02)
 
 **Goal:** Make the gladiator's movement feel responsive and controlled before any combat exists — acceleration/deceleration, rotation toward movement, gravity, arena-boundary handling, and basic animation hooks.
