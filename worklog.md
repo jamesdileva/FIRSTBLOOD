@@ -7,6 +7,25 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 005 · 2026-09-28 · Hitbox / Hurtbox Foundation (Sprint 04)
+
+**Goal:** Create the reusable combat collision layer — hitbox components deliver structured damage events to hurtbox components, with team filtering and debug visualization — so every later attack (player, boss, magic) reuses one system.
+
+**Scope:** new `game/scripts/combat/` (`combat_types.gd`, `damage_event.gd`, `hitbox_component.gd`, `hurtbox_component.gd`), new `game/scripts/debug/combat_debug.gd` (static toggles), player + boss placeholder scenes gain real hurtboxes, debug overlay syncs the combat-shape toggle, new `tools/validation/combat_check.gd`, smoke check list extended.
+**Non-goals:** health components (boss health is Sprint 10), the player's actual attack hitbox (Sprint 05), hit reactions/stagger (Sprint 13), block interaction (Sprint 08/09).
+
+**Decisions:**
+
+- **D-013:** Physics layer plan — layer 1 world, 2 player body, 3 boss body, 4 player_hurtbox, 5 boss_hurtbox (named in `project.godot`). Hitboxes carry no layer and mask only the opposite faction's hurtbox layer; a code-side faction check remains as defense-in-depth ("invalid self-hits are ignored" holds even under misconfiguration).
+- **D-014:** `DamageEvent` (RefCounted) is the only sanctioned way damage intent crosses actors: `source`, `amount`, `stagger_damage`, `knockback`, `hit_type` (NORMAL/HEAVY/SPECIAL per the docs' attack categories), `attack_id`, `status_effect` (placeholder field, no behavior). Hitboxes create events; hurtboxes resolve them and emit `damaged`/`damage_blocked` — receivers stay separate from attackers (guide §6).
+- **D-015:** Immunity is receiver-side: a hurtbox walks its owner chain and calls `is_invulnerable()` when the actor defines it. This wires Sprint 03's dodge i-frames into real damage prevention — verified in this sprint's check.
+- **D-016:** Debug visualization uses a static `CombatDebug` toggle (no autoload, safe in `-s` headless scripts). F1 debug mode now toggles the overlay and combat shapes (red = active hitbox, green = hurtbox) together.
+- **D-017 (revises D-005):** gdUnit4 integration deferred to Sprint 10 (boss state machines — first large pure-logic surface). Rationale: the SceneTree runtime checks are deterministic, headless, and CI-shaped; the addon will be integrated once, deliberately, with version compatibility validated. flagged for the user to veto.
+
+**Roadmap checklist coverage:** player-faction hit damages test target · same-faction hits ignored (layer + code filter) · two overlapping hitboxes deliver exactly one event each per activation · debug mode shows active areas · dodge i-frames block a hit → all in `combat_check.gd`.
+
+---
+
 ## 004 · 2026-09-28 · Dodge (Sprint 03)
 
 **Goal:** Add fast, committed dodge movement — a repositioning/escape tool constrained by commitment so input mashing can never become permanent invulnerability.
