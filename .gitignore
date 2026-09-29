@@ -1,0 +1,18 @@
+# Godot 4
+.godot/
+/android/
+export.cfg
+
+# Blender source backups (auto-saved .blend1/.blend2 are never committed)
+*.blend1
+*.blend2
+
+# Generated
+*.translation
+*.tmp
+*.log
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+Desktop.ini
