@@ -24,6 +24,44 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** player-faction hit damages test target · same-faction hits ignored (layer + code filter) · two overlapping hitboxes deliver exactly one event each per activation · debug mode shows active areas · dodge i-frames block a hit → all in `combat_check.gd`.
 
+**Implemented:**
+
+- `combat_types.gd` — `Faction`, `HitType`, layer/mask mapping helpers.
+- `damage_event.gd` — structured payload per D-014.
+- `hurtbox_component.gd` — passive receiver, immunity check up the owner chain (D-015), `damaged`/`damage_blocked` signals, green debug shape.
+- `hitbox_component.gd` — active-window attacker: masks opposing faction, dedups one hit per target per activation via both `area_entered` and a per-tick sweep, red debug shape visible only while active.
+- `combat_debug.gd` — static toggle; F1 debug mode = overlay + combat shapes together.
+- `player.tscn`/`boss_placeholder.tscn` — real hurtboxes (capsule, faction PLAYER/BOSS); `project.godot` names the five physics layers.
+- `tools/validation/combat_check.gd` — runtime sandbox asserting the full checklist; smoke check extended to the new combat scripts.
+
+**Files changed:** the above plus `debug_overlay.gd`, `smoke_check.gd`, `.uid` sidecars.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 11 resources, main scene instantiates)
+- [x] Combat check — PASS:
+  - player-faction hitbox → boss-faction target: exactly one event with the full payload intact (amount, stagger, knockback, attack_id, source, hit_type)
+  - second activation hits exactly once again (dedup resets per activation)
+  - same-faction hurtbox overlapped by the hitbox: zero events (physics layer + code filter)
+  - two overlapping hitboxes: exactly 2 events, combined damage 13.0
+  - invulnerable owner: 0 damaged + reported via `damage_blocked`; toggling off: exactly 1 event — Sprint 03 dodge i-frames are now combat-wired
+  - debug shapes: hitbox shape visible only while active; hurtbox shape present
+- [x] Movement check regression — PASS (travel 4.73 m, dots 1.00, drift 0.000)
+- [x] Dodge check regression — PASS (peak 12.0 m/s, spam commitment held, boss slide 3.23 m)
+- [x] Main scene 180 frames headless — zero errors
+- [ ] Visual check of the red/green shapes and controller feel — deferred to the user's playtest session (F1 toggles debug mode).
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No receivers yet: nothing consumes `damaged` (HealthComponent arrives with the boss framework, Sprint 10; player HP later).
+- The player has no attack hitbox yet — Sprint 05 (Light Attack) creates the first real one and consumes this layer.
+- Hit feedback (VFX/sound) is Sprint 15.
+
+**Next:** Sprint 05 — Light Attack: attack state with startup/active/recovery consuming a player-faction HitboxComponent, first damage numbers, hit reaction hook. Plan+scope first.
+
 ---
 
 ## 004 · 2026-09-28 · Dodge (Sprint 03)
