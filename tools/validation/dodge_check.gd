@@ -9,7 +9,7 @@ extends SceneTree
 const SETTLE_FRAMES := 30
 const TRAVEL_POLL_FRAMES := 25     # travel is 15 ticks at 60 Hz
 const SPAM_ITERATIONS := 110       # 2 ticks per iteration ≈ 3.7 s of mashing
-const COMMITMENT_MIN_TICKS := 70   # travel (15) + recovery (60) = 75 nominal
+const COMMITMENT_MIN_TICKS := 22   # travel (15) + recovery (9) = 24 nominal (D-018)
 
 func _initialize() -> void:
 	_run()

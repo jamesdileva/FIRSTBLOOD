@@ -138,8 +138,10 @@ reusable.
 It is deliberately constrained by commitment:
 
 -   The player must finish the current dodge.
--   A short finishing/recovery vulnerability, initially around one
-    second, prevents continuous invulnerability.
+-   A short finishing/recovery vulnerability (playtest-tuned to roughly
+    0.1--0.2 s) prevents continuous invulnerability. Recovery does not
+    lock movement: walking/running resumes immediately, and only
+    re-dodging is blocked until recovery completes.
 -   Dodge should function as both an escape and positioning tool.
 
 ## 7. Hit, Stagger, and Boss Breakout

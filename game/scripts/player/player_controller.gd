@@ -24,8 +24,9 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY }
 @export var dodge_duration := 0.25
 ## Invulnerability lives only inside this window at the start of travel (D-012).
 @export var dodge_invulnerability := 0.15
-## Committed recovery: no input, no re-dodge, always vulnerable (D-012).
-@export var dodge_recovery := 1.0
+## D-018 (playtest): short vulnerable window; movement stays live, only
+## re-dodging is blocked until it completes.
+@export var dodge_recovery := 0.15
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _dodge_direction := Vector3.ZERO
@@ -73,6 +74,10 @@ func _neutral_physics(delta: float) -> void:
 	if Input.is_action_just_pressed("dodge") and is_on_floor():
 		_start_dodge(input_dir)
 		return
+	_neutral_movement(delta, input_dir)
+	_update_movement_state()
+
+func _neutral_movement(delta: float, input_dir: Vector2) -> void:
 	var direction := _camera_relative_direction(input_dir)
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
@@ -82,7 +87,6 @@ func _neutral_physics(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, direction.x * movement_speed, rate * delta)
 	velocity.z = move_toward(velocity.z, direction.z * movement_speed, rate * delta)
 	move_and_slide()
-	_update_movement_state()
 
 func _start_dodge(input_dir: Vector2) -> void:
 	var direction := _camera_relative_direction(input_dir)
@@ -111,14 +115,12 @@ func _dodge_physics(delta: float) -> void:
 		state = State.DODGE_RECOVERY
 
 func _dodge_recovery_physics(delta: float) -> void:
-	# Committed recovery: input is ignored, the player stands/vulnerable.
-	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
-	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
-	if not is_on_floor():
-		velocity.y -= _gravity * delta
-	move_and_slide()
+	# D-018: a short vulnerable window, not a movement lock — input moves the
+	# player normally; only a new dodge is blocked until the window completes.
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	_neutral_movement(delta, input_dir)
 	if state_elapsed >= dodge_recovery:
-		state = State.IDLE
+		_update_movement_state()
 
 func _update_movement_state() -> void:
 	if not is_on_floor():
