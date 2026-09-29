@@ -29,8 +29,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _update_text() -> void:
 	var lines: PackedStringArray = ["FPS: %d" % roundi(_fps)]
-	var player := get_tree().get_first_node_in_group("player") as CharacterBody3D
+	# Untyped on purpose: reads dynamic members the player script adds.
+	var player := get_tree().get_first_node_in_group("player")
 	if player != null:
+		lines.append("Player state: %s" % player.State.keys()[player.state])
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])
