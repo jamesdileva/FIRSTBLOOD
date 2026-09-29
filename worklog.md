@@ -7,6 +7,28 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 003 · 2026-09-28 · Player Controller (Sprint 02)
+
+**Goal:** Make the gladiator's movement feel responsive and controlled before any combat exists — acceleration/deceleration, rotation toward movement, gravity, arena-boundary handling, and basic animation hooks.
+
+**Scope:** `game/scripts/player/player_controller.gd` (rewrite of the Sprint 01 raw movement), `game/scripts/debug/debug_overlay.gd` (show player state), new `tools/validation/movement_check.gd` (headless automated verification of the roadmap's testable checklist items).
+**Non-goals:** dodge (Sprint 03), attacks, real animation assets (art pass, Sprint 12/18 — hooks only), real Colosseum walls (Sprint 17), camera feel tuning beyond Sprint 01's rig.
+
+**Roadmap checklist coverage:**
+
+- "Movement is responsive" / "Player does not slide uncontrollably" / "Player cannot leave the arena" / "Controller input is consistent" → automated via `movement_check.gd` (moves in the camera-relative direction at target speed, stops without drift after input release, faces movement direction, arena clamp holds) + manual controller feel check by user.
+- "Basic animation hooks" → player exposes a `State` enum (IDLE/MOVE/AIRBORNE), `state_changed` signal, and a `play_animation()` helper that no-ops until an AnimationPlayer with matching animations exists.
+
+**Decisions:**
+
+- **D-007:** Initial tuning values (starting points, tuned further in playtesting/Sprint 16): `movement_speed = 5.0`, `acceleration = 40.0`, `deceleration = 50.0` (brakes harder than it accelerates — no drift after input release), `turn_speed = 12.0` (exponential lerp toward movement yaw). All are `@export`s, not hard-coded.
+- **D-008:** Animation hook approach: state enum + signal + `play_animation(name)` guard helper; a subtle code-driven "lean into movement" placeholder on the Visual node gives visible responsiveness without authored animations. Real animation naming follows guide §16 (`idle`, `run`, …).
+- **D-009:** Facing rotates the player root yaw (`lerp_angle`); collision capsule is symmetric so gameplay is unaffected, and camera-relative movement is independent of body facing.
+
+**Environment:** Remote `origin` added — https://github.com/jamesdileva/FIRSTBLOOD (public, created via `gh`). All Sprint 00/01 commits pushed. Push now happens every verified commit per the sprint loop.
+
+---
+
 ## 002 · 2026-09-28 · Godot / Rendering Spike (Sprint 01)
 
 **Goal:** Prove the technical foundation — a launchable Godot project with placeholder arena, player and boss placeholders, basic third-person camera, controller input map, and debug overlay.
