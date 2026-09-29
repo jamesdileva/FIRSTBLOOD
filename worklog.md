@@ -7,6 +7,36 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 006 · 2026-09-28 · Playtest Results + Dodge Recovery Retune (D-018)
+
+**Goal:** Record the user's first controller playtest and apply its one fix: dodge recovery must never plant the player stationary.
+
+**Playtest results (user, controller):**
+
+- Movement + camera: **good, verified, working** — closes the pending manual checks from Sprints 01–03.
+- Arena bounds: worked as intended.
+- F1 debug mode: works.
+- Dodge: recovery planted the player stationary for the full 1.0 s — rejected. Wanted: ~0.1–0.2 s of commitment, never stationary, walk/run resumes immediately, only re-dodging blocked (anti-infinite-dodge).
+
+**Decision:**
+
+- **D-018 (revises the architecture §6 tuning target of "around one second"):** `dodge_recovery = 0.15 s`. Recovery is a short vulnerable window that does **not** lock movement — input moves the player normally during it; the only blocked action is starting another dodge until the window completes (travel 0.25 s + recovery 0.15 s ≈ 0.4 s minimum between dodge starts, so i-frames can never chain into permanent invulnerability). Architecture §6 is updated to match the decided design.
+
+**Scope:** `player_controller.gd` (recovery branch runs normal movement, no dodge trigger), `docs/architecture.md` §6 (doc maintenance per Definition of Done), `tools/validation/dodge_check.gd` (commitment constant updated).
+**Non-goals:** attack/dodge transition rules (Sprint 09), input buffering (Sprint 06).
+
+**Verification (updated `dodge_check.gd`):**
+
+- [x] Commitment held under input spam: re-dodge gaps ≥ 22 ticks (24-tick nominal commitment), no i-frame chaining
+- [x] Recovery observed and vulnerable; i-frames still bounded to travel
+- [x] Movement + dodge regressions PASS; main scene 180 frames clean
+
+Result: **PASS**.
+
+---
+
+---
+
 ## 005 · 2026-09-28 · Hitbox / Hurtbox Foundation (Sprint 04)
 
 **Goal:** Create the reusable combat collision layer — hitbox components deliver structured damage events to hurtbox components, with team filtering and debug visualization — so every later attack (player, boss, magic) reuses one system.
