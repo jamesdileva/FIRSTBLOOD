@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/player/player_controller.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/combat/hurtbox_component.gd" id="2"]
+[ext_resource type="Script" path="res://game/scripts/combat/hitbox_component.gd" id="3"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.4
@@ -21,6 +22,9 @@ height = 0.3
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_hurtbox"]
 radius = 0.45
 height = 1.8
+
+[sub_resource type="BoxShape3D" id="BoxShape_attack"]
+size = Vector3(1.4, 1.8, 1.4)
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1")
@@ -48,3 +52,14 @@ faction = 0
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
 shape = SubResource("CapsuleShape_hurtbox")
+
+[node name="AttackHitbox" type="Area3D" parent="."]
+position = Vector3(0, 1, -1)
+script = ExtResource("3")
+faction = 0
+damage = 10.0
+stagger_damage = 5.0
+attack_id = &"light_01"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackHitbox"]
+shape = SubResource("BoxShape_attack")

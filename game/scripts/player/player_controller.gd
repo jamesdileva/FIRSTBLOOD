@@ -1,14 +1,14 @@
 extends CharacterBody3D
-## Sprint 03: responsive third-person movement plus the committed dodge.
-## Movement: camera-relative direction, tuned acceleration/deceleration,
-## rotation toward movement, gravity, temporary arena-bound clamp.
-## Dodge (architecture §6, guide §8): authored movement state — travel burst,
-## precisely bounded i-frames, committed recovery. Not a teleport, not a speed
-## multiplier on walk input.
+## Player controller: movement (Sprint 02), committed dodge (Sprint 03),
+## light attack (Sprint 05). Combat intent crosses actors only via
+## DamageEvents carried by Hitbox/HurtboxComponents (guide §6).
 
 signal state_changed(new_state: State)
+## Hit-reaction hook (D-021): hitstop, VFX, and target reactions hang from
+## this in Sprints 13/15 without touching the attack state machine.
+signal attack_connected(event: DamageEvent, target: HurtboxComponent)
 
-enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY }
+enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
 
 @export var movement_speed := 5.0
 @export var acceleration := 40.0
@@ -28,11 +28,18 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY }
 ## re-dodging is blocked until it completes.
 @export var dodge_recovery := 0.15
 
+@export_group("Attack")
+## Timing only (D-019) — the payload lives on the AttackHitbox node.
+@export var attack_startup := 0.10
+@export var attack_active := 0.12
+@export var attack_recovery := 0.25
+
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _dodge_direction := Vector3.ZERO
 var state_elapsed := 0.0
 
 @onready var _visual: Node3D = $Visual
+@onready var _attack_hitbox: HitboxComponent = $AttackHitbox
 
 var state: State = State.IDLE:
 	set(value):
@@ -52,6 +59,14 @@ var state: State = State.IDLE:
 				play_animation("dodge_start")
 			State.DODGE_RECOVERY:
 				play_animation("dodge_recover")
+			State.ATTACK:
+				play_animation("attack_01")
+
+func _ready() -> void:
+	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
+
+func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void:
+	attack_connected.emit(event, target)
 
 func _physics_process(delta: float) -> void:
 	state_elapsed += delta
@@ -60,6 +75,8 @@ func _physics_process(delta: float) -> void:
 			_dodge_physics(delta)
 		State.DODGE_RECOVERY:
 			_dodge_recovery_physics(delta)
+		State.ATTACK:
+			_attack_physics(delta)
 		_:
 			_neutral_physics(delta)
 	_update_facing(delta)
@@ -71,9 +88,13 @@ func is_invulnerable() -> bool:
 
 func _neutral_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	if Input.is_action_just_pressed("dodge") and is_on_floor():
-		_start_dodge(input_dir)
-		return
+	if is_on_floor():
+		if Input.is_action_just_pressed("dodge"):
+			_start_dodge(input_dir)
+			return
+		if Input.is_action_just_pressed("attack"):
+			_start_attack()
+			return
 	_neutral_movement(delta, input_dir)
 	_update_movement_state()
 
@@ -121,6 +142,24 @@ func _dodge_recovery_physics(delta: float) -> void:
 	_neutral_movement(delta, input_dir)
 	if state_elapsed >= dodge_recovery:
 		_update_movement_state()
+
+func _start_attack() -> void:
+	state = State.ATTACK
+
+func _attack_physics(delta: float) -> void:
+	# Rooted, committed (D-020): movement input ignored, hitbox live only
+	# during [startup, startup + active).
+	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	if not is_on_floor():
+		velocity.y -= _gravity * delta
+	move_and_slide()
+	var active_started := state_elapsed >= attack_startup
+	var active_ended := state_elapsed >= attack_startup + attack_active
+	_attack_hitbox.set_active(active_started and not active_ended)
+	if state_elapsed >= attack_startup + attack_active + attack_recovery:
+		_attack_hitbox.set_active(false)
+		state = State.IDLE
 
 func _update_movement_state() -> void:
 	if not is_on_floor():
