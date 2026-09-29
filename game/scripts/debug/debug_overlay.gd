@@ -11,8 +11,10 @@ var _accum := 0.0
 @onready var _label: Label = $Label
 
 func _ready() -> void:
-	# The overlay is meaningless without a display.
+	# The overlay is meaningless without a display. Debug mode (D-016) bundles
+	# the overlay and the combat shape visualization together.
 	visible = DisplayServer.get_name() != "headless"
+	CombatDebug.combat_shapes_visible = visible
 
 func _process(delta: float) -> void:
 	_frames += 1
@@ -26,6 +28,7 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_toggle"):
 		visible = not visible
+		CombatDebug.combat_shapes_visible = visible
 
 func _update_text() -> void:
 	var lines: PackedStringArray = ["FPS: %d" % roundi(_fps)]

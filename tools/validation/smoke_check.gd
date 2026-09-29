@@ -17,6 +17,11 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/player/player_controller.gd",
 	"res://game/scripts/camera/third_person_camera.gd",
 	"res://game/scripts/debug/debug_overlay.gd",
+	"res://game/scripts/combat/combat_types.gd",
+	"res://game/scripts/combat/damage_event.gd",
+	"res://game/scripts/combat/hitbox_component.gd",
+	"res://game/scripts/combat/hurtbox_component.gd",
+	"res://game/scripts/debug/combat_debug.gd",
 ]
 
 func _initialize() -> void:

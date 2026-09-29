@@ -126,3 +126,11 @@ camera_down={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
+3d_physics/layer_3="boss"
+3d_physics/layer_4="player_hurtbox"
+3d_physics/layer_5="boss_hurtbox"

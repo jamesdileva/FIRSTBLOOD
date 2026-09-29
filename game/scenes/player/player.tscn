@@ -1,6 +1,7 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/player/player_controller.gd" id="1"]
+[ext_resource type="Script" path="res://game/scripts/combat/hurtbox_component.gd" id="2"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.4
@@ -16,6 +17,10 @@ albedo_color = Color(0.25, 0.5, 0.95, 1)
 [sub_resource type="SphereMesh" id="SphereMesh_facing"]
 radius = 0.15
 height = 0.3
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_hurtbox"]
+radius = 0.45
+height = 1.8
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1")
@@ -35,3 +40,11 @@ surface_material_override/0 = SubResource("Mat_player")
 position = Vector3(0, 0.9, -0.45)
 mesh = SubResource("SphereMesh_facing")
 surface_material_override/0 = SubResource("Mat_player")
+
+[node name="Hurtbox" type="Area3D" parent="."]
+position = Vector3(0, 0.9, 0)
+script = ExtResource("2")
+faction = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hurtbox"]
+shape = SubResource("CapsuleShape_hurtbox")
