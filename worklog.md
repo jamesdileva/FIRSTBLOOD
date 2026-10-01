@@ -23,6 +23,38 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** completing the combo triggers the finisher (sequence test) · cannot trigger twice accidentally (post-finisher press → light_01) · cannot trigger early (event gap ≥ light_03's full duration) · finisher resets the combo state → `combo_check.gd`; mashing payloads widened to include the finisher's 25 dmg in `attack_check.gd`.
 
+**Implemented:**
+
+- `combo_step_data.gd` — `hit_type` field (NORMAL/HEAVY/SPECIAL); `combo_data.gd` — `finisher` field.
+- `player_light_combo.tres` — `finisher_01`: 25 dmg, 15 stagger, HEAVY, 0.18/0.16/0.40; empty buffer window by design (`buffer_close < buffer_open`, commented in the resource).
+- `player_controller.gd` — `_advance_after_step()` routes chain completion into `_play_finisher()`; finisher end always resets (`_in_finisher` flag, dodge also clears it); payload push centralized in `_push_step_payload()`; `finisher_started` signal.
+- `combo_check.gd` / `attack_check.gd` — finisher-aware expectations.
+
+**Files changed:** the above (no scene changes — the finisher lives entirely in the resource).
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 14 resources)
+- [x] Combo check — PASS:
+  - completing the chain triggers the finisher: sequence light_01 → light_02 → light_03 → finisher_01
+  - cannot trigger early: finisher's hit lands ≥ 34 ticks after light_03's (full step duration in between)
+  - increased impact verified in the event: 25.0 damage, `hit_type = HEAVY`, 15.0 stagger
+  - cannot trigger twice / resets state: after the finisher, the next press is a fresh light_01
+  - mashing cycles 01 → 02 → 03 → finisher with every hit a full step apart (28–44 ticks), no deadlock
+- [x] Regressions — movement PASS, dodge PASS, combat PASS, attack PASS (6 swings, recovery respected), 180-frame run clean
+- [ ] Finisher *feel* (weight, commitment of the 0.74 s cycle) — user playtest; all values in `player_light_combo.tres`.
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No visible payoff yet: damage/stagger are event data — visible feedback arrives with the boss (Sprint 10+), hit feedback (Sprint 15), HUD (Sprint 21).
+- The stagger hook is data-only until Sprints 13/14 build StaggerComponent/breakout on top of `hit_type`/`stagger_damage`.
+- `finisher_started` has no listeners yet (Sprint 15 camera/VFX).
+
+**Next:** Phase 3 — Sprint 08 Block: block state with active window + recovery, damage reduction, normal vs heavy attack behavior. Plan+scope first.
+
 ---
 
 ## 008 · 2026-09-28 · Combo Chain (Sprint 06)
