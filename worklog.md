@@ -22,6 +22,41 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** normal attacks blocked with no damage · heavy attacks reduced, not negated · recovery leaves the player vulnerable · immediate re-block cannot bypass recovery · block cannot be held forever (active timer expires while held) → `block_check.gd`.
 
+**Implemented:**
+
+- `player_controller.gd` — three block states with the D-026 lifecycle, `_resolve_incoming_damage()` (D-027), block-speed movement multiplier (`_neutral_movement` gained a `speed_multiplier` parameter), block animation hooks (`block_start`/`block_loop`/`block_recover`), combo reset on block, input priority dodge > block > attack.
+- `debug_overlay.gd` — block timer line (active/recovery remaining).
+- `tools/validation/block_check.gd` — drives the real player with a controlled boss-faction test hitbox and asserts the full checklist plus combo reset.
+
+**Files changed:** the above plus `.uid` sidecar.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 14 resources)
+- [x] Block check — PASS:
+  - normal attack during active block: exactly 1 `hit_blocked`, zero damage taken
+  - heavy attack during active block: exactly 1 `hit_mitigated` at 20 × 0.3 = 6.0, zero taken
+  - releasing early drops into recovery; a hit during recovery is taken in full (vulnerable)
+  - holding block through recovery never re-enters the guard (no bypass)
+  - holding forever: active expires into recovery while held, then the guard re-engages — cycles with gaps, never permanent
+  - blocking mid-grace resets the chain: next swing is light_01, not light_02
+- [x] Regressions — movement PASS, dodge PASS, combat PASS, attack PASS, combo PASS, 180-frame run clean
+- [ ] Block *feel* (generosity, 2.5 s window, slow-walk speed) — user playtest; all values are exports.
+
+Result: **PASS (automated)**.
+
+**Check-harness note:** the first block_check run "hung" — it had actually passed all assertions but the PASS print dereferenced the player *after* `arena.free()` (freed-instance access killed the coroutine before `quit()`). Harness rule: capture any player exports before teardown.
+
+**Known limitations:**
+
+- Attack/dodge inputs are ignored while in any block state — the block→attack/block→dodge transition matrix is Sprint 09's entire scope.
+- Blocked normal attacks don't yet stagger the boss (no boss to stagger — Sprint 13/14 consumes `hit_blocked`'s stagger payload).
+- No block feedback (VFX/sound/controller rumble) — Sprint 15.
+- No stamina/chip damage — intentionally absent per docs.
+
+**Next:** Sprint 09 — Dodge/Block Integration: the full state-transition matrix (attack↔block↔dodge cancellation rules, priority, damage-event ordering) so no contradictory states or invulnerability holes exist. Plan+scope first.
+
 ---
 
 ## 009 · 2026-09-28 · Automatic Finisher (Sprint 07)
