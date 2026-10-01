@@ -44,27 +44,52 @@ func _run() -> void:
 
 	var combo_ids: Array[StringName] = []
 	var combo_frames: Array[int] = []
+	var combo_events: Array[DamageEvent] = []
 	boss_hurtbox.damaged.connect(func(event: DamageEvent) -> void:
 		combo_ids.append(event.attack_id)
-		combo_frames.append(Engine.get_physics_frames()))
+		combo_frames.append(Engine.get_physics_frames())
+		combo_events.append(event))
 
 	# Stand in reach of the boss, facing it (+X); yaw snapped directly.
 	await _settle_player(player, Vector3(3.0, 0.5, 0.0))
 	player.rotation.y = -PI / 2.0
 
-	# --- 1. Correct sequence: chain 1-2-3 then wrap to a fresh combo. ---
-	for _i in 4:
+	# --- 1. Chain culminates in the automatic finisher, then resets. ---
+	for _i in 3:
 		await _tap_attack()
 		await _wait(STEP_GAP_FRAMES)
-	var expected: Array[StringName] = [&"light_01", &"light_02", &"light_03", &"light_01"]
+	await _wait(50)  # finisher (0.74 s) plays out
+	var expected: Array[StringName] = [&"light_01", &"light_02", &"light_03", &"finisher_01"]
 	if combo_ids.size() != expected.size():
 		failures.append("expected %d swings, got %d (%s)" % [expected.size(), combo_ids.size(), combo_ids])
 	for i in mini(expected.size(), combo_ids.size()):
 		if combo_ids[i] != expected[i]:
 			failures.append("swing %d was %s, expected %s" % [i, combo_ids[i], expected[i]])
+	# The finisher must fire only after light_03 fully completes (no early trigger).
+	if combo_frames.size() == 4:
+		var finisher_gap: int = combo_frames[3] - combo_frames[2]
+		if finisher_gap < 34:
+			failures.append("finisher fired early (%d ticks after light_03's hit)" % finisher_gap)
+	# Increased impact (D-025): heavier payload on a HEAVY hit type.
+	if combo_events.size() == 4:
+		var finisher_event := combo_events[3]
+		if finisher_event.amount != 25.0:
+			failures.append("finisher damage wrong: %.1f (expected 25.0)" % finisher_event.amount)
+		if finisher_event.hit_type != CombatTypes.HitType.HEAVY:
+			failures.append("finisher hit_type is not HEAVY")
+		if finisher_event.stagger_damage != 15.0:
+			failures.append("finisher stagger payload wrong: %.1f" % finisher_event.stagger_damage)
+	await _combo_cooldown(player)
+	# The finisher resets the combo state — and cannot trigger twice:
+	# the next press starts a fresh light_01, never a second finisher.
+	combo_ids.clear()
+	await _tap_attack()
+	await _wait(STEP_GAP_FRAMES)
+	if combo_ids.size() != 1 or combo_ids[0] != &"light_01":
+		failures.append("finisher did not reset the combo: %s" % combo_ids)
 	await _combo_cooldown(player)
 
-	# --- 2. Mashing: buffered chaining, recovery respected, no deadlock. ---
+	# --- 2. Mashing: buffered chaining through the finisher, no deadlock. ---
 	combo_ids.clear()
 	combo_frames.clear()
 	for _i in MASH_ITERATIONS:
@@ -72,16 +97,16 @@ func _run() -> void:
 		await physics_frame
 		Input.action_release("attack")
 		await physics_frame
-	if combo_ids.size() < 6:
+	if combo_ids.size() < 4:
 		failures.append("mash produced only %d swings" % combo_ids.size())
-	var cycle: Array[StringName] = [&"light_01", &"light_02", &"light_03"]
+	var cycle: Array[StringName] = [&"light_01", &"light_02", &"light_03", &"finisher_01"]
 	for i in combo_ids.size():
-		if combo_ids[i] != cycle[i % 3]:
-			failures.append("mash swing %d was %s, expected %s" % [i, combo_ids[i], cycle[i % 3]])
+		if combo_ids[i] != cycle[i % 4]:
+			failures.append("mash swing %d was %s, expected %s" % [i, combo_ids[i], cycle[i % 4]])
 			break
 	for i in range(1, combo_frames.size()):
 		var gap: int = combo_frames[i] - combo_frames[i - 1]
-		if gap < 24 or gap > 38:
+		if gap < 24 or gap > 46:
 			failures.append("mash gap %d ticks between hits %d->%d (full recovery not respected)" % [gap, i - 1, i])
 	await _wait_until_idle(player, 60)
 	if player.state == player.State.ATTACK:
@@ -119,6 +144,7 @@ func _run() -> void:
 
 	combo_ids.clear()
 	combo_frames.clear()
+	combo_events.clear()
 	arena.free()
 
 	if failures.is_empty():

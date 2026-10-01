@@ -7,6 +7,8 @@ signal state_changed(new_state: State)
 ## Hit-reaction hook (D-021): hitstop, VFX, and target reactions hang from
 ## this in Sprints 13/15 without touching the attack state machine.
 signal attack_connected(event: DamageEvent, target: HurtboxComponent)
+## Fired when the automatic finisher begins (D-025) — camera/VFX hook.
+signal finisher_started
 
 enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
 
@@ -35,6 +37,7 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _dodge_direction := Vector3.ZERO
 var _combo_index := 0
+var _in_finisher := false
 var _buffered := false
 var _grace_left := 0.0
 var state_elapsed := 0.0
@@ -140,6 +143,7 @@ func _neutral_movement(delta: float, input_dir: Vector2) -> void:
 func _start_dodge(input_dir: Vector2) -> void:
 	# Any dodge interrupts the chain (guide §9 reset conditions).
 	_combo_index = 0
+	_in_finisher = false
 	_grace_left = 0.0
 	_buffered = false
 	var direction := _camera_relative_direction(input_dir)
@@ -176,18 +180,32 @@ func _dodge_recovery_physics(delta: float) -> void:
 		_update_movement_state()
 
 func _play_combo_step() -> void:
-	var step := _current_step()
-	# Per-step payload (D-022): the shared hitbox carries what this swing
-	# hits with; the controller carries only timing and chain flow.
-	_attack_hitbox.damage = step.damage
-	_attack_hitbox.stagger_damage = step.stagger_damage
-	_attack_hitbox.attack_id = step.attack_id
+	_push_step_payload(_current_step())
+	_in_finisher = false
 	_grace_left = 0.0
 	state = State.ATTACK
 	# Chaining into the next step while already ATTACK skips the setter's
 	# reset (same value), so restart the step clock explicitly.
 	state_elapsed = 0.0
-	play_animation(step.animation)
+	play_animation(_current_step().animation)
+
+func _play_finisher() -> void:
+	# Fires only from chain completion (D-024) — no early trigger path exists.
+	_push_step_payload(combo.finisher)
+	_in_finisher = true
+	_grace_left = 0.0
+	state = State.ATTACK
+	state_elapsed = 0.0
+	play_animation(combo.finisher.animation)
+	finisher_started.emit()
+
+func _push_step_payload(step: ComboStepData) -> void:
+	# Per-step payload (D-022): the shared hitbox carries what this swing
+	# hits with; the controller carries only timing and chain flow.
+	_attack_hitbox.damage = step.damage
+	_attack_hitbox.stagger_damage = step.stagger_damage
+	_attack_hitbox.attack_id = step.attack_id
+	_attack_hitbox.hit_type = step.hit_type
 
 func _attack_physics(delta: float) -> void:
 	var step := _current_step()
@@ -212,7 +230,12 @@ func _attack_physics(delta: float) -> void:
 
 func _advance_after_step() -> void:
 	var next := _combo_index + 1
-	if _buffered and next < combo.steps.size():
+	if _in_finisher:
+		# The finisher always ends the sequence — it cannot loop (Sprint 07).
+		_in_finisher = false
+		_combo_index = 0
+		state = State.IDLE
+	elif _buffered and next < combo.steps.size():
 		_combo_index = next
 		_play_combo_step()
 	elif next < combo.steps.size():
@@ -221,8 +244,11 @@ func _advance_after_step() -> void:
 		_combo_index = next
 		_grace_left = combo.reset_timeout
 		state = State.IDLE
+	elif combo.finisher != null:
+		# Chain completed: the automatic finisher fires with no extra input
+		# (D-024) — attack -> chain -> finisher is the core offense loop.
+		_play_finisher()
 	else:
-		# Chain completed (Sprint 07 appends the automatic finisher here).
 		_combo_index = 0
 		state = State.IDLE
 	_buffered = false
@@ -231,6 +257,8 @@ func _advance_after_step() -> void:
 func combo_debug_text() -> String:
 	if state != State.ATTACK and _grace_left <= 0.0:
 		return "-"
+	if _in_finisher:
+		return "FINISHER"
 	return "%d/%d%s" % [_combo_index + 1, combo.steps.size(), " buffered" if _buffered else ""]
 
 func _update_movement_state() -> void:

@@ -110,8 +110,9 @@ func _run() -> void:
 		if gap < SPAM_MIN_GAP:
 			failures.append("re-attack landed after only %d ticks (recovery bypassed)" % gap)
 	for event in events:
-		# Mashing chains through the combo, so per-step damage values apply.
-		if not [10.0, 12.0, 14.0].has(event.amount):
+		# Mashing chains through the combo into the finisher, so all per-step
+		# and finisher damage values apply.
+		if not [10.0, 12.0, 14.0, 25.0].has(event.amount):
 			failures.append("spam swing payload wrong: %.1f" % event.amount)
 
 	# --- 4. Hitbox is inert outside ATTACK. ---

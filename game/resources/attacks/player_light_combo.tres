@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ComboData" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="ComboData" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/combat/combo_data.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/combat/combo_step_data.gd" id="2"]
@@ -39,7 +39,23 @@ recovery = 0.3
 buffer_open = 0.05
 buffer_close = 0.44
 
+; The finisher fires automatically after light_03 (D-024). Its buffer window
+; is empty by design (close < open): no press is buffered during a finisher.
+[sub_resource type="Resource" id="Resource_finisher"]
+script = ExtResource("2")
+attack_id = &"finisher_01"
+animation = &"finisher_01"
+damage = 25.0
+stagger_damage = 15.0
+hit_type = 1
+startup = 0.18
+active = 0.16
+recovery = 0.4
+buffer_open = 0.05
+buffer_close = 0.0
+
 [resource]
 script = ExtResource("1")
 steps = [SubResource("Resource_step1"), SubResource("Resource_step2"), SubResource("Resource_step3")]
+finisher = SubResource("Resource_finisher")
 reset_timeout = 0.35

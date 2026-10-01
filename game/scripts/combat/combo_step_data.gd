@@ -7,6 +7,9 @@ extends Resource
 @export var animation := StringName("attack_01")
 @export var damage := 10.0
 @export var stagger_damage := 5.0
+## Combat category of this swing (guide §6/§9): the finisher is HEAVY, which
+## is the data hook the Sprint 13 stagger system will consume.
+@export var hit_type: CombatTypes.HitType = CombatTypes.HitType.NORMAL
 @export var startup := 0.10
 @export var active := 0.12
 @export var recovery := 0.25
