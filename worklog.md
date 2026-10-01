@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 010 · 2026-09-28 · Block (Sprint 08)
+
+**Goal:** Generous but non-infinite block — a held guard with a fixed active window, a vulnerable recovery that re-blocking cannot bypass, and per-hit-type damage resolution.
+
+**Scope:** `player_controller.gd` (BLOCK_STARTUP/BLOCK_ACTIVE/BLOCK_RECOVERY states, block timers, movement restriction, the player's damage-resolution layer), `debug_overlay.gd` (block timer), new `tools/validation/block_check.gd`.
+**Non-goals:** block→attack/dodge cancellation rules (Sprint 09 is exactly that matrix), chip-damage resources/stamina, frame-perfect parry (docs: "perfect timing may be added later" — post-MVP), boss stagger from blocked hits (Sprint 13/14 consumes the hook), authored animations.
+
+**Decisions:**
+
+- **D-026 (block model):** three states per guide §7 — `BLOCK_STARTUP` 0.10 s (guard coming up; hits land normally) → `BLOCK_ACTIVE` max 2.5 s (doc target 2–3 s) → `BLOCK_RECOVERY` 0.75 s (vulnerable). Releasing early drops straight into recovery — tap-spamming can never reach a perpetual block. Holding through recovery re-engages the guard (generous cycle), but only after the full recovery: "immediate re-block cannot bypass recovery".
+- **D-027 (damage-resolution layer):** the player connects its own hurtbox's raw `damaged` signal and re-emits **resolved** results: `hit_blocked` (NORMAL hits during active block — fully negated), `hit_mitigated` (HEAVY/SPECIAL during active block — amount × `block_heavy_multiplier` 0.3), `hit_taken` (everything else). The future HealthComponent (Sprint 10) consumes **only** the resolved signals, never the raw hurtbox. Blocked events keep their stagger payload — the Sprint 13/14 hook for "a successful normal block can leave the boss staggered".
+- **D-028:** blocking resets the combo chain (defensive state, guide §9). Movement: slow walk (0.4×) during startup/active, normal movement during recovery (D-018 spirit — never planted). Trigger from grounded neutral only; priority when simultaneous: dodge > block > attack. Attack/dodge out of block is Sprint 09's matrix.
+
+**Roadmap checklist coverage:** normal attacks blocked with no damage · heavy attacks reduced, not negated · recovery leaves the player vulnerable · immediate re-block cannot bypass recovery · block cannot be held forever (active timer expires while held) → `block_check.gd`.
+
+---
+
 ## 009 · 2026-09-28 · Automatic Finisher (Sprint 07)
 
 **Goal:** Complete the core offense loop — attack → chain → automatic finisher — with increased impact and the boss-stagger interaction hook, no extra button.
