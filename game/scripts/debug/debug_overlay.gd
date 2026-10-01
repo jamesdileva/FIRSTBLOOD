@@ -44,6 +44,9 @@ func _update_text() -> void:
 	var boss := get_tree().get_first_node_in_group("boss") as Node3D
 	if player != null and boss != null:
 		lines.append("Boss distance: %.1f m" % player.global_position.distance_to(boss.global_position))
+	if player != null and (player.state == player.State.BLOCK_ACTIVE or player.state == player.State.BLOCK_RECOVERY):
+		var block_total: float = player.block_active if player.state == player.State.BLOCK_ACTIVE else player.block_recovery
+		lines.append("Block timer: %.2f s left" % maxf(block_total - player.state_elapsed, 0.0))
 	if player != null and (player.state == player.State.DODGE or player.state == player.State.DODGE_RECOVERY):
 		var total: float = player.dodge_duration if player.state == player.State.DODGE else player.dodge_recovery
 		lines.append("Dodge timer: %.2f s left" % maxf(total - player.state_elapsed, 0.0))

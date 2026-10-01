@@ -10,7 +10,13 @@ signal attack_connected(event: DamageEvent, target: HurtboxComponent)
 ## Fired when the automatic finisher begins (D-025) — camera/VFX hook.
 signal finisher_started
 
-enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
+## Resolved incoming-damage signals (D-027). HealthComponent (Sprint 10)
+## consumes these — never the raw hurtbox signal.
+signal hit_blocked(event: DamageEvent)
+signal hit_mitigated(event: DamageEvent)
+signal hit_taken(event: DamageEvent)
+
+enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK, BLOCK_STARTUP, BLOCK_ACTIVE, BLOCK_RECOVERY }
 
 @export var movement_speed := 5.0
 @export var acceleration := 40.0
@@ -34,6 +40,18 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
 ## Data-driven chain (D-022): per-step timing, payload, and buffer windows.
 @export var combo: ComboData
 
+@export_group("Block")
+## Guard coming up — hits during startup land normally (D-026).
+@export var block_startup := 0.10
+## Maximum active-guard time; expiry drops into recovery even while held.
+@export var block_active := 2.5
+## Vulnerable window; re-blocking cannot bypass it (D-026).
+@export var block_recovery := 0.75
+## Movement multiplier while the guard is up (startup/active).
+@export var block_speed_multiplier := 0.4
+## HEAVY/SPECIAL hits during active block keep this fraction of their damage.
+@export var block_heavy_multiplier := 0.3
+
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _dodge_direction := Vector3.ZERO
 var _combo_index := 0
@@ -44,6 +62,7 @@ var state_elapsed := 0.0
 
 @onready var _visual: Node3D = $Visual
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
+@onready var _hurtbox: HurtboxComponent = $Hurtbox
 
 var state: State = State.IDLE:
 	set(value):
@@ -63,6 +82,12 @@ var state: State = State.IDLE:
 				play_animation("dodge_start")
 			State.DODGE_RECOVERY:
 				play_animation("dodge_recover")
+			State.BLOCK_STARTUP:
+				play_animation("block_start")
+			State.BLOCK_ACTIVE:
+				play_animation("block_loop")
+			State.BLOCK_RECOVERY:
+				play_animation("block_recover")
 			# ATTACK is animated by _play_combo_step: the swing's animation
 			# comes from the combo step data, and chaining re-enters ATTACK
 			# without a state change.
@@ -70,6 +95,7 @@ var state: State = State.IDLE:
 func _ready() -> void:
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
+	_hurtbox.damaged.connect(_resolve_incoming_damage)
 
 ## Never soft-lock on missing data: fall back to a single swing.
 func _ensure_combo() -> void:
@@ -97,6 +123,12 @@ func _physics_process(delta: float) -> void:
 			_dodge_recovery_physics(delta)
 		State.ATTACK:
 			_attack_physics(delta)
+		State.BLOCK_STARTUP:
+			_block_startup_physics(delta)
+		State.BLOCK_ACTIVE:
+			_block_physics(delta)
+		State.BLOCK_RECOVERY:
+			_block_recovery_physics(delta)
 		_:
 			_neutral_physics(delta)
 	_update_facing(delta)
@@ -106,11 +138,27 @@ func _physics_process(delta: float) -> void:
 func is_invulnerable() -> bool:
 	return state == State.DODGE and state_elapsed < dodge_invulnerability
 
+## Damage resolution (D-027): routes raw hurtbox hits into the signals the
+## rest of the game consumes. Active block negates NORMAL hits and reduces
+## HEAVY/SPECIAL ones; startup/recovery leave the player fully vulnerable.
+func _resolve_incoming_damage(event: DamageEvent) -> void:
+	if state == State.BLOCK_ACTIVE:
+		if event.hit_type == CombatTypes.HitType.NORMAL:
+			hit_blocked.emit(event)
+			return
+		event.amount *= block_heavy_multiplier
+		hit_mitigated.emit(event)
+		return
+	hit_taken.emit(event)
+
 func _neutral_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	if is_on_floor():
 		if Input.is_action_just_pressed("dodge"):
 			_start_dodge(input_dir)
+			return
+		if Input.is_action_just_pressed("block"):
+			_start_block()
 			return
 		if Input.is_action_just_pressed("attack"):
 			_play_combo_step()
@@ -118,6 +166,40 @@ func _neutral_physics(delta: float) -> void:
 	_tick_combo_grace(delta)
 	_neutral_movement(delta, input_dir)
 	_update_movement_state()
+
+func _start_block() -> void:
+	# Blocking is a defensive state: it resets the combo chain (guide §9).
+	_combo_index = 0
+	_in_finisher = false
+	_grace_left = 0.0
+	_buffered = false
+	state = State.BLOCK_STARTUP
+
+func _block_startup_physics(delta: float) -> void:
+	# Guard coming up: slow walk, but hits land normally (D-026).
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	_neutral_movement(delta, input_dir, block_speed_multiplier)
+	if state_elapsed >= block_startup:
+		state = State.BLOCK_ACTIVE
+
+func _block_physics(delta: float) -> void:
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	_neutral_movement(delta, input_dir, block_speed_multiplier)
+	# Releasing early is a commitment too — the guard drops into recovery,
+	# so tap-spamming can never produce a perpetual block (D-026).
+	if state_elapsed >= block_active or not Input.is_action_pressed("block"):
+		state = State.BLOCK_RECOVERY
+
+func _block_recovery_physics(delta: float) -> void:
+	# Vulnerable window: movement stays live (D-018 spirit) but the guard
+	# cannot come back up until the recovery completes (D-026).
+	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	_neutral_movement(delta, input_dir)
+	if state_elapsed >= block_recovery:
+		if Input.is_action_pressed("block"):
+			_start_block()
+		else:
+			_update_movement_state()
 
 ## A step that ended without buffered input keeps the chain alive briefly;
 ## letting the grace expire resets the combo to its first step (D-023).
@@ -129,15 +211,16 @@ func _tick_combo_grace(delta: float) -> void:
 		_grace_left = 0.0
 		_combo_index = 0
 
-func _neutral_movement(delta: float, input_dir: Vector2) -> void:
+func _neutral_movement(delta: float, input_dir: Vector2, speed_multiplier := 1.0) -> void:
 	var direction := _camera_relative_direction(input_dir)
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	# Brake harder than we accelerate so releasing input stops the player on a
 	# dime instead of sliding (roadmap: "does not slide uncontrollably").
+	var speed := movement_speed * speed_multiplier
 	var rate := acceleration if direction != Vector3.ZERO else deceleration
-	velocity.x = move_toward(velocity.x, direction.x * movement_speed, rate * delta)
-	velocity.z = move_toward(velocity.z, direction.z * movement_speed, rate * delta)
+	velocity.x = move_toward(velocity.x, direction.x * speed, rate * delta)
+	velocity.z = move_toward(velocity.z, direction.z * speed, rate * delta)
 	move_and_slide()
 
 func _start_dodge(input_dir: Vector2) -> void:
