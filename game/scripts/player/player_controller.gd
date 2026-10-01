@@ -1,6 +1,6 @@
 extends CharacterBody3D
 ## Player controller: movement (Sprint 02), committed dodge (Sprint 03),
-## light attack (Sprint 05). Combat intent crosses actors only via
+## light combo chain (Sprint 06). Combat intent crosses actors only via
 ## DamageEvents carried by Hitbox/HurtboxComponents (guide §6).
 
 signal state_changed(new_state: State)
@@ -28,14 +28,15 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK }
 ## re-dodging is blocked until it completes.
 @export var dodge_recovery := 0.15
 
-@export_group("Attack")
-## Timing only (D-019) — the payload lives on the AttackHitbox node.
-@export var attack_startup := 0.10
-@export var attack_active := 0.12
-@export var attack_recovery := 0.25
+@export_group("Combo")
+## Data-driven chain (D-022): per-step timing, payload, and buffer windows.
+@export var combo: ComboData
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _dodge_direction := Vector3.ZERO
+var _combo_index := 0
+var _buffered := false
+var _grace_left := 0.0
 var state_elapsed := 0.0
 
 @onready var _visual: Node3D = $Visual
@@ -59,11 +60,27 @@ var state: State = State.IDLE:
 				play_animation("dodge_start")
 			State.DODGE_RECOVERY:
 				play_animation("dodge_recover")
-			State.ATTACK:
-				play_animation("attack_01")
+			# ATTACK is animated by _play_combo_step: the swing's animation
+			# comes from the combo step data, and chaining re-enters ATTACK
+			# without a state change.
 
 func _ready() -> void:
+	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
+
+## Never soft-lock on missing data: fall back to a single swing.
+func _ensure_combo() -> void:
+	if combo != null and not combo.steps.is_empty():
+		return
+	combo = ComboData.new()
+	var step := ComboStepData.new()
+	step.attack_id = &"light_01"
+	step.animation = &"attack_01"
+	combo.steps.append(step)
+	push_warning("ComboData missing — using fallback single-step combo.")
+
+func _current_step() -> ComboStepData:
+	return combo.steps[_combo_index]
 
 func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void:
 	attack_connected.emit(event, target)
@@ -93,10 +110,21 @@ func _neutral_physics(delta: float) -> void:
 			_start_dodge(input_dir)
 			return
 		if Input.is_action_just_pressed("attack"):
-			_start_attack()
+			_play_combo_step()
 			return
+	_tick_combo_grace(delta)
 	_neutral_movement(delta, input_dir)
 	_update_movement_state()
+
+## A step that ended without buffered input keeps the chain alive briefly;
+## letting the grace expire resets the combo to its first step (D-023).
+func _tick_combo_grace(delta: float) -> void:
+	if _grace_left <= 0.0:
+		return
+	_grace_left -= delta
+	if _grace_left <= 0.0:
+		_grace_left = 0.0
+		_combo_index = 0
 
 func _neutral_movement(delta: float, input_dir: Vector2) -> void:
 	var direction := _camera_relative_direction(input_dir)
@@ -110,6 +138,10 @@ func _neutral_movement(delta: float, input_dir: Vector2) -> void:
 	move_and_slide()
 
 func _start_dodge(input_dir: Vector2) -> void:
+	# Any dodge interrupts the chain (guide §9 reset conditions).
+	_combo_index = 0
+	_grace_left = 0.0
+	_buffered = false
 	var direction := _camera_relative_direction(input_dir)
 	if direction == Vector3.ZERO:
 		direction = _backward_direction()
@@ -143,10 +175,22 @@ func _dodge_recovery_physics(delta: float) -> void:
 	if state_elapsed >= dodge_recovery:
 		_update_movement_state()
 
-func _start_attack() -> void:
+func _play_combo_step() -> void:
+	var step := _current_step()
+	# Per-step payload (D-022): the shared hitbox carries what this swing
+	# hits with; the controller carries only timing and chain flow.
+	_attack_hitbox.damage = step.damage
+	_attack_hitbox.stagger_damage = step.stagger_damage
+	_attack_hitbox.attack_id = step.attack_id
+	_grace_left = 0.0
 	state = State.ATTACK
+	# Chaining into the next step while already ATTACK skips the setter's
+	# reset (same value), so restart the step clock explicitly.
+	state_elapsed = 0.0
+	play_animation(step.animation)
 
 func _attack_physics(delta: float) -> void:
+	var step := _current_step()
 	# Rooted, committed (D-020): movement input ignored, hitbox live only
 	# during [startup, startup + active).
 	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
@@ -154,12 +198,40 @@ func _attack_physics(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	move_and_slide()
-	var active_started := state_elapsed >= attack_startup
-	var active_ended := state_elapsed >= attack_startup + attack_active
+	if not _buffered \
+			and state_elapsed >= step.buffer_open \
+			and state_elapsed <= step.buffer_close \
+			and Input.is_action_just_pressed("attack"):
+		_buffered = true
+	var active_started := state_elapsed >= step.startup
+	var active_ended := state_elapsed >= step.startup + step.active
 	_attack_hitbox.set_active(active_started and not active_ended)
-	if state_elapsed >= attack_startup + attack_active + attack_recovery:
+	if state_elapsed >= step.total_duration():
 		_attack_hitbox.set_active(false)
+		_advance_after_step()
+
+func _advance_after_step() -> void:
+	var next := _combo_index + 1
+	if _buffered and next < combo.steps.size():
+		_combo_index = next
+		_play_combo_step()
+	elif next < combo.steps.size():
+		# Unbuffered: keep the chain alive for reset_timeout so the next
+		# press continues it (D-023); expiring resets to the first step.
+		_combo_index = next
+		_grace_left = combo.reset_timeout
 		state = State.IDLE
+	else:
+		# Chain completed (Sprint 07 appends the automatic finisher here).
+		_combo_index = 0
+		state = State.IDLE
+	_buffered = false
+
+## Debug overlay text: current step, chain length, buffered flag.
+func combo_debug_text() -> String:
+	if state != State.ATTACK and _grace_left <= 0.0:
+		return "-"
+	return "%d/%d%s" % [_combo_index + 1, combo.steps.size(), " buffered" if _buffered else ""]
 
 func _update_movement_state() -> void:
 	if not is_on_floor():

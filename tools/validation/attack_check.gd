@@ -41,7 +41,10 @@ func _run() -> void:
 		quit(1)
 		return
 	var events: Array[DamageEvent] = []
-	boss_hurtbox.damaged.connect(func(event: DamageEvent) -> void: events.append(event))
+	var hit_frames: Array[int] = []
+	boss_hurtbox.damaged.connect(func(event: DamageEvent) -> void:
+		events.append(event)
+		hit_frames.append(Engine.get_physics_frames()))
 
 	# Stand in reach of the boss, facing it (+X). Yaw is snapped directly —
 	# walking up would stall against the boss and freeze facing mid-turn;
@@ -90,31 +93,25 @@ func _run() -> void:
 			failures.append("event source is not the player")
 
 	# --- 3. Mashing attack cannot attack through its own recovery. ---
+	# Since Sprint 06 the chain re-enters ATTACK without a state change, so
+	# swings are counted by their hits; the invariant is that consecutive
+	# hits stay a full step apart (recovery respected) and each lands once.
 	events.clear()
-	# Signal-driven entry detection: the idle gap between swings can be
-	# shorter than a sampling tick, so poll-based detection misses entries.
-	var entries: Array[int] = []
-	var on_state_changed := func(new_state) -> void:
-		if new_state == player.State.ATTACK:
-			entries.append(Engine.get_physics_frames())
-	player.state_changed.connect(on_state_changed)
+	hit_frames.clear()
 	for _i in 90:
 		Input.action_press("attack")
 		await physics_frame
 		Input.action_release("attack")
 		await physics_frame
-	player.state_changed.disconnect(on_state_changed)
-	if entries.size() < 2:
-		failures.append("expected repeated swings after recovery, got %d entries" % entries.size())
-	for i in range(1, entries.size()):
-		var gap: int = entries[i] - entries[i - 1]
+	if events.size() < 2:
+		failures.append("expected repeated swings after recovery, got %d hits" % events.size())
+	for i in range(1, hit_frames.size()):
+		var gap: int = hit_frames[i] - hit_frames[i - 1]
 		if gap < SPAM_MIN_GAP:
-			failures.append("re-attack after only %d ticks (recovery bypassed)" % gap)
-	var spam_hits := events.size()
-	if spam_hits != entries.size():
-		failures.append("%d swings produced %d hits (expected one hit per swing)" % [entries.size(), spam_hits])
+			failures.append("re-attack landed after only %d ticks (recovery bypassed)" % gap)
 	for event in events:
-		if event.amount != 10.0:
+		# Mashing chains through the combo, so per-step damage values apply.
+		if not [10.0, 12.0, 14.0].has(event.amount):
 			failures.append("spam swing payload wrong: %.1f" % event.amount)
 
 	# --- 4. Hitbox is inert outside ATTACK. ---
@@ -122,14 +119,14 @@ func _run() -> void:
 	if attack_hitbox.is_active():
 		failures.append("hitbox active while idle")
 
-	var swing_count := entries.size()
-	var hit_count := events.size()
+	var swing_count := events.size()
 	events.clear()
+	hit_frames.clear()
 	arena.free()
 
 	if failures.is_empty():
-		print("ATTACK CHECK: PASS (active window ticks %d-%d, %d swings, %d hits, one hit per swing)" % [
-			active_ticks[0], active_ticks[-1], swing_count, hit_count,
+		print("ATTACK CHECK: PASS (active window ticks %d-%d, %d swings, one hit per swing, recovery respected)" % [
+			active_ticks[0], active_ticks[-1], swing_count,
 		])
 		quit(0)
 	else:

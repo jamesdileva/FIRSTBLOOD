@@ -36,6 +36,7 @@ func _update_text() -> void:
 	var player := get_tree().get_first_node_in_group("player")
 	if player != null:
 		lines.append("Player state: %s" % player.State.keys()[player.state])
+		lines.append("Combo: " + player.combo_debug_text())
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])

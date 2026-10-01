@@ -21,6 +21,9 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/combat/damage_event.gd",
 	"res://game/scripts/combat/hitbox_component.gd",
 	"res://game/scripts/combat/hurtbox_component.gd",
+	"res://game/scripts/combat/combo_data.gd",
+	"res://game/scripts/combat/combo_step_data.gd",
+	"res://game/resources/attacks/player_light_combo.tres",
 	"res://game/scripts/debug/combat_debug.gd",
 ]
 

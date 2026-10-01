@@ -1,8 +1,9 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/player/player_controller.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/combat/hurtbox_component.gd" id="2"]
 [ext_resource type="Script" path="res://game/scripts/combat/hitbox_component.gd" id="3"]
+[ext_resource type="Resource" path="res://game/resources/attacks/player_light_combo.tres" id="4"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.4
@@ -28,6 +29,7 @@ size = Vector3(1.4, 1.8, 1.4)
 
 [node name="Player" type="CharacterBody3D" groups=["player"]]
 script = ExtResource("1")
+combo = ExtResource("4")
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 position = Vector3(0, 0.9, 0)
