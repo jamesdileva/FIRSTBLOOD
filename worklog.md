@@ -7,6 +7,24 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 009 · 2026-09-28 · Automatic Finisher (Sprint 07)
+
+**Goal:** Complete the core offense loop — attack → chain → automatic finisher — with increased impact and the boss-stagger interaction hook, no extra button.
+
+**Scope:** `combo_data.gd` (finisher field), `combo_step_data.gd` (hit_type field), `player_light_combo.tres` (finisher step), `player_controller.gd` (finisher trigger/reset, payload push, `finisher_started`), `combo_check.gd` + `attack_check.gd` updates.
+**Non-goals:** actual stagger/breakout (Sprints 13/14 — this sprint only ships the data hook), camera/VFX response (Sprint 15 consumes `finisher_started`), multiple/chained finishers (Sprint 39).
+
+**Playtest note (entry 006 follow-up):** user verified movement, dodge, and chained/partial combos feel good. Damage escalation is not visible yet — by design: no HP components until Sprint 10, no hit feedback until Sprint 15, HUD in Sprint 21.
+
+**Decisions:**
+
+- **D-024:** The finisher is **fully automatic**: completing the third chain step always leads into it — no extra press. It cannot fire early (the only entry path is chain completion), cannot loop (it always ends the sequence and resets the combo), and buffered presses during it are absorbed. This reads the docs' "automatic spectacle" literally: every full chain culminates in the finisher.
+- **D-025:** Finisher lives in `ComboData.finisher` (single MVP finisher; configurable sequences are Sprint 39). Data: `finisher_01`, damage 25, stagger 15, `hit_type = HEAVY`, timing 0.18/0.16/0.40 — a heavier commitment than any chain step. **Stagger hook:** `hit_type` + `stagger_damage` ride the DamageEvent (Sprint 13's StaggerComponent will consume them to trigger/break stagger), and a new `finisher_started` signal gives camera/VFX a hook (Sprint 15).
+
+**Roadmap checklist coverage:** completing the combo triggers the finisher (sequence test) · cannot trigger twice accidentally (post-finisher press → light_01) · cannot trigger early (event gap ≥ light_03's full duration) · finisher resets the combo state → `combo_check.gd`; mashing payloads widened to include the finisher's 25 dmg in `attack_check.gd`.
+
+---
+
 ## 008 · 2026-09-28 · Combo Chain (Sprint 06)
 
 **Goal:** Turn the single light attack into a reliable 3-hit chain — combo step tracking, input buffering, chain windows, and reset conditions — driven by data Resources.
