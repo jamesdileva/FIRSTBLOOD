@@ -7,6 +7,22 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 008 · 2026-09-28 · Combo Chain (Sprint 06)
+
+**Goal:** Turn the single light attack into a reliable 3-hit chain — combo step tracking, input buffering, chain windows, and reset conditions — driven by data Resources.
+
+**Scope:** new `game/scripts/combat/combo_data.gd` + `combo_step_data.gd` (Resource classes), new `game/resources/attacks/player_light_combo.tres` (the actual chain data), `player_controller.gd` (combo index, buffer, grace, per-step payload push), `player.tscn` (combo resource assignment), `debug_overlay.gd` (combo step display), new `tools/validation/combo_check.gd`, smoke-check list extended, `attack_check.gd` payload assertion widened to the per-step damage values.
+**Non-goals:** the automatic finisher (Sprint 07 — chain completion currently resets), attack↔dodge/block transition matrix (Sprint 09), per-step hit reactions (Sprint 13), authored swing animations.
+
+**Decisions:**
+
+- **D-022 (data migration promised in D-019):** the chain lives in `ComboData`/`ComboStepData` Resources — per-step `attack_id`, `animation`, `damage`, `stagger_damage`, `startup/active/recovery`, and a `[buffer_open, buffer_close]` input window in seconds from step start. One shared AttackHitbox gets its payload pushed per swing (one hitbox, data-driven payload), rather than one hitbox per step. Controller exports `attack_startup/active/recovery` are removed — the resource is the single source.
+- **D-023 (buffer + reset semantics):** a press inside a step's buffer window is remembered (once) and consumed when the step ends, chaining into the next step immediately. A step that ends *without* buffered input keeps the chain alive for `reset_timeout` (0.35 s) so a slightly-late press still continues it — "stops attacking for too long" then resets to step 1. Completing the last step resets immediately (finisher slot, Sprint 07). Presses later than `buffer_close` are ignored — no accidental continuation. Any dodge resets the chain at once.
+
+**Roadmap checklist coverage:** correct sequence occurs (attack_id sequence incl. wrap to a fresh combo) · missed input resets (grace expiry test) · buffered input feels responsive (mash-chaining with full-step gaps, ≤1-tick transitions) · combo cannot become stuck (mash ends → IDLE, hitbox inert, index reset) → `combo_check.gd`.
+
+---
+
 ## 006 · 2026-09-28 · Playtest Results + Dodge Recovery Retune (D-018)
 
 **Goal:** Record the user's first controller playtest and apply its one fix: dodge recovery must never plant the player stationary.
