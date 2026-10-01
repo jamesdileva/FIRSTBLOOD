@@ -21,6 +21,41 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** correct sequence occurs (attack_id sequence incl. wrap to a fresh combo) · missed input resets (grace expiry test) · buffered input feels responsive (mash-chaining with full-step gaps, ≤1-tick transitions) · combo cannot become stuck (mash ends → IDLE, hitbox inert, index reset) → `combo_check.gd`.
 
+**Implemented:**
+
+- `combo_data.gd` / `combo_step_data.gd` — Resource classes per D-022.
+- `player_light_combo.tres` — light_01 (10 dmg) → light_02 (12) → light_03 (14), per-step timings, buffer windows 0.05→0.30 s (step 3: 0.05→0.44), `reset_timeout` 0.35 s.
+- `player_controller.gd` — combo index, one-press-per-step buffering, grace continuation, chain-completion reset, dodge-reset; `_play_combo_step()` pushes the step payload into the shared AttackHitbox, restarts the step clock explicitly, and plays the step's animation (the state setter dedupes same-value transitions, so ATTACK→ATTACK chaining needs both). Controller attack-timing exports removed. Fallback single-swing combo if the resource is missing (no soft-lock).
+- `debug_overlay.gd` — `Combo: 2/3 buffered` line via `combo_debug_text()`.
+- `attack_check.gd` — swing counting moved from state entries to hit timestamps (chaining re-enters ATTACK without a state change, so entry-counting under-counts).
+
+**Files changed:** the above plus `.uid` sidecars and `smoke_check.gd` (resource list now 14).
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 14 resources)
+- [x] Combo check — PASS:
+  - correct sequence: light_01 → light_02 → light_03 → light_01 (wrap to fresh combo)
+  - mashing 100×: swings chain buffer-to-buffer with every hit a full step apart (28–34 ticks — recovery respected), sequence cycles cleanly, and the combo returns to IDLE with an inert hitbox after input stops — no deadlock
+  - dropped input: chain continues inside the 0.35 s grace (light_02 after a late-ish follow-up), and resets to light_01 after the grace expires
+  - late input past `buffer_close`: ignored — next press starts a fresh light_01, no accidental continuation
+- [x] Regressions — movement PASS, dodge PASS (commitment held, 9 entries), combat PASS, attack PASS (active window 6–12 ticks, 6 swings, recovery respected), 180-frame run clean
+- [ ] Combo *feel* (chain pacing, per-step damage spread) — user playtest; all values live in `player_light_combo.tres`.
+
+Result: **PASS (automated)**.
+
+**Bug the check caught:** chaining re-entered ATTACK without resetting `state_elapsed` (the state setter ignores same-value assignment), so the buffered next step started with the previous step's clock and instantly skipped — the first run produced light_01 → light_03. Fixed by restarting the clock in `_play_combo_step()`.
+
+**Known limitations:**
+
+- No finisher yet: a buffered press during the last step is absorbed and the chain resets (Sprint 07 replaces that with the automatic finisher).
+- Chain resets on dodge but not yet on being hit (player hit reactions arrive in Sprint 09/13).
+- Attack can't cancel dodge recovery (Sprint 09 owns transitions).
+- No authored animations — per-step `animation` names (`attack_01/02/03`) are wired for the art pass.
+
+**Next:** Sprint 07 — Automatic Finisher: finisher data + trigger after the chain, increased impact, and the boss-stagger interaction hook. Plan+scope first.
+
 ---
 
 ## 006 · 2026-09-28 · Playtest Results + Dodge Recovery Retune (D-018)
