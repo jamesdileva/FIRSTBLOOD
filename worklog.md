@@ -7,6 +7,22 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 011 · 2026-09-28 · Dodge / Block Integration (Sprint 09)
+
+**Goal:** A coherent defensive model — full state-transition matrix (priority + cancellation rules), committed recovery windows, and a documented immunity map with no permanent-invulnerability holes.
+
+**Scope:** `player_controller.gd` (attack-recovery cancels, block-active cancels), new `tools/validation/defense_check.gd` (the full combination matrix), new `docs/playtesting.md` (user-requested running batch-playtest checklist — maintained by the loop from now on), `AGENTS.md` (loop step 5 gains the checklist update).
+**Non-goals:** boss-side behavior (no attacker exists until Sprint 10+), perfect parry (post-MVP), player hit reactions (Sprint 13), new tuning values.
+
+**Decisions:**
+
+- **D-029 (transition matrix):** committed windows stay committed — attack startup/active, dodge travel, and ALL recovery windows (dodge + block) accept no re-defense. Two cancel rules open the model up without breaking commitment: **an attack's recovery (after its hit window) can be canceled by dodge (priority) or block**, and **an active guard can be canceled by dodge or attack** (the attack is a fresh light_01 — blocking reset the chain). This applies to the finisher like any step. Neutral trigger priority stays dodge > block > attack.
+- **D-030 (immunity map + event ordering):** dodge-travel i-frames are the *only* invulnerability in the game; block active is negation/mitigation, **never** immunity. Ordering: the hurtbox suppresses i-frame hits before the player's resolver sees them (hurtbox immunity → player resolution → Sprint 10 HealthComponent). No state combination yields permanent invulnerability: block↔dodge cycling keeps i-frame uptime ≤ 0.15 s per ≥ 0.4 s dodge cycle, and heavies always penetrate an active guard at 30 %.
+
+**Roadmap checklist coverage (needs-review combination list):** idle→block, block→attack, attack→dodge, dodge→attack, dodge→block, block→dodge, recovery→attack, recovery→dodge — all asserted in `defense_check.gd`, plus "no contradictory states" (single state machine), "no permanent invulnerability" (immunity map tests), and "each has a recognizable purpose" (dodge = i-frame repositioning; block = stationary negation/mitigation).
+
+---
+
 ## 010 · 2026-09-28 · Block (Sprint 08)
 
 **Goal:** Generous but non-infinite block — a held guard with a fixed active window, a vulnerable recovery that re-blocking cannot bypass, and per-hit-type damage resolution.
