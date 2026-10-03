@@ -21,6 +21,40 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage (needs-review combination list):** idle→block, block→attack, attack→dodge, dodge→attack, dodge→block, block→dodge, recovery→attack, recovery→dodge — all asserted in `defense_check.gd`, plus "no contradictory states" (single state machine), "no permanent invulnerability" (immunity map tests), and "each has a recognizable purpose" (dodge = i-frame repositioning; block = stationary negation/mitigation).
 
+**Implemented:**
+
+- `player_controller.gd` — the two cancel rules from D-029: attack-recovery dodge/block cancels (checked before the buffer window, so dodge wins on a same-frame conflict) and block-active dodge/attack cancels. No other state changes — the matrix falls out of the single state machine.
+- `docs/playtesting.md` — the running batch-playtest checklist (batch 1 = Sprints 02–09), now part of the loop.
+- `tools/validation/defense_check.gd` — walks the combination matrix end-to-end.
+
+**Files changed:** the above plus `.uid` sidecar and `AGENTS.md` (loop step 5).
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 14 resources)
+- [x] Defense check — PASS:
+  - attack recovery cancels into dodge and into block; startup/active ignore dodge (committed)
+  - canceling dodge resets the chain (next swing light_01)
+  - active guard cancels into dodge and into attack (fresh light_01)
+  - block recovery: dodge ignored until it completes, then works
+  - dodge recovery: attack ignored until it completes, then works
+  - active block never grants invulnerability
+- [x] Regressions — all six prior suites PASS (movement, dodge, combat, attack, combo, block), 180-frame run clean
+- [ ] Cancel *feel* — batch playtest (batch 1 in `docs/playtesting.md` is ready).
+
+Result: **PASS (automated)**.
+
+**Check-harness note:** the first defense_check run flagged "dodge bypassed block recovery" — a harness bug, not game logic: test 5 never released the block button, so test 6's press had no fresh edge and the dodge legitimately fired from neutral. Harness rule: every synthesized press needs its release.
+
+**Known limitations:**
+
+- No attacker exists yet, so all cancels are input-driven; real pressure arrives with the boss (Sprint 10+).
+- Block→attack cancel always starts a fresh chain (blocking reset it) — intentional.
+- Damage-event ordering is documented (D-030) but HealthComponent arrives Sprint 10.
+
+**Next:** Phase 4 begins — Sprint 10 Boss Framework: reusable boss controller, state machine, target tracking, attack selection, health, defeat. gdUnit4 integration also comes due here (D-017). Plan+scope first.
+
 ---
 
 ## 010 · 2026-09-28 · Block (Sprint 08)
