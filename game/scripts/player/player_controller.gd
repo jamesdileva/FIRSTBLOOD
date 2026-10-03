@@ -184,6 +184,15 @@ func _block_startup_physics(delta: float) -> void:
 
 func _block_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Sprint 09 (D-029): from an active guard, dodge or attack cancel it.
+	# The attack is a fresh light_01 — blocking reset the chain.
+	if is_on_floor():
+		if Input.is_action_just_pressed("dodge"):
+			_start_dodge(input_dir)
+			return
+		if Input.is_action_just_pressed("attack"):
+			_play_combo_step()
+			return
 	_neutral_movement(delta, input_dir, block_speed_multiplier)
 	# Releasing early is a commitment too — the guard drops into recovery,
 	# so tap-spamming can never produce a perpetual block (D-026).
@@ -299,14 +308,23 @@ func _attack_physics(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= _gravity * delta
 	move_and_slide()
+	var recovery_started := state_elapsed >= step.startup + step.active
+	# Sprint 09 (D-029): once the hit window is over, defensive inputs cancel
+	# the swing — startup/active stay committed.
+	if recovery_started and is_on_floor():
+		if Input.is_action_just_pressed("dodge"):
+			_start_dodge(Input.get_vector("move_left", "move_right", "move_forward", "move_back"))
+			return
+		if Input.is_action_just_pressed("block"):
+			_start_block()
+			return
 	if not _buffered \
 			and state_elapsed >= step.buffer_open \
 			and state_elapsed <= step.buffer_close \
 			and Input.is_action_just_pressed("attack"):
 		_buffered = true
 	var active_started := state_elapsed >= step.startup
-	var active_ended := state_elapsed >= step.startup + step.active
-	_attack_hitbox.set_active(active_started and not active_ended)
+	_attack_hitbox.set_active(active_started and not recovery_started)
 	if state_elapsed >= step.total_duration():
 		_attack_hitbox.set_active(false)
 		_advance_after_step()
