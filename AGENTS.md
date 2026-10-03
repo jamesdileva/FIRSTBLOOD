@@ -29,7 +29,7 @@ AGENTS.md governs *how* we work.
    - *Manual (feel):* launch the game, execute the sprint's Verification checklist plus a regression spot-check of the previous sprint, using the debug overlay for timings.
    Record PASS/FAIL per item in the worklog entry.
 4. **Commit + push** — conventional commits (`feat:`, `fix:`, `docs:`, `test:`, `chore:`, `tune:`) referencing the sprint, e.g. `feat(player): dodge state with recovery (sprint 03)`. One commit per verified increment. Push only after verification passes; never push failing work to `main`.
-5. **Update worklog.md** — complete the entry: implemented list, files changed, verification results, decisions made (with rationale), known limitations, next step.
+5. **Update worklog.md** — complete the entry: implemented list, files changed, verification results, decisions made (with rationale), known limitations, next step. When a sprint added or changed player-facing behavior, also update `docs/playtesting.md` (the running batch-playtest checklist the user tests from).
 
 ## Hard Rules
 
