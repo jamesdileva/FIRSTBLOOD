@@ -7,6 +7,21 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 012 · 2026-09-28 · Boss Framework (Sprint 10)
+
+**Goal:** A reusable boss controller — brain-driven state machine, target tracking, weighted data-driven attack selection, health, and defeat — plus the gdUnit4 integration deferred since D-005/017.
+
+**Scope:** new `game/scripts/combat/health_component.gd`, `game/scripts/bosses/` (`boss_controller.gd`, `boss_brain.gd`, `boss_attack_data.gd`), boss placeholder scene upgraded into the framework host, debug overlay (boss state + HP), first gdUnit4 suites (`tests/combat/`, `tests/bosses/`), runner wrapper `tools/testing/run_tests.cmd`, new `tools/validation/boss_check.gd`, existing checks pin the boss, smoke list + AGENTS.md testing section updated.
+**Non-goals:** telegraphs (Sprint 11 inserts the TELEGRAPH state), stagger/hit reactions (Sprint 13), breakout (Sprint 14), the actual New Gladiator data/art (Sprint 12), boss backstepping/spacing subtleties.
+
+**Decisions:**
+
+- **D-031 (composition):** `BossController` (state machine OBSERVE / APPROACH / SELECT_ATTACK / ATTACK / RECOVERY / DEAD) + `BossBrain` (pure static decision logic — weighted attack selection honoring range, cooldowns, and weights, with an injected RNG so it's unit-testable) + `BossAttackData` Resources + `HealthComponent`. Attacks are rooted like the player's; when in range but everything is on cooldown the boss stands and observes (readable idle, no state churn). Death flows health → `died` → DEAD + `defeated` signal — no special-casing. `reset()` exists for retry flows.
+- **D-032 (gdUnit4 now, fulfilling D-017):** addon installed under `addons/gdUnit4`, suites live under `tests/` mirroring runtime dirs, runs headless via `tools/testing/run_tests.cmd` (GODOT_BIN pinned to the winget install). First suites: HealthComponent math (reduce/clamp/die-once/after-death/reset/zero-amount) and BossBrain selection (range filter, cooldowns, zero-weight, weighted distribution). The SceneTree checks remain the integration layer — unit tests validate rules, integration checks validate scene behavior; both are CI-shaped.
+- **D-033 (existing checks stay deterministic):** the boss placeholder scene becomes a mobile framework host, so every existing check script pins the boss with `set_physics_process(false)` right after instantiation; `boss_check.gd` owns all AI assertions. For the boss, its hurtbox's `damaged` signal IS the resolved path (bosses have no mitigation layer) and feeds `HealthComponent` directly.
+
+---
+
 ## 011 · 2026-09-28 · Dodge / Block Integration (Sprint 09)
 
 **Goal:** A coherent defensive model — full state-transition matrix (priority + cancellation rules), committed recovery windows, and a documented immunity map with no permanent-invulnerability holes.
