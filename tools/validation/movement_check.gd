@@ -28,6 +28,13 @@ func _run() -> void:
 	var arena := arena_scene.instantiate()
 	root.add_child(arena)
 
+	await _wait(2)  # deferred tree entry: ready + group index flush on the first frame
+	# Sprint 10: pin the boss - AI behavior is boss_check.gd's job. Freeze after
+	# deferred ready, or the ready callback re-enables physics processing.
+	var boss_ref := arena.get_node_or_null("Boss")
+	if boss_ref != null:
+		boss_ref.set_physics_process(false)
+
 	await _wait(SETTLE_FRAMES)
 	# Untyped on purpose: reads script members (arena_half_extent) Godot's
 	# CharacterBody3D class doesn't define.

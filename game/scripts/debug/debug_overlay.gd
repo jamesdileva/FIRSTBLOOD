@@ -44,6 +44,11 @@ func _update_text() -> void:
 	var boss := get_tree().get_first_node_in_group("boss") as Node3D
 	if player != null and boss != null:
 		lines.append("Boss distance: %.1f m" % player.global_position.distance_to(boss.global_position))
+	if boss != null:
+		lines.append("Boss state: %s" % boss.State.keys()[boss.state])
+		var boss_health := boss.get_node_or_null("Health")
+		if boss_health != null:
+			lines.append("Boss HP: %d/%d" % [roundi(boss_health.current_health), roundi(boss_health.max_health)])
 	if player != null and (player.state == player.State.BLOCK_ACTIVE or player.state == player.State.BLOCK_RECOVERY):
 		var block_total: float = player.block_active if player.state == player.State.BLOCK_ACTIVE else player.block_recovery
 		lines.append("Block timer: %.2f s left" % maxf(block_total - player.state_elapsed, 0.0))
