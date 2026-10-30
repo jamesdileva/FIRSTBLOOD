@@ -69,10 +69,10 @@ Never: `final_final2`, `newboss`, `thing`, `SwordNew`. Blender sources live in `
 
 ## Testing
 
-- Framework: **gdUnit4** (validate at Sprint 01; GUT is the fallback). Tests live under `tests/` mirroring runtime dirs (`combat/`, `bosses/`, `progression/`, `smoke/`).
-- Automated tests validate **rules**; human playtesting validates **feel**. Neither substitutes for the other.
+- Framework: **gdUnit4** (integrated at Sprint 10, D-032): unit suites live under `tests/` mirroring runtime dirs and run headless via `tools/testing/run_tests.cmd` (GODOT_BIN pinned). The SceneTree checks in `tools/validation/` remain the integration layer — unit tests validate rules, integration checks validate scene behavior.
+- Automated tests validate **rules**; human playtesting validates **feel** (batched via `docs/playtesting.md`). Neither substitutes for the other.
 - Anything that is pure logic gets an automated test the same sprint it is built.
-- The runner must work headless (`godot --headless` + gdUnit4 CLI) so it can run in CI or without a display.
+- Both layers must run headless so they work in CI or without a display.
 
 ## Git
 

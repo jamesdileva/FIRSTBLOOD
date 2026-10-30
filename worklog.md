@@ -20,6 +20,44 @@ The entry template is at the bottom of this file.
 - **D-032 (gdUnit4 now, fulfilling D-017):** addon installed under `addons/gdUnit4`, suites live under `tests/` mirroring runtime dirs, runs headless via `tools/testing/run_tests.cmd` (GODOT_BIN pinned to the winget install). First suites: HealthComponent math (reduce/clamp/die-once/after-death/reset/zero-amount) and BossBrain selection (range filter, cooldowns, zero-weight, weighted distribution). The SceneTree checks remain the integration layer — unit tests validate rules, integration checks validate scene behavior; both are CI-shaped.
 - **D-033 (existing checks stay deterministic):** the boss placeholder scene becomes a mobile framework host, so every existing check script pins the boss with `set_physics_process(false)` right after instantiation; `boss_check.gd` owns all AI assertions. For the boss, its hurtbox's `damaged` signal IS the resolved path (bosses have no mitigation layer) and feeds `HealthComponent` directly.
 
+**Implemented:** *(completed 2026-10-30)*
+
+- `health_component.gd` — reduce/clamp/die-once/reset + `health_changed`/`damaged`/`died` signals.
+- `boss_controller.gd` — the six-state machine, cooldown ticking, rooted swings with payload push, arena bounds, facing, animation hooks, `reset()`.
+- `boss_brain.gd` + `boss_attack_data.gd` — pure selection logic + data resource (telegraph field staged for Sprint 11).
+- `boss_placeholder.tscn` — framework host: CharacterBody3D + Hurtbox + AttackHitbox + Health + two inline attack resources (boss_light 3.0 weight / boss_heavy HEAVY 1.0).
+- `debug_overlay.gd` — Boss state + Boss HP lines.
+- gdUnit4 v6.2.1 under `addons/gdUnit4`; suites `tests/combat/health_component_test.gd` (6 cases) and `tests/bosses/boss_brain_test.gd` (8 cases); runner `tools/testing/run_tests.cmd`.
+- `tools/validation/boss_check.gd` — the only check that runs boss AI.
+- All six prior check scripts pin the boss.
+
+**Files changed:** the above plus `project.godot` (plugin), `.gitignore` (reports/), `AGENTS.md` (testing section), `.uid` sidecars.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0 (gdUnit4 addon imports clean)
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] gdUnit4 — **PASS: 14/14 test cases, 0 errors, 0 failures, 0 orphans, exit 0** (D-017 fulfilled)
+- [x] Boss check — PASS: boss approached the player (6.8 → 3.8 m), cycled into and out of ATTACK, landed hits on the player's resolver, died from lethal damage via the generic health path, stayed DEAD and inert, and resumed fighting after `reset()`
+- [x] Regressions — all seven suites PASS with the pinned boss (smoke, movement, dodge, combat, attack, combo, block, defense), 180-frame run clean
+- [ ] Boss *feel* (approach speed, attack pacing) — batch 1 playtest; the boss is now visible in-game: it walks up, swings (F1 shows its state and HP), and can be killed with ~8–10 swings.
+
+Result: **PASS (automated)**.
+
+**Harness lessons (three real ones this sprint):**
+
+1. **Deferred tree entry in `-s` scripts:** nodes added during `_initialize` complete their ready/group processing on the **first frame**, not at `add_child` time. Tick-0 group lookups return null, and — critically — the deferred ready callback auto-enables physics processing for scripts defining `_physics_process`, silently undoing a tick-0 `set_physics_process(false)`. Fix: do group lookups and freezes *after* the first frame (2-frame wait in the check scripts; freeze uses `arena.get_node_or_null("Boss")` by path). This caused the boss to walk to its 2.5 m attack standoff — just outside the player's 2.0 m reach — producing the "0 damage events" cascade.
+2. **GDScript lambdas capture locals by value:** `func(): deaths += 1` never propagates; counters captured in signal lambdas must live in reference containers (arrays).
+3. **gdUnit4 v6 specifics:** headless runs need `--ignoreHeadlessMode`; the addon runs with warnings-as-errors (Variant-inferred `:=` fails to parse); nodes in tests need `auto_free()` or the run exits nonzero on orphans; fail-fast is default (`-c` runs the full set).
+
+**Known limitations:**
+
+- The boss has no telegraphs yet (Sprint 11), never staggers (13), and gives no XP (19) — it swings, takes damage, dies, and resets.
+- Boss attacks are unblockable-feeling only in the sense that the player can block them (block resolution works on boss hits — NORMAL negated, HEAVY × 0.3 — verified in block_check).
+- No boss animation hooks play (no AnimationPlayer yet — art pass).
+
+**Next:** Sprint 11 — Telegraph System: telegraph data + windup state inserted into the boss attack flow, readable warnings, debug timing display. Plan+scope first.
+
 ---
 
 ## 011 · 2026-09-28 · Dodge / Block Integration (Sprint 09)

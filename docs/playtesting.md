@@ -55,7 +55,19 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] A swing's **recovery** can be dodge/block-canceled (Sprint 09) —
       startup and the hit itself stay committed.
 
+### Boss framework (Sprint 10)
+
+- [ ] The red boss walks up to you and swings (two attacks: a quick one and
+      a heavier, slower one); F1 shows its state (OBSERVE/APPROACH/ATTACK/
+      RECOVERY) and its HP.
+- [ ] Hitting it drains its HP; ~8–10 clean swings kill it — it stops and
+      F1 shows DEAD. (No restart flow yet, so relaunch to fight again.)
+- [ ] Its quick swings can be blocked fully; the heavy one still hurts a
+      little through a perfect-timing guard (30 %).
+- [ ] You cannot be killed yet — your HP arrives in a later sprint.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
-- Damage numbers / HP bars (Sprint 10+), hit feedback like hitstop/VFX
-  (Sprint 15), HUD (Sprint 21), enemies that attack back (Sprint 10+).
+- Your own HP bar / death (Sprint 10+ for boss side, HUD Sprint 21), attack
+  telegraphs (Sprint 11 — the boss currently winds up with no warning
+  marker), hit feedback like hitstop/VFX (Sprint 15), XP (Sprint 19).
