@@ -12,6 +12,9 @@ export.cfg
 *.tmp
 *.log
 
+# gdUnit4 test reports
+reports/
+
 # OS / editor junk
 .DS_Store
 Thumbs.db

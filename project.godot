@@ -12,6 +12,10 @@ run/main_scene="res://game/scenes/arena/arena.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
 [display]
 
 window/size/viewport_width=1280
