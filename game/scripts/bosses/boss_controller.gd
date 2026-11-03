@@ -8,7 +8,7 @@ extends CharacterBody3D
 signal state_changed(new_state: State)
 signal defeated
 
-enum State { OBSERVE, APPROACH, SELECT_ATTACK, ATTACK, RECOVERY, DEAD }
+enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, DEAD }
 
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
@@ -22,6 +22,9 @@ var _target: Node3D
 var _cooldowns: Dictionary = {}
 var _current_attack: BossAttackData
 var _rng := RandomNumberGenerator.new()
+var _telegraph_marker: MeshInstance3D
+var _telegraph_aura: MeshInstance3D
+var _telegraph_mat: StandardMaterial3D
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
@@ -40,6 +43,7 @@ func _ready() -> void:
 	_rng.randomize()
 	if attacks.is_empty():
 		push_warning("BossController has no attacks — it will observe but never fight.")
+	_build_telegraph_visuals()
 	_health.died.connect(_on_died)
 	# For the boss, the hurtbox signal IS the resolved path (D-033): bosses
 	# have no mitigation layer, so nothing negates their incoming damage.
@@ -63,6 +67,8 @@ func _physics_process(delta: float) -> void:
 			_approach_physics(delta)
 		State.SELECT_ATTACK:
 			_select_attack()
+		State.TELEGRAPH:
+			_telegraph_physics(delta)
 		State.ATTACK:
 			_attack_physics(delta)
 		State.RECOVERY:
@@ -78,6 +84,7 @@ func reset() -> void:
 	_cooldowns.clear()
 	_current_attack = null
 	_attack_hitbox.set_active(false)
+	_hide_telegraph()
 	state = State.OBSERVE
 
 func _observe_physics(delta: float) -> void:
@@ -115,7 +122,102 @@ func _select_attack() -> void:
 		return
 	_push_payload(_current_attack)
 	play_animation(_current_attack.animation)
-	state = State.ATTACK
+	# D-034: the warning window comes before the windup; 0 means immediate.
+	if _current_attack.telegraph_duration > 0.0:
+		_show_telegraph(_current_attack)
+		state = State.TELEGRAPH
+	else:
+		state = State.ATTACK
+
+func _telegraph_physics(delta: float) -> void:
+	_apply_gravity(delta)
+	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	move_and_slide()
+	_face_target(delta)
+	# The warning is only honest while it points at a reachable target —
+	# leave the attack's range (with a small grace margin) and it cancels.
+	if _target == null or _flat_distance() > _current_attack.max_range + 0.5:
+		_cancel_telegraph()
+		return
+	if state_elapsed >= _current_attack.telegraph_duration:
+		_hide_telegraph()
+		state = State.ATTACK
+
+func _cancel_telegraph() -> void:
+	# D-034: canceled attacks still pay the full cooldown so the player
+	# cannot bait the telegraph forever.
+	_cooldowns[_current_attack.attack_id] = _current_attack.cooldown
+	_hide_telegraph()
+	_current_attack = null
+	state = State.OBSERVE
+
+func _show_telegraph(attack: BossAttackData) -> void:
+	# One visual language: yellow = NORMAL, red = HEAVY/SPECIAL (D-034).
+	if _telegraph_mat != null:
+		_telegraph_mat.albedo_color = Color(1.0, 0.2, 0.15, 0.5) if attack.hit_type != CombatTypes.HitType.NORMAL \
+				else Color(1.0, 0.85, 0.2, 0.5)
+	if _telegraph_marker != null:
+		_telegraph_marker.visible = true
+	if _telegraph_aura != null:
+		_telegraph_aura.visible = true
+
+func _hide_telegraph() -> void:
+	if _telegraph_marker != null:
+		_telegraph_marker.visible = false
+	if _telegraph_aura != null:
+		_telegraph_aura.visible = false
+
+func _build_telegraph_visuals() -> void:
+	# Placeholder readability visuals (D-035): a ground marker mirroring the
+	# attack hitbox footprint plus a body aura. Real VFX at the art pass;
+	# gameplay timing never depends on these.
+	var telegraph_material := StandardMaterial3D.new()
+	telegraph_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	telegraph_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	telegraph_material.albedo_color = Color(1.0, 0.85, 0.2, 0.5)
+	_telegraph_mat = telegraph_material
+
+	var marker := MeshInstance3D.new()
+	marker.name = "TelegraphMarker"
+	var box := BoxMesh.new()
+	var shape := _attack_box_shape()
+	if shape != null:
+		box.size = Vector3(shape.size.x, 0.06, shape.size.z)
+	else:
+		box.size = Vector3(1.6, 0.06, 2.4)
+	marker.mesh = box
+	marker.material_override = telegraph_material
+	marker.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var attack_hitbox := get_node_or_null("AttackHitbox") as Node3D
+	if attack_hitbox != null:
+		marker.position = Vector3(attack_hitbox.position.x, 0.04, attack_hitbox.position.z)
+	add_child(marker)
+	marker.visible = false
+	_telegraph_marker = marker
+
+	var aura := MeshInstance3D.new()
+	aura.name = "TelegraphAura"
+	var capsule := CapsuleMesh.new()
+	capsule.radius = 0.75
+	capsule.height = 2.7
+	aura.mesh = capsule
+	aura.material_override = telegraph_material
+	aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	aura.position = Vector3(0, 1.25, 0)
+	add_child(aura)
+	aura.visible = false
+	_telegraph_aura = aura
+
+func _attack_box_shape() -> BoxShape3D:
+	var attack_hitbox := get_node_or_null("AttackHitbox")
+	if attack_hitbox == null:
+		return null
+	for child in attack_hitbox.get_children():
+		var shape_node := child as CollisionShape3D
+		if shape_node != null and shape_node.shape is BoxShape3D:
+			return shape_node.shape
+	return null
 
 func _attack_physics(delta: float) -> void:
 	_apply_gravity(delta)
@@ -142,6 +244,7 @@ func _recovery_physics(delta: float) -> void:
 func _on_died() -> void:
 	_attack_hitbox.set_active(false)
 	_current_attack = null
+	_hide_telegraph()
 	state = State.DEAD
 	defeated.emit()
 

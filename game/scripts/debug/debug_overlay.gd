@@ -46,6 +46,8 @@ func _update_text() -> void:
 		lines.append("Boss distance: %.1f m" % player.global_position.distance_to(boss.global_position))
 	if boss != null:
 		lines.append("Boss state: %s" % boss.State.keys()[boss.state])
+		if boss.state == boss.State.TELEGRAPH:
+			lines.append("Boss telegraph: %.2f s" % maxf(boss._current_attack.telegraph_duration - boss.state_elapsed, 0.0))
 		var boss_health := boss.get_node_or_null("Health")
 		if boss_health != null:
 			lines.append("Boss HP: %d/%d" % [roundi(boss_health.current_health), roundi(boss_health.max_health)])

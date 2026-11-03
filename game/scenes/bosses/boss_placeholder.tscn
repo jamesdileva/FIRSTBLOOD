@@ -35,6 +35,7 @@ active = 0.15
 recovery = 0.45
 cooldown = 1.6
 weight = 3.0
+telegraph_duration = 0.35
 
 [sub_resource type="Resource" id="Resource_boss_heavy"]
 script = ExtResource("5")
@@ -50,6 +51,7 @@ active = 0.18
 recovery = 0.7
 cooldown = 3.5
 weight = 1.0
+telegraph_duration = 0.6
 
 [node name="Boss" type="CharacterBody3D" groups=["boss"]]
 script = ExtResource("1")

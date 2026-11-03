@@ -66,8 +66,18 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       little through a perfect-timing guard (30 %).
 - [ ] You cannot be killed yet — your HP arrives in a later sprint.
 
+### Telegraphs (Sprint 11)
+
+- [ ] Before every swing the boss flashes and shows a ground marker in the
+      danger zone: **yellow = quick attack, red = heavy attack**. F1 shows
+      `Boss telegraph` with the remaining time.
+- [ ] The heavy attack warns visibly longer than the quick one.
+- [ ] Step out of range during the warning and the boss cancels (it then
+      cools down before trying again).
+- [ ] The warning is readable at normal camera distance and doesn't wash
+      out the fight.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
-- Your own HP bar / death (Sprint 10+ for boss side, HUD Sprint 21), attack
-  telegraphs (Sprint 11 — the boss currently winds up with no warning
-  marker), hit feedback like hitstop/VFX (Sprint 15), XP (Sprint 19).
+- Your own HP bar / death (Sprint 10+ for boss side, HUD Sprint 21), hit
+  feedback like hitstop/VFX (Sprint 15), XP (Sprint 19).
