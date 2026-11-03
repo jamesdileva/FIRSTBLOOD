@@ -19,6 +19,35 @@ The entry template is at the bottom of this file.
 - **D-034 (telegraph model):** the flow becomes SELECT_ATTACK → **TELEGRAPH** (`BossAttackData.telegraph_duration`, 0 = immediate) → ATTACK → RECOVERY. During the window the boss roots, faces its target, and shows the warning; if the target leaves `max_range + 0.5 m` grace, the attack **cancels to OBSERVE with the attack's full cooldown** — so the player can bait telegraphs but not for free. Damage to the boss during a telegraph does *not* interrupt (interruption belongs to Sprint 13's stagger). Colors derive from `hit_type`: yellow = NORMAL, red = HEAVY/SPECIAL — one visual language, no per-attack config.
 - **D-035 (placeholder visuals):** code-built following the hitbox debug-shape precedent — a ground marker mirroring the AttackHitbox footprint (thin unshaded box just above the floor) plus a slightly-oversized translucent body aura. The scene swaps in real VFX at the art pass; the gameplay timing never depends on them.
 
+**Implemented:** *(2026-11-03)*
+
+- `boss_controller.gd` — TELEGRAPH state (SELECT_ATTACK → TELEGRAPH → ATTACK), `_build_telegraph_visuals()` (marker sized from the AttackHitbox box footprint, body aura), `_show_telegraph`/`_hide_telegraph`/`_cancel_telegraph`, hit-type-derived colors, cancel rule with full cooldown; death and reset also hide the visuals.
+- `boss_placeholder.tscn` — `telegraph_duration` 0.35 s (boss_light) / 0.6 s (boss_heavy).
+- `debug_overlay.gd` — `Boss telegraph: X.XX s` remaining-time line.
+- `tools/validation/telegraph_check.gd` — AI-driven check with per-attack duration measurement.
+- `docs/playtesting.md` — batch 1 gains the telegraph section.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] Telegraph check — PASS:
+  - the boss enters TELEGRAPH before ATTACK, and the player's hit event lands only after the telegraph window elapsed
+  - light telegraph measured ~21 ticks (0.35 s), heavy ~36 ticks (0.6 s) — measurable, distinct, and tunable per attack via the resource
+  - stepping out of range mid-warning cancels into OBSERVE and the attack's cooldown is honored (no re-attack for ≥ 120 ticks)
+- [x] Regressions — all suites PASS (boss, movement, dodge, combat, attack, combo, block, defense), gdUnit4 14/14, 180-frame run clean
+- [ ] Telegraph *readability* (marker visibility, color language, "effects don't obscure the signal") — batch 1 playtest; the F1 overlay shows the countdown.
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- Visuals are placeholder geometry by design (D-035) — no animation pose, glow ramp, or audio cue yet (art pass / Sprint 15).
+- Boss damage does not interrupt a telegraph; that interception belongs to Sprint 13's stagger.
+- The player has no telegraph-reading reward yet (perfect-timing parry remains post-MVP per docs).
+
+**Next:** Sprint 12 — New Gladiator: the actual MVP boss built on this framework (gladiator placeholder model, 2–3 melee attacks with telegraphs, approach/pressure behavior, full fight validation). Plan+scope first.
+
 ---
 
 ## 012 · 2026-09-28 · Boss Framework (Sprint 10)
