@@ -7,6 +7,20 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 013 · 2026-11-03 · Telegraph System (Sprint 11)
+
+**Goal:** Readable attack warnings — a TELEGRAPH state inserted into the boss attack flow with a measurable, tunable warning window and placeholder visuals that survive placeholder art.
+
+**Scope:** `boss_controller.gd` (TELEGRAPH state, code-built ground marker + body aura, cancel rule), `boss_placeholder.tscn` (per-attack telegraph durations), `debug_overlay.gd` (telegraph timer), new `tools/validation/telegraph_check.gd`, `docs/playtesting.md` batch 1 update.
+**Non-goals:** animation-driven telegraphs (art pass), audio cues, arena decals/VFX polish (Sprint 15), player-side stagger interrupts (Sprint 13).
+
+**Decisions:**
+
+- **D-034 (telegraph model):** the flow becomes SELECT_ATTACK → **TELEGRAPH** (`BossAttackData.telegraph_duration`, 0 = immediate) → ATTACK → RECOVERY. During the window the boss roots, faces its target, and shows the warning; if the target leaves `max_range + 0.5 m` grace, the attack **cancels to OBSERVE with the attack's full cooldown** — so the player can bait telegraphs but not for free. Damage to the boss during a telegraph does *not* interrupt (interruption belongs to Sprint 13's stagger). Colors derive from `hit_type`: yellow = NORMAL, red = HEAVY/SPECIAL — one visual language, no per-attack config.
+- **D-035 (placeholder visuals):** code-built following the hitbox debug-shape precedent — a ground marker mirroring the AttackHitbox footprint (thin unshaded box just above the floor) plus a slightly-oversized translucent body aura. The scene swaps in real VFX at the art pass; the gameplay timing never depends on them.
+
+---
+
 ## 012 · 2026-09-28 · Boss Framework (Sprint 10)
 
 **Goal:** A reusable boss controller — brain-driven state machine, target tracking, weighted data-driven attack selection, health, and defeat — plus the gdUnit4 integration deferred since D-005/017.
