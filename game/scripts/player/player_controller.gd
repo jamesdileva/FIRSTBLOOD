@@ -9,6 +9,8 @@ signal state_changed(new_state: State)
 signal attack_connected(event: DamageEvent, target: HurtboxComponent)
 ## Fired when the automatic finisher begins (D-025) — camera/VFX hook.
 signal finisher_started
+## Fired when the player dies (Sprint 12: the fight is losable).
+signal died
 
 ## Resolved incoming-damage signals (D-027). HealthComponent (Sprint 10)
 ## consumes these — never the raw hurtbox signal.
@@ -16,7 +18,7 @@ signal hit_blocked(event: DamageEvent)
 signal hit_mitigated(event: DamageEvent)
 signal hit_taken(event: DamageEvent)
 
-enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK, BLOCK_STARTUP, BLOCK_ACTIVE, BLOCK_RECOVERY }
+enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK, BLOCK_STARTUP, BLOCK_ACTIVE, BLOCK_RECOVERY, DEAD }
 
 @export var movement_speed := 5.0
 @export var acceleration := 40.0
@@ -63,6 +65,11 @@ var state_elapsed := 0.0
 @onready var _visual: Node3D = $Visual
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
+@onready var _health: HealthComponent = $Health
+@onready var _body_mesh: MeshInstance3D = $Visual/Body
+@onready var _facing_mesh: MeshInstance3D = $Visual/Facing
+
+var _dead_material: StandardMaterial3D
 
 var state: State = State.IDLE:
 	set(value):
@@ -88,6 +95,8 @@ var state: State = State.IDLE:
 				play_animation("block_loop")
 			State.BLOCK_RECOVERY:
 				play_animation("block_recover")
+			State.DEAD:
+				play_animation("death")
 			# ATTACK is animated by _play_combo_step: the swing's animation
 			# comes from the combo step data, and chaining re-enters ATTACK
 			# without a state change.
@@ -96,6 +105,10 @@ func _ready() -> void:
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
+	# D-027: the player's health consumes the resolved signals only.
+	hit_taken.connect(_health.apply_damage)
+	hit_mitigated.connect(_health.apply_damage)
+	_health.died.connect(_on_player_died)
 
 ## Never soft-lock on missing data: fall back to a single swing.
 func _ensure_combo() -> void:
@@ -117,6 +130,16 @@ func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void
 func _physics_process(delta: float) -> void:
 	state_elapsed += delta
 	match state:
+		State.DEAD:
+			# Corpse: inputs dead, gravity only; R/Back retries the fight.
+			velocity.x = 0.0
+			velocity.z = 0.0
+			if not is_on_floor():
+				velocity.y -= _gravity * delta
+			move_and_slide()
+			if Input.is_action_just_pressed("retry"):
+				_retry()
+			return
 		State.DODGE:
 			_dodge_physics(delta)
 		State.DODGE_RECOVERY:
@@ -137,6 +160,34 @@ func _physics_process(delta: float) -> void:
 
 func is_invulnerable() -> bool:
 	return state == State.DODGE and state_elapsed < dodge_invulnerability
+
+func is_dead() -> bool:
+	return state == State.DEAD
+
+func _on_player_died() -> void:
+	# Sprint 12: the fight is losable — fall over, grey out, wait for retry.
+	_dead_material = StandardMaterial3D.new()
+	_dead_material.albedo_color = Color(0.45, 0.45, 0.5, 1.0)
+	_body_mesh.material_override = _dead_material
+	_facing_mesh.material_override = _dead_material
+	_visual.rotation.x = PI / 2.0
+	state = State.DEAD
+	died.emit()
+
+## Placeholder retry until Sprint 22's defeat screen: resets the player and
+## the fight (boss included) so the encounter is immediately replayable.
+func _retry() -> void:
+	reset_for_retry()
+	var boss := get_tree().get_first_node_in_group("boss")
+	if boss != null and boss.has_method("reset"):
+		boss.reset()
+
+func reset_for_retry() -> void:
+	_health.reset()
+	_body_mesh.material_override = null
+	_facing_mesh.material_override = null
+	_visual.rotation.x = 0.0
+	state = State.IDLE
 
 ## Damage resolution (D-027): routes raw hurtbox hits into the signals the
 ## rest of the game consumes. Active block negates NORMAL hits and reduces
@@ -273,6 +324,7 @@ func _dodge_recovery_physics(delta: float) -> void:
 
 func _play_combo_step() -> void:
 	_push_step_payload(_current_step())
+	_face_nearest_foe()
 	_in_finisher = false
 	_grace_left = 0.0
 	state = State.ATTACK
@@ -284,12 +336,27 @@ func _play_combo_step() -> void:
 func _play_finisher() -> void:
 	# Fires only from chain completion (D-024) — no early trigger path exists.
 	_push_step_payload(combo.finisher)
+	_face_nearest_foe()
 	_in_finisher = true
 	_grace_left = 0.0
 	state = State.ATTACK
 	state_elapsed = 0.0
 	play_animation(combo.finisher.animation)
 	finisher_started.emit()
+
+## D-039 (soft-facing): swings go where the fight is. Standing still freezes
+## facing at the last walk direction, so without this a player who backed
+## off or strafed swings at empty air. Snap is deliberate — responsive beats
+## animated here, and the swing itself stays committed.
+func _face_nearest_foe() -> void:
+	var foe := get_tree().get_first_node_in_group("boss") as Node3D
+	if foe == null:
+		return
+	var to_foe := foe.global_position - global_position
+	to_foe.y = 0.0
+	if to_foe.length() > 3.0:
+		return
+	rotation.y = atan2(-to_foe.x, -to_foe.z)
 
 func _push_step_payload(step: ComboStepData) -> void:
 	# Per-step payload (D-022): the shared hitbox carries what this swing
@@ -371,6 +438,8 @@ func _update_movement_state() -> void:
 		state = State.IDLE
 
 func _update_facing(delta: float) -> void:
+	if state == State.DEAD:
+		return
 	var planar := Vector3(velocity.x, 0.0, velocity.z)
 	if planar.length() < 0.5:
 		return
@@ -379,6 +448,8 @@ func _update_facing(delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))
 
 func _apply_lean(delta: float) -> void:
+	if state == State.DEAD:
+		return
 	var local_velocity := _visual.global_transform.basis.inverse() * Vector3(velocity.x, 0.0, velocity.z)
 	var target_pitch := clampf(-local_velocity.z / movement_speed, -1.0, 1.0) * lean_amount
 	var target_roll := clampf(-local_velocity.x / movement_speed, -1.0, 1.0) * lean_amount

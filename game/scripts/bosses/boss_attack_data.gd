@@ -16,7 +16,14 @@ extends Resource
 @export var recovery := 0.5
 ## Seconds before this attack can be selected again.
 @export var cooldown := 2.0
-## Selection weight (guide §12: weighted, not purely random).
+## Selection weight (guide §12: weighted, not purely random). 0 = never
+## brain-selected — reserved for followup-chained attacks.
 @export var weight := 1.0
 ## Sprint 11: the boss will hold TELEGRAPH for this long before startup.
 @export var telegraph_duration := 0.0
+## Sprint 12: attack id chained automatically after this attack's recovery
+## (the melee string). Empty = the string ends here.
+@export var followup := StringName("")
+## Sprint 12: forward lunge toward the target during the active window
+## (the "approach/pressure" attack). 0 = rooted.
+@export var lunge_speed := 0.0

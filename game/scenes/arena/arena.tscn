@@ -1,7 +1,7 @@
 [gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://game/scenes/player/player.tscn" id="1"]
-[ext_resource type="PackedScene" path="res://game/scenes/bosses/boss_placeholder.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://game/scenes/bosses/new_gladiator.tscn" id="2"]
 [ext_resource type="Script" path="res://game/scripts/camera/third_person_camera.gd" id="3"]
 [ext_resource type="Script" path="res://game/scripts/debug/debug_overlay.gd" id="4"]
 

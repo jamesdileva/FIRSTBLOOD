@@ -55,16 +55,23 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] A swing's **recovery** can be dodge/block-canceled (Sprint 09) —
       startup and the hit itself stay committed.
 
-### Boss framework (Sprint 10)
+### The New Gladiator (Sprints 10–12)
 
-- [ ] The red boss walks up to you and swings (two attacks: a quick one and
-      a heavier, slower one); F1 shows its state (OBSERVE/APPROACH/ATTACK/
-      RECOVERY) and its HP.
-- [ ] Hitting it drains its HP; ~8–10 clean swings kill it — it stops and
-      F1 shows DEAD. (No restart flow yet, so relaunch to fight again.)
-- [ ] Its quick swings can be blocked fully; the heavy one still hurts a
-      little through a perfect-timing guard (30 %).
-- [ ] You cannot be killed yet — your HP arrives in a later sprint.
+- [ ] The boss (tan gladiator with sword and shield) walks up and fights:
+      a **two-swing sword string** (the second swing chains right after the
+      first) plus a **heavy overhead** — the sword visibly raises during
+      every warning, yellow marker for the string, red for the heavy.
+- [ ] It steps back when you hug it, lunges when you're far, and pauses
+      after each string — you should feel openings to act.
+- [ ] It sometimes raises a **blue guard** after a string: your normal
+      swings do nothing through it (heavies chip 40 %); wait it out.
+- [ ] Hitting it drains its HP (F1 shows Boss HP); ~8–10 clean swings kill
+      it — it stops and F1 shows DEAD.
+- [ ] **You have 100 HP now** (F1 shows Player HP): the boss's sword hurts,
+      the heavy hurts more, your block negates the light string. **You can
+      die** — the gladiator falls, greys out.
+- [ ] **R / Back retries** the fight after death (placeholder until the
+      real menus) — both sides reset.
 
 ### Telegraphs (Sprint 11)
 
@@ -79,5 +86,6 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 
 ### Deliberately not visible yet (by design — don't report as bugs)
 
-- Your own HP bar / death (Sprint 10+ for boss side, HUD Sprint 21), hit
-  feedback like hitstop/VFX (Sprint 15), XP (Sprint 19).
+- Boss stagger/reactions to your hits (Sprint 13), boss breakout (Sprint
+  14), hit feedback like hitstop/VFX (Sprint 15), HUD other than F1
+  (Sprint 21), XP (Sprint 19).

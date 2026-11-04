@@ -7,8 +7,10 @@ extends CharacterBody3D
 
 signal state_changed(new_state: State)
 signal defeated
+## D-037: emitted when the boss's guard negates an attack — feedback hook.
+signal boss_blocked(event: DamageEvent)
 
-enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, DEAD }
+enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, DEAD }
 
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
@@ -16,6 +18,20 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, DEAD
 @export var deceleration := 25.0
 @export var turn_speed := 8.0
 @export var arena_half_extent := 18.0
+
+@export_group("Strings")
+## D-040: post-string opening (architecture: "predictable recovery"). The
+## boss stands down this long after a melee string ends, so the player gets
+## a real window to act. A teaching boss pauses; a DPS-check boss doesn't.
+@export var string_pause := 1.2
+
+@export_group("Guard")
+## Sprint 12 "basic defense" (D-037): raised after strings; negates NORMAL
+## hits and reduces HEAVY/SPECIAL ones.
+@export var guard_duration := 1.0
+@export var guard_cooldown := 5.0
+@export var guard_chance := 0.4
+@export var guard_heavy_multiplier := 0.4
 
 var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_gravity"))
 var _target: Node3D
@@ -25,6 +41,10 @@ var _rng := RandomNumberGenerator.new()
 var _telegraph_marker: MeshInstance3D
 var _telegraph_aura: MeshInstance3D
 var _telegraph_mat: StandardMaterial3D
+var _guard_aura: MeshInstance3D
+var _guard_mat: StandardMaterial3D
+var _sword_pivot: Node3D
+var _pause_left := 0.0
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
@@ -44,10 +64,12 @@ func _ready() -> void:
 	if attacks.is_empty():
 		push_warning("BossController has no attacks — it will observe but never fight.")
 	_build_telegraph_visuals()
+	_build_guard_visuals()
+	_sword_pivot = get_node_or_null("Visual/SwordPivot")
 	_health.died.connect(_on_died)
-	# For the boss, the hurtbox signal IS the resolved path (D-033): bosses
-	# have no mitigation layer, so nothing negates their incoming damage.
-	_hurtbox.damaged.connect(_health.apply_damage)
+	# D-033 with the Sprint 12 guard: the hurtbox signal is still the boss's
+	# resolved path, but an active GUARD negates/reduces before health.
+	_hurtbox.damaged.connect(_resolve_incoming_damage)
 
 func _physics_process(delta: float) -> void:
 	state_elapsed += delta
@@ -73,7 +95,10 @@ func _physics_process(delta: float) -> void:
 			_attack_physics(delta)
 		State.RECOVERY:
 			_recovery_physics(delta)
+		State.GUARD:
+			_guard_physics(delta)
 	_enforce_arena_bounds()
+	_animate_sword(delta)
 
 func is_dead() -> bool:
 	return state == State.DEAD
@@ -85,6 +110,8 @@ func reset() -> void:
 	_current_attack = null
 	_attack_hitbox.set_active(false)
 	_hide_telegraph()
+	_hide_guard()
+	_pause_left = 0.0
 	state = State.OBSERVE
 
 func _observe_physics(delta: float) -> void:
@@ -93,13 +120,34 @@ func _observe_physics(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 	move_and_slide()
 	_face_target(delta)
-	if _target == null:
+	if _target == null or _target_is_dead():
+		return  # stand down: never fight a corpse (roadmap: no soft-locks)
+	if _pause_left > 0.0:
+		_pause_left -= delta
+		return  # D-040: the post-string opening the player acts in
+	var distance := _flat_distance()
+	if distance < _best_min_range() - 0.2:
+		# D-041: inside every attack's minimum range — create space instead
+		# of standing inert (the soft-lock the flagship check caught).
+		_step_away_physics(delta)
 		return
-	if BossBrain.select_attack(attacks, _flat_distance(), _cooldowns, _rng) != null:
+	if BossBrain.select_attack(attacks, distance, _cooldowns, _rng) != null:
 		state = State.SELECT_ATTACK
-	elif _flat_distance() > _best_max_range():
+	elif distance > _best_max_range():
 		state = State.APPROACH
 	# else: in range but everything is cooling down — stand and watch.
+
+## D-041: back-pedal to a striking distance when the target hugs the boss.
+func _step_away_physics(delta: float) -> void:
+	_apply_gravity(delta)
+	if _target != null:
+		var away := global_position - _target.global_position
+		away.y = 0.0
+		var direction := away.normalized() if away.length() > 0.05 else Vector3.ZERO
+		velocity.x = direction.x * movement_speed
+		velocity.z = direction.z * movement_speed
+	move_and_slide()
+	_face_target(delta)
 
 func _approach_physics(delta: float) -> void:
 	_apply_gravity(delta)
@@ -116,6 +164,9 @@ func _approach_physics(delta: float) -> void:
 		state = State.SELECT_ATTACK
 
 func _select_attack() -> void:
+	if _target_is_dead():
+		state = State.OBSERVE
+		return
 	_current_attack = BossBrain.select_attack(attacks, _flat_distance(), _cooldowns, _rng)
 	if _current_attack == null:
 		state = State.OBSERVE
@@ -135,9 +186,9 @@ func _telegraph_physics(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 	move_and_slide()
 	_face_target(delta)
-	# The warning is only honest while it points at a reachable target —
-	# leave the attack's range (with a small grace margin) and it cancels.
-	if _target == null or _flat_distance() > _current_attack.max_range + 0.5:
+	# The warning is only honest while it points at a reachable, living
+	# target — leave the range (with a small grace margin) or die, and it cancels.
+	if _target == null or _target_is_dead() or _flat_distance() > _current_attack.max_range + 0.5:
 		_cancel_telegraph()
 		return
 	if state_elapsed >= _current_attack.telegraph_duration:
@@ -221,12 +272,19 @@ func _attack_box_shape() -> BoxShape3D:
 
 func _attack_physics(delta: float) -> void:
 	_apply_gravity(delta)
-	# Rooted while swinging, like the player.
-	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
-	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
-	move_and_slide()
+	# Rooted unless this attack lunges (the pressure/approach attack).
 	var active := state_elapsed >= _current_attack.startup \
 			and state_elapsed < _current_attack.startup + _current_attack.active
+	if _current_attack.lunge_speed > 0.0 and active and _target != null:
+		var to_target := _target.global_position - global_position
+		to_target.y = 0.0
+		var direction := to_target.normalized() if to_target.length() > 0.05 else Vector3.ZERO
+		velocity.x = direction.x * _current_attack.lunge_speed
+		velocity.z = direction.z * _current_attack.lunge_speed
+	else:
+		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+		velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	move_and_slide()
 	_attack_hitbox.set_active(active)
 	if state_elapsed >= _current_attack.startup + _current_attack.active:
 		state = State.RECOVERY
@@ -239,14 +297,119 @@ func _recovery_physics(delta: float) -> void:
 	_face_target(delta)
 	if state_elapsed >= _current_attack.recovery:
 		_cooldowns[_current_attack.attack_id] = _current_attack.cooldown
+		_continue_or_guard()
+
+## D-036: followup attacks chain into a melee string; when the string ends,
+## roll the D-037 guard — the Defensive-Response placeholder for Sprint 14.
+func _continue_or_guard() -> void:
+	var next := _attack_by_id(_current_attack.followup)
+	var distance := _flat_distance()
+	if next != null and not _target_is_dead() and distance <= next.max_range and distance >= next.min_range - 0.3:
+		_current_attack = next
+		_push_payload(next)
+		play_animation(next.animation)
+		if next.telegraph_duration > 0.0:
+			_show_telegraph(next)
+			state = State.TELEGRAPH
+		else:
+			state = State.ATTACK
+		return
+	if not _target_is_dead() and distance <= _best_max_range() \
+			and not _cooldowns.has(&"guard") and _rng.randf() < guard_chance:
+		_cooldowns[&"guard"] = guard_cooldown
+		_show_guard()
+		state = State.GUARD
+		return
+	# D-040: the post-string opening — a teaching boss stands down so the
+	# player gets a real window to act (predictable recovery).
+	_current_attack = null
+	_pause_left = string_pause
+	state = State.OBSERVE
+
+func _attack_by_id(attack_id: StringName) -> BossAttackData:
+	if attack_id == StringName(""):
+		return null
+	for attack in attacks:
+		if attack != null and attack.attack_id == attack_id:
+			return attack
+	return null
+
+func _guard_physics(delta: float) -> void:
+	_apply_gravity(delta)
+	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	move_and_slide()
+	_face_target(delta)
+	if state_elapsed >= guard_duration:
+		_hide_guard()
 		state = State.OBSERVE
+
+func _target_is_dead() -> bool:
+	return _target != null and _target.has_method("is_dead") and _target.is_dead()
 
 func _on_died() -> void:
 	_attack_hitbox.set_active(false)
 	_current_attack = null
 	_hide_telegraph()
+	_hide_guard()
 	state = State.DEAD
 	defeated.emit()
+
+## D-037: an active GUARD negates NORMAL hits and reduces HEAVY/SPECIAL
+## ones before they reach health — the mirror of the player's block.
+func _resolve_incoming_damage(event: DamageEvent) -> void:
+	if state == State.GUARD:
+		if event.hit_type == CombatTypes.HitType.NORMAL:
+			boss_blocked.emit(event)
+			return
+		event.amount *= guard_heavy_multiplier
+	_health.apply_damage(event)
+
+func _show_guard() -> void:
+	if _guard_mat != null:
+		_guard_mat.albedo_color = Color(0.3, 0.6, 1.0, 0.45)
+	if _guard_aura != null:
+		_guard_aura.visible = true
+
+func _hide_guard() -> void:
+	if _guard_aura != null:
+		_guard_aura.visible = false
+
+func _build_guard_visuals() -> void:
+	var guard_material := StandardMaterial3D.new()
+	guard_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	guard_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	guard_material.albedo_color = Color(0.3, 0.6, 1.0, 0.45)
+	_guard_mat = guard_material
+	var aura := MeshInstance3D.new()
+	aura.name = "GuardAura"
+	var capsule := CapsuleMesh.new()
+	capsule.radius = 0.75
+	capsule.height = 2.7
+	aura.mesh = capsule
+	aura.material_override = guard_material
+	aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	aura.position = Vector3(0, 1.25, 0)
+	add_child(aura)
+	aura.visible = false
+	_guard_aura = aura
+
+## D-036: procedural sword anticipation and impact — the telegraph reads as
+## a wind-up, the attack snaps through. No-op on framework hosts without a
+## SwordPivot.
+func _animate_sword(delta: float) -> void:
+	if _sword_pivot == null:
+		return
+	var target_rotation := 0.0
+	var speed := 6.0
+	match state:
+		State.TELEGRAPH:
+			target_rotation = 1.1  # blade rises: the readable anticipation
+			speed = 5.0
+		State.ATTACK:
+			target_rotation = -1.5  # snap through the swing
+			speed = 22.0
+	_sword_pivot.rotation.x = lerpf(_sword_pivot.rotation.x, target_rotation, 1.0 - exp(-speed * delta))
 
 func _push_payload(attack: BossAttackData) -> void:
 	_attack_hitbox.damage = attack.damage
@@ -268,6 +431,13 @@ func _flat_distance() -> float:
 	var offset := _target.global_position - global_position
 	offset.y = 0.0
 	return offset.length()
+
+func _best_min_range() -> float:
+	var best := INF
+	for attack in attacks:
+		if attack != null:
+			best = minf(best, attack.min_range)
+	return best
 
 func _best_max_range() -> float:
 	var best := 0.0

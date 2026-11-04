@@ -13,7 +13,7 @@ const REQUIRED_ACTIONS := [
 const REQUIRED_PATHS := [
 	"res://game/scenes/arena/arena.tscn",
 	"res://game/scenes/player/player.tscn",
-	"res://game/scenes/bosses/boss_placeholder.tscn",
+	"res://game/scenes/bosses/new_gladiator.tscn",
 	"res://game/scripts/player/player_controller.gd",
 	"res://game/scripts/camera/third_person_camera.gd",
 	"res://game/scripts/debug/debug_overlay.gd",

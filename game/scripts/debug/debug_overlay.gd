@@ -37,6 +37,9 @@ func _update_text() -> void:
 	if player != null:
 		lines.append("Player state: %s" % player.State.keys()[player.state])
 		lines.append("Combo: " + player.combo_debug_text())
+		var player_health := player.get_node_or_null("Health")
+		if player_health != null:
+			lines.append("Player HP: %d/%d" % [roundi(player_health.current_health), roundi(player_health.max_health)])
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])
