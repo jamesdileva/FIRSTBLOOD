@@ -1,10 +1,11 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/bosses/boss_controller.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/combat/hurtbox_component.gd" id="2"]
 [ext_resource type="Script" path="res://game/scripts/combat/hitbox_component.gd" id="3"]
 [ext_resource type="Script" path="res://game/scripts/combat/health_component.gd" id="4"]
 [ext_resource type="Script" path="res://game/scripts/bosses/boss_attack_data.gd" id="5"]
+[ext_resource type="Script" path="res://game/scripts/combat/stagger_component.gd" id="6"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 radius = 0.6
@@ -139,3 +140,9 @@ shape = SubResource("BoxShape_attack")
 [node name="Health" type="Node" parent="."]
 script = ExtResource("4")
 max_health = 100.0
+
+[node name="Stagger" type="Node" parent="."]
+script = ExtResource("6")
+stagger_threshold = 30.0
+stagger_duration = 2.0
+resistance_growth = 1.5

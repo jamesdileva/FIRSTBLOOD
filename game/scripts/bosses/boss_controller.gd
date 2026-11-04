@@ -9,8 +9,10 @@ signal state_changed(new_state: State)
 signal defeated
 ## D-037: emitted when the boss's guard negates an attack — feedback hook.
 signal boss_blocked(event: DamageEvent)
+## Sprint 13: emitted when a stagger opens the punish window.
+signal stagger_started
 
-enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, DEAD }
+enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, STAGGERED, DEAD }
 
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
@@ -43,6 +45,8 @@ var _telegraph_aura: MeshInstance3D
 var _telegraph_mat: StandardMaterial3D
 var _guard_aura: MeshInstance3D
 var _guard_mat: StandardMaterial3D
+var _stagger_aura: MeshInstance3D
+var _stagger_mat: StandardMaterial3D
 var _sword_pivot: Node3D
 var _pause_left := 0.0
 var state_elapsed := 0.0
@@ -50,6 +54,7 @@ var state_elapsed := 0.0
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _health: HealthComponent = $Health
+@onready var _stagger: StaggerComponent = $Stagger
 
 var state: State = State.OBSERVE:
 	set(value):
@@ -65,8 +70,10 @@ func _ready() -> void:
 		push_warning("BossController has no attacks — it will observe but never fight.")
 	_build_telegraph_visuals()
 	_build_guard_visuals()
+	_build_stagger_visuals()
 	_sword_pivot = get_node_or_null("Visual/SwordPivot")
 	_health.died.connect(_on_died)
+	_stagger.staggered.connect(_enter_stagger)
 	# D-033 with the Sprint 12 guard: the hurtbox signal is still the boss's
 	# resolved path, but an active GUARD negates/reduces before health.
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
@@ -97,6 +104,8 @@ func _physics_process(delta: float) -> void:
 			_recovery_physics(delta)
 		State.GUARD:
 			_guard_physics(delta)
+		State.STAGGERED:
+			_staggered_physics(delta)
 	_enforce_arena_bounds()
 	_animate_sword(delta)
 
@@ -111,6 +120,8 @@ func reset() -> void:
 	_attack_hitbox.set_active(false)
 	_hide_telegraph()
 	_hide_guard()
+	_hide_stagger()
+	_stagger.reset()
 	_pause_left = 0.0
 	state = State.OBSERVE
 
@@ -352,18 +363,78 @@ func _on_died() -> void:
 	_current_attack = null
 	_hide_telegraph()
 	_hide_guard()
+	_hide_stagger()
+	_stagger.reset()
 	state = State.DEAD
 	defeated.emit()
 
 ## D-037: an active GUARD negates NORMAL hits and reduces HEAVY/SPECIAL
 ## ones before they reach health — the mirror of the player's block.
 func _resolve_incoming_damage(event: DamageEvent) -> void:
+	if is_dead():
+		return
 	if state == State.GUARD:
+		# Blocked hits build no stagger (D-043): the boss defended.
 		if event.hit_type == CombatTypes.HitType.NORMAL:
 			boss_blocked.emit(event)
 			return
 		event.amount *= guard_heavy_multiplier
 	_health.apply_damage(event)
+	_stagger.add_stagger(event)
+
+## Sprint 13: the punish window — interrupts whatever the boss was doing
+## (D-043) and lasts for the component's stagger_duration.
+func _enter_stagger() -> void:
+	if is_dead():
+		return
+	_attack_hitbox.set_active(false)
+	_hide_telegraph()
+	_hide_guard()
+	_current_attack = null
+	_show_stagger()
+	play_animation("stagger")
+	state = State.STAGGERED
+	stagger_started.emit()
+
+func _staggered_physics(delta: float) -> void:
+	_apply_gravity(delta)
+	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	move_and_slide()
+	_face_target(delta)
+	if _stagger.tick_recovery(delta):
+		_hide_stagger()
+		_pause_left = string_pause  # recover into a readable opening
+		state = State.OBSERVE
+
+func _show_stagger() -> void:
+	if _stagger_mat != null:
+		_stagger_mat.albedo_color = Color(0.8, 0.4, 1.0, 0.45)  # violet (D-044)
+	if _stagger_aura != null:
+		_stagger_aura.visible = true
+
+func _hide_stagger() -> void:
+	if _stagger_aura != null:
+		_stagger_aura.visible = false
+
+func _build_stagger_visuals() -> void:
+	var stagger_material := StandardMaterial3D.new()
+	stagger_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	stagger_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	stagger_material.albedo_color = Color(0.8, 0.4, 1.0, 0.45)
+	_stagger_mat = stagger_material
+	var aura := MeshInstance3D.new()
+	aura.name = "StaggerAura"
+	var capsule := CapsuleMesh.new()
+	capsule.radius = 0.78
+	capsule.height = 2.8
+	aura.mesh = capsule
+	aura.material_override = stagger_material
+	aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	aura.position = Vector3(0, 1.25, 0)
+	add_child(aura)
+	aura.visible = false
+	_stagger_aura = aura
 
 func _show_guard() -> void:
 	if _guard_mat != null:
@@ -409,6 +480,9 @@ func _animate_sword(delta: float) -> void:
 		State.ATTACK:
 			target_rotation = -1.5  # snap through the swing
 			speed = 22.0
+		State.STAGGERED:
+			target_rotation = 0.6  # hit reaction: guard droops mid-window
+			speed = 8.0
 	_sword_pivot.rotation.x = lerpf(_sword_pivot.rotation.x, target_rotation, 1.0 - exp(-speed * delta))
 
 func _push_payload(attack: BossAttackData) -> void:
