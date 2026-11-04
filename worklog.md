@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 016 · 2026-11-04 · Boss Breakout (Sprint 14)
+
+**Goal:** Prevent infinite stagger loops and complete the core loop's rhythm — the finisher lands during the stagger window and breaks the boss out into a readable recovery that ends in defend-or-attack.
+
+**Scope:** `stagger_component.gd` (forced window end) + unit tests, `boss_controller.gd` (BREAKOUT state, finisher counter, defend-or-attack transition), stagger threshold retune (30 → 15), new `tools/validation/breakout_check.gd`, `docs/playtesting.md`.
+**Non-goals:** knockback/kick on breakout (Sprint 15 feedback), counterattack beyond the existing moveset, chained-finisher sequences (Sprint 39 uses the counter this sprint installs).
+
+**Decisions:**
+
+- **D-045 (breakout trigger):** a **finisher-tagged hit during the stagger window** breaks the boss out immediately — tagged via `breakout_attack_id` on the boss (matches the player's combo finisher id, keeping it data-driven). A `_finishers_in_stagger` counter with `breakout_finishers := 1` is the extension point Sprint 39 needs for chained-finisher sequences (N finishers → breakout).
+- **D-046 (breakout behavior):** BREAKOUT is a **0.8 s readable recovery** — the boss roots, shows the blue guard aura, then **defends (GUARD) or attacks (OBSERVE → selection)** at ~50/50 (guard honoring its cooldown). The stagger's resistance applies on breakout (the window was consumed), and the stagger still self-ends by timer when no finisher lands — both enders coexist.
+- **D-047 (threshold retune — design correction):** stagger threshold **30 → 15**. At 30, the stagger opened *on* the finisher's own hit (the combo's 33 crossed there), leaving nothing to land during the window — the punish window was self-defeating. At 15 the light string (5+6+7=18) opens the stagger and the **finisher becomes the breakout tool**: hit → combo → stagger → finisher → breakout, exactly the architecture §7 rhythm. Resistance grows from there (15 → 22.5 → 33.75).
+
+**Roadmap checklist coverage:** the finisher ends the stagger (BREAKOUT observed on a finisher hit mid-window, window measured shorter than the timer) · boss defends or attacks after breakout · the player cannot permanently lock the boss (max continuous STAGGERED tracked; every window ends) → `breakout_check.gd`.
+
+---
+
 ## 015 · 2026-11-04 · Boss Stagger (Sprint 13)
 
 **Goal:** Successful combat creates punish windows — player hits build stagger, a full combo staggers the boss into a visible, interrupting, self-ending punish window, with resistance so it can't be farmed.
