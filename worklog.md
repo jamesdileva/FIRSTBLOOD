@@ -22,6 +22,40 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** correct attacks (stagger_damage-carrying hits) stagger the boss · the window self-ends via the component timer · the boss cannot attack while staggered (hitbox dropped, no ATTACK entry) · stagger visibly interrupts a telegraph · resistance makes the second stagger harder → `stagger_check.gd` + the gdUnit4 component suite.
 
+**Implemented:** *(2026-11-04)*
+
+- `stagger_component.gd` — threshold/accumulation/duration/resistance per D-042; `add_stagger` returns whether the threshold crossed, `tick_recovery` runs the timed window and re-arms with resistance; `staggered`/`recovered` signals.
+- `boss_controller.gd` — STAGGERED state (entry via the component signal, exits through the component timer into the D-040 string pause), resolver gates (dead → ignore; guard → negated hits build no stagger; otherwise health + `add_stagger`), `_enter_stagger` interrupt (drops hitbox, hides telegraph/guard, violet aura D-044, `stagger_started` signal), sword-droop hit reaction.
+- `new_gladiator.tscn` — Stagger node (threshold 30, duration 2.0, growth 1.5).
+- `tests/bosses/stagger_component_test.gd` — 7 unit cases (suite total now 21).
+- `tools/validation/stagger_check.gd` — probe-driven cadence check with edge-based window measurement.
+- `docs/playtesting.md` — batch 1 gains the stagger section.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] gdUnit4 — **PASS: 21/21 test cases** (7 new stagger cases; one initially-wrong expectation corrected — after resistance the old 40 points correctly fall short of 45)
+- [x] Stagger check — **PASS**:
+  - the probe's combo staggers the boss (window measured **~121 ticks** from the entry edge, 2.0 s data)
+  - at least one stagger opened **mid-telegraph** (the attack-interruption rule observed live)
+  - the boss's hitbox never activated during STAGGERED ticks
+  - the second stagger required more hits than the first (resistance honored)
+- [x] Regressions — all eleven suites PASS, 180-frame run clean
+- [ ] Stagger *feel* — batch playtest (after Sprint 14, per the user's plan)
+
+Result: **PASS (automated)**.
+
+**Debug story (the interesting one):** the first stagger check run hung with the boss stuck in STAGGERED forever. The trace showed the state entered at T265 and never left — **the `_physics_process` match had no `State.STAGGERED` case**: my batch patch added the enum, visuals, and `_staggered_physics`, but the match-case insertion silently didn't apply (independent string replaces, no per-replace verification). Rule going forward: every state added to the enum gets its physics-match case in the same edit, verified by grep.
+
+**Known limitations:**
+
+- Breakout is Sprint 14 — until then the stagger ends only by timer, and resistance (×1.5 per stagger) is the anti-farm valve.
+- No player flinch or damage multipliers during stagger (Sprint 15 feedback).
+- Stagger accumulation never decays between hits (MVP simplification).
+
+**Next:** Sprint 14 — Boss Breakout: the finisher ends the stagger (breakout state, recovery transition, "boss defends or attacks"), completing the core loop's drama: hit → stagger → punish → breakout → reset. Plan+scope first.
+
 ---
 
 ## 014 · 2026-11-03 · New Gladiator (Sprint 12)
