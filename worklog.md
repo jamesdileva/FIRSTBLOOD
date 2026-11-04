@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 014 · 2026-11-03 · New Gladiator (Sprint 12)
+
+**Goal:** The MVP boss — a distinct gladiator placeholder with readable sword telegraphs, a melee attack string, pressure lunges, and basic defense — in a complete fight that is winnable (attack/block/dodge) and losable, with no soft-locks.
+
+**Scope:** `BossAttackData` gains `followup` (string chaining) + `lunge_speed`; `boss_controller.gd` (attack strings, lunge, GUARD state = the "basic defense" task, procedural sword swing, dead-target handling); player gains **health, death, and retry** (`player_controller.gd` DEAD state, Health node, `retry` input action, death visuals) — required by this sprint's winnable/losable verification; boss scene renamed to `new_gladiator.tscn` with gladiator primitive visuals; new `tools/validation/gladiator_check.gd` (the flagship full-fight check); overlay Player HP; `telegraph_check.gd` timing updates.
+**Non-goals:** stagger/hit reactions (Sprint 13), breakout (Sprint 14), proper menus/defeat screens (Sprint 22 — retry is a placeholder input), real art (Sprint 17/18), XP.
+
+**Decisions:**
+
+- **D-036 (gladiator identity + strings):** the boss scene becomes the **New Gladiator** (`new_gladiator.tscn`): tan body + head, steel sword on a `SwordPivot`, bronze shield arm — primitives with a readable silhouette. The sword animates procedurally: slow wind-up during TELEGRAPH, snap-through during ATTACK (anticipation → impact, guide §16's "animation timing is gameplay"). Attacks are a **string**: `boss_light` (followup → `boss_light_2`, small lunge = the "approach/pressure attack") ending, plus `boss_heavy`. Followup attacks have weight 0 (never brain-selected, only chained); each attack keeps its own telegraph and cooldown.
+- **D-037 (boss basic defense):** a GUARD state — after finishing a string, if the player is in range and the guard is off cooldown (weighted chance), the boss raises a 1.0 s guard: NORMAL hits negated, HEAVY/SPECIAL × 0.4, own 5 s cooldown, blue aura visual. This is the Defensive-Response placeholder for Sprint 14's breakout ("boss defends or attacks").
+- **D-038 (fight is losable):** the player gets its own HealthComponent (100) fed by the resolver's `hit_taken`/`hit_mitigated` only (D-027 honored). Death → DEAD state (fallen visual, inputs dead, `died` signal), the boss stands down against a dead target, and a `retry` action (R / Back) resets both — placeholder until Sprint 22's menus.
+
+**Roadmap checklist coverage:** boss completes full fights indefinitely (flagship check runs a real fight) · player wins using attack + block + dodge (scripted: block the light string, dodge-cancel the heavy telegraph, mash on recovery) · boss defeats a passive player · no soft-locks (dead-target standdown + retry) · boss neither stands motionless nor spams one attack (variety asserted).
+
+---
+
 ## 013 · 2026-11-03 · Telegraph System (Sprint 11)
 
 **Goal:** Readable attack warnings — a TELEGRAPH state inserted into the boss attack flow with a measurable, tunable warning window and placeholder visuals that survive placeholder art.
