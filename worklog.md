@@ -36,6 +36,45 @@ The entry template is at the bottom of this file.
 - **D-034 (telegraph model):** the flow becomes SELECT_ATTACK → **TELEGRAPH** (`BossAttackData.telegraph_duration`, 0 = immediate) → ATTACK → RECOVERY. During the window the boss roots, faces its target, and shows the warning; if the target leaves `max_range + 0.5 m` grace, the attack **cancels to OBSERVE with the attack's full cooldown** — so the player can bait telegraphs but not for free. Damage to the boss during a telegraph does *not* interrupt (interruption belongs to Sprint 13's stagger). Colors derive from `hit_type`: yellow = NORMAL, red = HEAVY/SPECIAL — one visual language, no per-attack config.
 - **D-035 (placeholder visuals):** code-built following the hitbox debug-shape precedent — a ground marker mirroring the AttackHitbox footprint (thin unshaded box just above the floor) plus a slightly-oversized translucent body aura. The scene swaps in real VFX at the art pass; the gameplay timing never depends on them.
 
+**Implemented:** *(completed 2026-11-04)*
+
+- `new_gladiator.tscn` (renamed from `boss_placeholder.tscn`) — the MVP boss: tan body + head, steel sword on `Visual/SwordPivot`, bronze shield arm; three inline attack resources: `boss_light` (10 dmg, telegraph 0.4, followup → `boss_light_2`, lunge 2.0) → `boss_light_2` (12 dmg, telegraph 0.25, lunge 1.0, weight 0 — string-chained only) and `boss_heavy` (20 dmg, HEAVY, telegraph 0.7).
+- `boss_controller.gd` — followup string chaining, lunge during the active window, GUARD state (D-037), procedural sword anticipation/impact, dead-target standdown, resolver guard branch, `boss_blocked` signal.
+- Player: `HealthComponent` (100) wired to `hit_taken`/`hit_mitigated` only (D-027 honored), DEAD state (fall + grey-out, `died` signal), `retry` input action (R/Back) resetting both sides (D-038).
+- `tools/validation/gladiator_check.gd` — the flagship: a scripted player wins via attack + block + dodge, a passive player loses, retry resumes, attack variety asserted across phases.
+- `telegraph_check.gd` — dynamic per-attack expected durations, spacing band, edge-based measurement.
+- `docs/playtesting.md` — batch 1 now covers the full New Gladiator fight.
+
+**Decisions made during implementation (beyond the plan):**
+
+- **D-039 (soft-facing):** swings snap the player's yaw toward the foe within 3 m at swing start. Found via the flagship: a player who backed off or strafed froze facing mid-turn (rooted attacks lock facing) and whiffed constantly — hostile for controller-first play; snap is deliberate, the swing stays committed.
+- **D-040 (post-string pause):** `string_pause` (1.2 s) — the boss stands down after a melee string. Found via the flagship: light's cooldown expired *during* its own string, so the boss re-strung forever and **the fight was unwinnable** (the player could only block, 0 swings possible). The pause is the architecture's "predictable recovery" made mechanical.
+- **D-041 (back-pedal):** the boss steps away when the target is inside every attack's minimum range — it previously stood inert forever (soft-lock) when hugged.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] Gladiator check (flagship) — **PASS**: the scripted player **wins in ~611-819 ticks** using attack (mash in openings), block (negates the light string), and dodge (cancels out of the heavy telegraph); a **passive player loses**; **retry resets both sides** and the fight resumes; attack variety (all three attacks) asserted
+- [x] Regressions — all eleven suites PASS (smoke, movement, dodge, combat, attack, combo, block, defense, boss, telegraph, gladiator), gdUnit4 14/14, 180-frame run clean
+- [ ] Fight *feel* — the flagship proves winnable/losable; the batch-1 playtest judges pacing, string readability, and the guard rhythm.
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The scripted player must release synthesized buttons (a held attack gives one `just_pressed` edge ever) and mash with alternating press/release edges.
+- Movement turns the character — a scripted "back off" also turns them away from the boss; soft-facing (D-039) removes the need for facing management in swing assertions.
+- Timing assertions must measure from the *transition edge* into a state, never from first observation (a poll can catch a state mid-window).
+- Deterministic variety: pin other attacks on cooldown (`_cooldowns[...] = N`) instead of hoping weighted RNG shows the wanted one.
+- Spacing logic must be direction-aware — a lunging boss crosses to the other side of the player, inverting fixed camera-relative "toward/away" keys.
+
+**Known limitations:**
+
+- No stagger/hit reactions (Sprint 13) — the boss ignores your hits except HP; no breakout (14); no XP (19); retry is a placeholder input until Sprint 22's menus; guard aura/sword motion are code-driven placeholders (art pass).
+
+**Next:** Phase 5 — Sprint 13 Boss Stagger (stagger value/state/duration from the staged `stagger_damage` payload, hit reactions, interruption rules — the punish window) and Sprint 14 Boss Breakout (the finisher ends it). Plan+scope first.
+
 **Implemented:** *(2026-11-03)*
 
 - `boss_controller.gd` — TELEGRAPH state (SELECT_ATTACK → TELEGRAPH → ATTACK), `_build_telegraph_visuals()` (marker sized from the AttackHitbox box footprint, body aura), `_show_telegraph`/`_hide_telegraph`/`_cancel_telegraph`, hit-type-derived colors, cancel rule with full cooldown; death and reset also hide the visuals.
