@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 015 · 2026-11-04 · Boss Stagger (Sprint 13)
+
+**Goal:** Successful combat creates punish windows — player hits build stagger, a full combo staggers the boss into a visible, interrupting, self-ending punish window, with resistance so it can't be farmed.
+
+**Scope:** new `game/scripts/combat/stagger_component.gd` (reusable, per guide §14) + gdUnit4 suite, `boss_controller.gd` (STAGGERED state, interruption rules, stagger visuals, resolver hook), `new_gladiator.tscn` (Stagger node), new `tools/validation/stagger_check.gd`, `docs/playtesting.md`.
+**Non-goals:** breakout (Sprint 14 — the stagger currently ends only by timer), player-side flinch, stagger-driven finisher multipliers, accumulation decay.
+
+**Decisions:**
+
+- **D-042 (StaggerComponent):** threshold/accumulation/duration/resistance live in a reusable component (guide §14's stagger model). `add_stagger(event)` accumulates `event.stagger_damage` and emits `staggered` when the threshold crosses; the owner ticks `tick_recovery(delta)` and gets `recovered` at the end. The boss's threshold is **30 = exactly one full player combo** (light 5 + light 6 + light_2 7 + finisher 15 = 33) — the teach is "finish your string, earn the window".
+- **D-043 (interruption + resistance):** stagger **interrupts TELEGRAPH/ATTACK/RECOVERY/GUARD** (hides telegraph/guard visuals, drops the hitbox) — the punish window can steal the boss's turn. Blocked hits (boss guard) build **no** stagger. No accumulation decay (MVP); after each stagger the threshold grows ×1.5 (resistance) so stagger loops self-limit until Sprint 14's breakout replaces the timer as the ender.
+- **D-044 (readability):** stagger gets its own color — **violet aura**, distinct from telegraph yellow/red and guard blue; F1 shows `STAGGERED` in the boss state line. Hit reactions this sprint = the interrupt + aura + sword dropping to rest; fancier reactions are Sprint 15 feedback.
+
+**Roadmap checklist coverage:** correct attacks (stagger_damage-carrying hits) stagger the boss · the window self-ends via the component timer · the boss cannot attack while staggered (hitbox dropped, no ATTACK entry) · stagger visibly interrupts a telegraph · resistance makes the second stagger harder → `stagger_check.gd` + the gdUnit4 component suite.
+
+---
+
 ## 014 · 2026-11-03 · New Gladiator (Sprint 12)
 
 **Goal:** The MVP boss — a distinct gladiator placeholder with readable sword telegraphs, a melee attack string, pressure lunges, and basic defense — in a complete fight that is winnable (attack/block/dodge) and losable, with no soft-locks.
