@@ -22,6 +22,36 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** hits immediately readable (hit-stop + burst fire on every landed hit — asserted) · feedback does not obscure telegraphs (bursts spawn at hit moments, never during TELEGRAPH; shake subtle — manual playtest confirms feel) · heavy vs light distinct (both stop durations and shake levels observed) → `feedback_check.gd`; motion-sickness-safe shake amplitude → batch playtest.
 
+**Implemented:** *(2026-11-05)*
+
+- `hit_feedback.gd` — static bus: hit-stop freeze-until timestamp, impact bursts (code-built unshaded spheres, self-freeing), player hurt flash overlay, sound hook (plays silence until a stream ships), vibration, shake impulse for the camera.
+- `player_controller.gd` / `boss_controller.gd` — hit-stop freeze at the top of `_physics_process`; the player reports landed swings (`register_hit`) and hurt flashes (`hit_taken`/`hit_mitigated`); the boss reports its hits (30 ms stop) and flinches on damage.
+- `third_person_camera.gd` — consumes the shake impulse, decays to rest, offsets via `Camera3D.h_offset`/`v_offset` (never the tracked transform).
+- `tools/validation/feedback_check.gd` — polls the bus, camera, and boss during a live fight; asserts both weight magnitudes, no `time_scale` violations, spawn/decay, and the hurt flash via a deterministic mitigated test strike.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] Feedback check — **PASS**: hit-stop observed with **both magnitudes** (45 ms light, 90 ms heavy), **`Engine.time_scale` never left 1.0**, impact bursts spawned and cleaned up, camera consumed and **decayed** shake to rest, boss flinch observed, hurt flash fired (via a deterministic mitigated heavy strike)
+- [x] Regressions — all fourteen suites PASS after widening the margins the hit-stop legitimately affects (swing tails extend by the freeze; state clocks pause), gdUnit4 24/24, 180-frame run clean
+- [ ] Feedback *feel* — shake amplitude, hit-stop weight, flash intensity — batch playtest (now due: the full loop through Phase 6's feedback)
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The hit-stop freezes actor state clocks — every pre-hit-stop tick-count assertion needed its margins widened (swing tails, idle waits, stagger-window upper bound). The invariant is "never exceeds timer + hit-stop allowance."
+- Boss `_visual` needed an `@onready` — the flinch patch referenced it before it existed; the parse error surfaced immediately in the check run.
+
+**Known limitations:**
+
+- No audio streams, no particle VFX, no damage numbers — the hooks and geometry placeholders are in place for the art pass.
+- The camera shake is positional noise via `h_offset`/`v_offset` — a trauma-based model (smoother, directional) is a Sprint 16 tuning-lab candidate.
+- Vibration has no headless verification (no joypad) — batch playtest confirms.
+
+**Next:** Sprint 16 — Combat Tuning Lab: the docs' big gate ("if the game does not feel good, stop adding content"). No new mechanics — rapid tuning of every exported value against playtest notes, then the batch-1 playtest verdict decides what Phase 6+ does next. Plan+scope first.
+
 ---
 
 ## 016 · 2026-11-04 · Boss Breakout (Sprint 14)

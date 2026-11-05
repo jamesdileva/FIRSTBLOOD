@@ -89,6 +89,17 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       intended pacing; the finisher-breakout is your reliable route.
 - [ ] Blocked hits (the boss's blue guard) don't build stagger.
 
+### Hit feedback (Sprint 15)
+
+- [ ] Every landed swing has **weight**: a brief hit-stop freeze, an impact
+      flash at the contact point, a small camera jolt.
+- [ ] **Heavies and finishers hit harder** than lights: longer freeze,
+      bigger orange burst, stronger shake, stronger vibration.
+- [ ] Getting hit flashes the screen red (more on heavies) and vibrates.
+- [ ] The boss **flinches** when damaged and its sword droops while
+      staggered.
+- [ ] None of it washes out the telegraphs or causes motion sickness.
+
 ### Telegraphs (Sprint 11)
 
 - [ ] Before every swing the boss flashes and shows a ground marker in the
