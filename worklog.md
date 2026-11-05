@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 017 · 2026-11-05 · Hit Feedback (Sprint 15)
+
+**Goal:** Make successful actions feel impactful — hit-stop, camera impulse, impact bursts, sound hooks, boss flinch, player hurt flash, controller vibration — with heavy attacks measurably heavier than light ones and nothing obscuring telegraphs.
+
+**Scope:** new `game/scripts/feedback/hit_feedback.gd` (static feedback bus), `third_person_camera.gd` (shake consumption + decay), `player_controller.gd` + `boss_controller.gd` (hit-stop freeze, report calls, boss flinch), new `tools/validation/feedback_check.gd`, `docs/playtesting.md`.
+**Non-goals:** real audio streams (the hook plays silence until the art pass ships sounds), damage numbers (deferred per docs "only if useful"), particle-system VFX (mesh bursts until the art pass), HUD elements (Sprint 21).
+
+**Decisions:**
+
+- **D-049 (static bus, no autoload):** `HitFeedback` is a static class (the CombatDebug pattern) — **autoloads do not instantiate in `-s` headless checks**, and the actors must call it. Statics + `Engine.get_main_loop()` cover spawning/overlays in every mode.
+- **D-050 (hit-stop via actor freeze, not time_scale):** the hit-stop is a global freeze-until timestamp (`hit_stop_until_msec`); both actors' `_physics_process` early-return while it holds. **`Engine.time_scale` is deliberately untouched** — scaling the clock stretches every headless check's real-time runtime 20×; freezing actors keeps tick counts and check budgets stable. State timers pause during hit-stop, which is correct hit-stop semantics.
+- **D-051 (weight scaling):** every channel scales by `hit_type` — hit-stop 45 ms light / 90 ms heavy, shake 0.3 / 0.8, impact burst size and color, vibration strength, hurt-flash alpha. Heavy and finisher read heavier through the same pipeline (the verification asserts both magnitudes are observed and distinct).
+
+**Roadmap checklist coverage:** hits immediately readable (hit-stop + burst fire on every landed hit — asserted) · feedback does not obscure telegraphs (bursts spawn at hit moments, never during TELEGRAPH; shake subtle — manual playtest confirms feel) · heavy vs light distinct (both stop durations and shake levels observed) → `feedback_check.gd`; motion-sickness-safe shake amplitude → batch playtest.
+
+---
+
 ## 016 · 2026-11-04 · Boss Breakout (Sprint 14)
 
 **Goal:** Prevent infinite stagger loops and complete the core loop's rhythm — the finisher lands during the stagger window and breaks the boss out into a readable recovery that ends in defend-or-attack.
