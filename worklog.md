@@ -7,6 +7,24 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 018 · 2026-11-05 · Colosseum Blockout (Sprint 17)
+
+**Goal:** Replace the temporary flat plane with the actual arena shell — a round walled Colosseum with stand tiers and an entry gate — so the batch-1 playtest happens in the real arena.
+
+**Deferral first:**
+
+- **D-052 (Sprint 16 deferred to post-playtest):** the Combat Tuning Lab's entire input is the batch-1 playtest notes; a tuning pass without them has nothing to tune. The user's call, recorded before starting Sprint 17 — roadmap order 16→17 becomes 17→(playtest)→16, both still scheduled.
+
+**Scope:** new `game/scripts/arena/arena_blockout.gd` (code-built walls, gate, tiers per the D-035 precedent), `arena.tscn` (floor plane → disc, Blockout node), player + boss bounds clamp (box → radial), checks updated for the new bound shape, new `tools/validation/colosseum_check.gd`, `docs/playtesting.md`.
+**Non-goals:** art-pass geometry/textures, camera wall-collision (tuning lab candidate), navigable gate (the gate is presentational; the bounds clamp keeps the fight inside), crowd logic.
+
+**Decisions:**
+
+- **D-053 (round arena):** the blockout is a **round Colosseum** — disc floor (radius 18), a wall ring at radius 18.5 (15 segments + a gate gap with two posts), three rising stand tiers outside the wall. The docs' arena identity over the old ±20 box plane. Player and boss bounds change from a box clamp (±18) to a **radial clamp (radius 16)** — the movement/dodge boundary checks updated with it.
+- **D-054 (code-built blockout):** walls/tiers/gate are built by `arena_blockout.gd` at ready (the D-035 precedent — placeholder geometry the art pass replaces); the arena scene stays thin.
+
+---
+
 ## 017 · 2026-11-05 · Hit Feedback (Sprint 15)
 
 **Goal:** Make successful actions feel impactful — hit-stop, camera impulse, impact bursts, sound hooks, boss flinch, player hurt flash, controller vibration — with heavy attacks measurably heavier than light ones and nothing obscuring telegraphs.
