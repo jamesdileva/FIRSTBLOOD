@@ -43,12 +43,20 @@ func tick_recovery(delta: float) -> bool:
 	_elapsed += delta
 	if _elapsed < stagger_duration:
 		return false
+	breakout()
+	return true
+
+## Sprint 14 (D-045): force-end the window without waiting for the timer —
+## the finisher landed during the stagger. Resistance still applies, and
+## `recovered` fires so the owner can react.
+func breakout() -> void:
+	if not _staggered:
+		return
 	_staggered = false
 	_accumulated = 0.0
 	_elapsed = 0.0
 	_current_threshold *= resistance_growth
 	recovered.emit()
-	return true
 
 func reset() -> void:
 	_accumulated = 0.0

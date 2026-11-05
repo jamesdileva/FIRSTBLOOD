@@ -68,3 +68,28 @@ func test_reset_clears_everything() -> void:
 	stagger.reset()
 	assert_bool(stagger.is_staggered()).is_false()
 	assert_bool(stagger.add_stagger(_event(30.0))).is_true()
+
+func test_breakout_ends_the_window_early() -> void:
+	var stagger := _make_stagger(30.0, 2.0, 1.5)
+	stagger.add_stagger(_event(30.0))
+	assert_bool(stagger.is_staggered()).is_true()
+	stagger.breakout()
+	assert_bool(stagger.is_staggered()).is_false()
+
+func test_breakout_applies_resistance_and_fires_recovered() -> void:
+	var stagger := _make_stagger(30.0, 2.0, 1.5)
+	var recovered_count := [0]
+	stagger.recovered.connect(func() -> void: recovered_count[0] += 1)
+	stagger.add_stagger(_event(30.0))
+	stagger.breakout()
+	# threshold is now 45: the old full-strength combo falls short
+	assert_bool(stagger.add_stagger(_event(30.0))).is_false()
+	assert_bool(stagger.add_stagger(_event(20.0))).is_true()
+	assert_int(recovered_count[0]).is_equal(1)
+
+func test_breakout_on_non_staggered_is_a_noop() -> void:
+	var stagger := _make_stagger(30.0, 2.0, 1.5)
+	stagger.breakout()
+	assert_bool(stagger.is_staggered()).is_false()
+	# threshold untouched: a normal combo still staggers
+	assert_bool(stagger.add_stagger(_event(30.0))).is_true()

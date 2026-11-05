@@ -143,6 +143,6 @@ max_health = 100.0
 
 [node name="Stagger" type="Node" parent="."]
 script = ExtResource("6")
-stagger_threshold = 30.0
-stagger_duration = 2.0
+stagger_threshold = 15.0
+stagger_duration = 2.5
 resistance_growth = 1.5

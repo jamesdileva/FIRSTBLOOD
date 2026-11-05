@@ -73,17 +73,20 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] **R / Back retries** the fight after death (placeholder until the
       real menus) — both sides reset.
 
-### Boss stagger (Sprint 13)
+### Boss stagger + breakout (Sprints 13–14)
 
 - [ ] Land a full combo (string + finisher) and the boss **staggers**: violet
-      aura, F1 shows `STAGGERED` for ~2 s, its sword droops — a free punish
+      aura, F1 shows `STAGGERED` for ~2.5 s, its sword droops — a free punish
       window. Keep swinging!
 - [ ] Swinging **during the boss's own telegraph** can stagger it mid-warning,
       stealing its turn.
-- [ ] The window ends on its own (the boss recovers into a brief pause) —
-      it never needs a second hit to come out.
-- [ ] Repeated staggers get **harder** (resistance builds each time) — this
-      is intended pacing until the finisher-breakout lands in Sprint 14.
+- [ ] **Land your finisher inside the stagger window and the boss BREAKS
+      OUT** — blue flash, it recovers for a beat, then defends or attacks.
+      This is the intended rhythm: stagger → punish → finisher → breakout.
+- [ ] The window also closes on its own (~2.5 s) if you don't land the
+      finisher — both endings should feel readable.
+- [ ] Repeated staggers get **harder** (resistance builds each time) —
+      intended pacing; the finisher-breakout is your reliable route.
 - [ ] Blocked hits (the boss's blue guard) don't build stagger.
 
 ### Telegraphs (Sprint 11)

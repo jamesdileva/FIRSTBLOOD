@@ -12,7 +12,7 @@ signal boss_blocked(event: DamageEvent)
 ## Sprint 13: emitted when a stagger opens the punish window.
 signal stagger_started
 
-enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, STAGGERED, DEAD }
+enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, STAGGERED, BREAKOUT, DEAD }
 
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
@@ -20,6 +20,15 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUAR
 @export var deceleration := 25.0
 @export var turn_speed := 8.0
 @export var arena_half_extent := 18.0
+
+@export_group("Breakout")
+## Sprint 14 (D-045): a hit with this attack id during the stagger window
+## breaks the boss out — the player's finisher tag.
+@export var breakout_attack_id := StringName("finisher_01")
+## Finishers needed inside one stagger window (MVP 1; Sprint 39 chains).
+@export var breakout_finishers := 1
+## Readable recovery after the breakout, then defend-or-attack (D-046).
+@export var breakout_duration := 0.8
 
 @export_group("Strings")
 ## D-040: post-string opening (architecture: "predictable recovery"). The
@@ -47,6 +56,7 @@ var _guard_aura: MeshInstance3D
 var _guard_mat: StandardMaterial3D
 var _stagger_aura: MeshInstance3D
 var _stagger_mat: StandardMaterial3D
+var _finishers_in_stagger := 0
 var _sword_pivot: Node3D
 var _pause_left := 0.0
 var state_elapsed := 0.0
@@ -365,6 +375,7 @@ func _on_died() -> void:
 	_hide_guard()
 	_hide_stagger()
 	_stagger.reset()
+	_finishers_in_stagger = 0
 	state = State.DEAD
 	defeated.emit()
 
@@ -372,6 +383,18 @@ func _on_died() -> void:
 ## ones before they reach health — the mirror of the player's block.
 func _resolve_incoming_damage(event: DamageEvent) -> void:
 	if is_dead():
+		return
+	if state == State.STAGGERED:
+		_health.apply_damage(event)
+		if is_dead():
+			return  # death beats breakout: never let the window revive a corpse
+		print("[BR] staggered hit id=", event.attack_id, " want=", breakout_attack_id)
+		# D-045: the finisher landing inside the punish window breaks out.
+		if event.attack_id == breakout_attack_id:
+			_finishers_in_stagger += 1
+			if _finishers_in_stagger >= breakout_finishers:
+				_finishers_in_stagger = 0
+				_begin_breakout()
 		return
 	if state == State.GUARD:
 		# Blocked hits build no stagger (D-043): the boss defended.
@@ -391,6 +414,7 @@ func _enter_stagger() -> void:
 	_hide_telegraph()
 	_hide_guard()
 	_current_attack = null
+	_finishers_in_stagger = 0
 	_show_stagger()
 	play_animation("stagger")
 	state = State.STAGGERED
@@ -402,10 +426,34 @@ func _staggered_physics(delta: float) -> void:
 	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 	move_and_slide()
 	_face_target(delta)
+	# Timer ender: no finisher landed, the window closes on its own (D-046).
 	if _stagger.tick_recovery(delta):
 		_hide_stagger()
-		_pause_left = string_pause  # recover into a readable opening
+		_pause_left = string_pause
 		state = State.OBSERVE
+
+## D-046: readable recovery, then defend or attack.
+func _begin_breakout() -> void:
+	_stagger.breakout()
+	_hide_stagger()
+	_show_guard()  # blue: the defensive posture the breakout reads as
+	state = State.BREAKOUT
+
+func _breakout_physics(delta: float) -> void:
+	_apply_gravity(delta)
+	velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
+	velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
+	move_and_slide()
+	_face_target(delta)
+	if state_elapsed >= breakout_duration:
+		_hide_guard()
+		_pause_left = string_pause
+		if _rng.randf() < 0.5 and not _cooldowns.has(&"guard"):
+			_cooldowns[&"guard"] = guard_cooldown
+			_show_guard()
+			state = State.GUARD
+		else:
+			state = State.OBSERVE
 
 func _show_stagger() -> void:
 	if _stagger_mat != null:
