@@ -109,6 +109,9 @@ func _ready() -> void:
 	hit_taken.connect(_health.apply_damage)
 	hit_mitigated.connect(_health.apply_damage)
 	_health.died.connect(_on_player_died)
+	hit_taken.connect(func(event: DamageEvent) -> void:
+		HitFeedback.player_hurt(event.hit_type != CombatTypes.HitType.NORMAL))
+	hit_mitigated.connect(func(event: DamageEvent) -> void: HitFeedback.player_hurt(true))
 
 ## Never soft-lock on missing data: fall back to a single swing.
 func _ensure_combo() -> void:
@@ -126,8 +129,14 @@ func _current_step() -> ComboStepData:
 
 func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void:
 	attack_connected.emit(event, target)
+	# Sprint 15: the attacker reports the landing — hit-stop, shake, burst.
+	HitFeedback.register_hit(target.global_position + Vector3.UP * 1.2, event.hit_type)
 
 func _physics_process(delta: float) -> void:
+	# Sprint 15 hit-stop: the whole actor freezes while the window holds.
+	if Time.get_ticks_msec() < HitFeedback.hit_stop_until_msec:
+		velocity = Vector3.ZERO
+		return
 	state_elapsed += delta
 	match state:
 		State.DEAD:

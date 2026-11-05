@@ -59,9 +59,11 @@ var _stagger_mat: StandardMaterial3D
 var _finishers_in_stagger := 0
 var _sword_pivot: Node3D
 var _pause_left := 0.0
+var _flinch := 0.0
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
+@onready var _visual: Node3D = $Visual
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _health: HealthComponent = $Health
 @onready var _stagger: StaggerComponent = $Stagger
@@ -84,11 +86,17 @@ func _ready() -> void:
 	_sword_pivot = get_node_or_null("Visual/SwordPivot")
 	_health.died.connect(_on_died)
 	_stagger.staggered.connect(_enter_stagger)
+	_attack_hitbox.hit_landed.connect(func(_event: DamageEvent, _target: HurtboxComponent) -> void:
+		HitFeedback.request_hit_stop(30))
 	# D-033 with the Sprint 12 guard: the hurtbox signal is still the boss's
 	# resolved path, but an active GUARD negates/reduces before health.
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
 
 func _physics_process(delta: float) -> void:
+	# Sprint 15 hit-stop: the whole actor freezes while the window holds.
+	if Time.get_ticks_msec() < HitFeedback.hit_stop_until_msec:
+		velocity = Vector3.ZERO
+		return
 	state_elapsed += delta
 	_tick_cooldowns(delta)
 	if _target == null or not is_instance_valid(_target):
@@ -118,9 +126,16 @@ func _physics_process(delta: float) -> void:
 			_staggered_physics(delta)
 	_enforce_arena_bounds()
 	_animate_sword(delta)
+	# Sprint 15 flinch: a small tilt kick that decays back to rest.
+	_flinch *= exp(-9.0 * delta)
+	_visual.rotation.z = _flinch * 0.3
 
 func is_dead() -> bool:
 	return state == State.DEAD
+
+## Sprint 15: current hit-reaction tilt (0..1), for verification and feel.
+func flinch_level() -> float:
+	return _flinch
 
 ## Clean reset for retry flows (roadmap: "boss can be reset cleanly").
 func reset() -> void:
@@ -386,9 +401,9 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 		return
 	if state == State.STAGGERED:
 		_health.apply_damage(event)
+		_flinch = minf(_flinch + 0.6, 1.0)  # Sprint 15 hit reaction
 		if is_dead():
 			return  # death beats breakout: never let the window revive a corpse
-		print("[BR] staggered hit id=", event.attack_id, " want=", breakout_attack_id)
 		# D-045: the finisher landing inside the punish window breaks out.
 		if event.attack_id == breakout_attack_id:
 			_finishers_in_stagger += 1

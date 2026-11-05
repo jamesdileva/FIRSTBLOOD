@@ -78,9 +78,11 @@ func _run() -> void:
 		failures.append("a full combo never staggered the boss")
 	else:
 		# Sprint 14: the window may end EARLY (the in-flight finisher breaks
-		# out) — the invariant is that it never exceeds the timer.
-		if window_ticks > STAGGER_WINDOW_TICKS + 5:
-			failures.append("stagger window exceeded the timer: %d ticks" % window_ticks)
+		# out) and the hit-stop freezes the boss's clock, so the poll count
+		# may exceed the timer by a few ticks per landed hit. The invariant:
+		# no permanent lock (bounded by the timer + hit-stop allowance).
+		if window_ticks > STAGGER_WINDOW_TICKS + 20:
+			failures.append("stagger window exceeded the timer beyond hit-stop allowance: %d ticks" % window_ticks)
 		if not _interrupted:
 			failures.append("stagger never interrupted a boss telegraph (attack interruption rule)")
 		if _attack_during_stagger:
@@ -133,6 +135,11 @@ func _drive(boss, player) -> void:
 		Input.action_press("block")
 	else:
 		Input.action_release("block")
+		# Openings: hold fire once the accumulation is near the threshold —
+		# the crossing hit then lands mid-telegraph (deterministic interrupt)
+		# instead of during the pause.
+		var boss_stagger: StaggerComponent = boss.get_node("Stagger")
+		var near_threshold: bool = boss_stagger._accumulated >= boss_stagger._current_threshold - 8.0
 		if distance > 1.6:
 			Input.action_release("attack")
 			_mash_edge = false
@@ -143,6 +150,11 @@ func _drive(boss, player) -> void:
 			_mash_edge = false
 			Input.action_press("move_left")
 			Input.action_release("move_right")
+		elif near_threshold:
+			Input.action_release("attack")
+			_mash_edge = false
+			Input.action_release("move_right")
+			Input.action_release("move_left")
 		else:
 			Input.action_release("move_right")
 			Input.action_release("move_left")

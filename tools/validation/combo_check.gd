@@ -115,10 +115,16 @@ func _run() -> void:
 		var gap: int = combo_frames[i] - combo_frames[i - 1]
 		if gap < 24 or gap > 46:
 			failures.append("mash gap %d ticks between hits %d->%d (full recovery not respected)" % [gap, i - 1, i])
-	await _wait_until_idle(player, 60)
+	await _wait_until_idle(player, 150)  # hit-stop can extend the last swing
 	if player.state == player.State.ATTACK:
 		failures.append("combo stuck in ATTACK after mashing stopped")
-	if attack_hitbox.is_active():
+	var combo_inert := false
+	for _i in 90:
+		if not attack_hitbox.is_active():
+			combo_inert = true
+			break
+		await physics_frame
+	if not combo_inert:
 		failures.append("hitbox active after combo ended")
 	await _combo_cooldown(player)
 

@@ -11,6 +11,8 @@ extends Node3D
 
 var _yaw := 0.0
 var _pitch := 0.45
+## Sprint 15: current shake amplitude (0..~1), decayed per frame.
+var shake_level := 0.0
 
 @onready var _camera: Camera3D = $Camera3D
 
@@ -20,6 +22,22 @@ func _ready() -> void:
 	# Snap to the initial framing instead of lerping across the arena.
 	global_position = _desired_position()
 	_camera.look_at_from_position(global_position, _pivot(), Vector3.UP)
+
+func _process(delta: float) -> void:
+	# Sprint 15 camera impulse: consume the feedback bus, decay, offset the
+	# camera through h/v offsets (never the tracked transform).
+	if HitFeedback.pending_shake > shake_level:
+		shake_level = HitFeedback.pending_shake
+		HitFeedback.pending_shake = 0.0
+	shake_level = maxf(shake_level - 3.0 * delta, 0.0)
+	if _camera == null:
+		return
+	if shake_level > 0.001:
+		_camera.h_offset = randf_range(-1.0, 1.0) * 0.18 * shake_level
+		_camera.v_offset = randf_range(-1.0, 1.0) * 0.12 * shake_level
+	else:
+		_camera.h_offset = 0.0
+		_camera.v_offset = 0.0
 
 func _physics_process(delta: float) -> void:
 	if target == null:
