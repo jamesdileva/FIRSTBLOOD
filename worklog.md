@@ -89,6 +89,33 @@ Result: **PASS (automated)**.
 
 **Implemented:** *(2026-11-05)*
 
+- `arena_blockout.gd` — code-built Colosseum shell: 15 wall segments + gate gap (D-054), 2 gate posts with collision, three rising stand tiers (mesh-only, outside the play space).
+- `arena.tscn` — floor plane → **disc** (CylinderMesh + CylinderShape3D, radius 18, sand), Blockout node added.
+- Player + boss — box clamp (±18) → **radial clamp** (`arena_radius` 16, D-053); movement/dodge boundary checks updated to the radial shape.
+- `tools/validation/colosseum_check.gd` — arena shell structure + radial clamp on both actors + a physical wall-drive test.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] Colosseum check — **PASS** (twice): disc floor r 18, 15 wall segments + 2 posts + 3 tiers present, the player and the boss teleported far out are pulled back inside the ring, and driving the player into the wall for 1.5 s does not tunnel through
+- [x] Regressions — all fourteen suites PASS in the round arena (movement, dodge, combat, attack, combo, block, defense, boss, telegraph, stagger, breakout, gladiator, feedback), gdUnit4 24/24, 180-frame run clean
+- [ ] Arena *readability* (silhouettes against the tiers, camera near the wall, size feel) — batch-1 playtest
+
+Result: **PASS (automated)**.
+
+**Harness lesson (this sprint):** the sweep "hung" on movement_check — a stale `arena_half_extent` reference survived my Sprint-17 patch because the Python replace pattern lost a trailing backslash to line-continuation escaping and matched nothing, yet printed success. Two rules added to the loop: **grep-verify every batch-patch insert AND every removal**, and prefer the Edit tool for multi-line replacements containing backslashes.
+
+**Known limitations:**
+
+- The gate is presentational — the radial clamp keeps the fight inside (navigable entry is post-MVP).
+- No camera wall-collision: at the arena edge, low camera pitches can clip stone near the floor (tuning-lab candidate).
+- The tiers are mesh-only (no collision) — nothing can reach them (the clamp holds), noted for the art pass.
+
+**Next:** the batch-1 playtest (user), then the deferred **Sprint 16 — Combat Tuning Lab** processes those notes. The roadmap after 16: Sprint 18 — Stylized Art Pass (the art pass replaces the blockout visuals).
+
+**Implemented:** *(2026-11-05)*
+
 - `stagger_component.gd` — `breakout()`: force-end the window; resistance applies, `recovered` fires.
 - `boss_controller.gd` — BREAKOUT state (0.8 s recovery with the blue guard aura → GUARD or OBSERVE ~50/50, guard cooldown respected), finisher counter (`breakout_attack_id` + `breakout_finishers`, D-045), death-beats-breakout gate.
 - `new_gladiator.tscn` — stagger threshold 15, duration 2.5 (D-047/D-048).
