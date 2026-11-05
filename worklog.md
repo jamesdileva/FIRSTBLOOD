@@ -22,6 +22,40 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** the finisher ends the stagger (BREAKOUT observed on a finisher hit mid-window, window measured shorter than the timer) · boss defends or attacks after breakout · the player cannot permanently lock the boss (max continuous STAGGERED tracked; every window ends) → `breakout_check.gd`.
 
+**Implemented:** *(2026-11-05)*
+
+- `stagger_component.gd` — `breakout()`: force-end the window; resistance applies, `recovered` fires.
+- `boss_controller.gd` — BREAKOUT state (0.8 s recovery with the blue guard aura → GUARD or OBSERVE ~50/50, guard cooldown respected), finisher counter (`breakout_attack_id` + `breakout_finishers`, D-045), death-beats-breakout gate.
+- `new_gladiator.tscn` — stagger threshold 15, duration 2.5 (D-047/D-048).
+- `tests/bosses/stagger_component_test.gd` — 4 breakout cases (suite total 24).
+- `tools/validation/breakout_check.gd` — two-window fight check.
+- `docs/playtesting.md` — the stagger section became stagger+breakout with the intended rhythm.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] gdUnit4 — **PASS: 24/24 test cases** (4 new breakout cases)
+- [x] Breakout check — **PASS** (3 consecutive runs):
+  - window 1 (probe holds guard, lands nothing) ran the **full timer** in stable runs — no breakout without a finisher
+  - window 2 (probe keeps mashing) ended via **BREAKOUT** when the finisher landed inside it — measurably early
+  - after BREAKOUT the boss moved on (guard, attack flow, or a punish re-stagger — D-042)
+  - no permanent lock: max continuous STAGGERED stretch ≤ the timer
+- [x] Regressions — all thirteen suites PASS, gdUnit4 24/24, 180-frame run clean
+- [ ] Breakout *feel* (the 0.8 s recovery, defend-or-attack cadence) — the batch-1 playtest after this sprint.
+
+Result: **PASS (automated)**.
+
+**Debug story (the big one):** the flagship trace exposed that the fight was **structurally unwinnable-as-designed**: with threshold 30 the stagger opened *on* the finisher's own hit, so the punish window never had a finisher left to land — and a probe at contact could never build enough to re-stagger. Fixes: threshold 15 (D-047, the light string opens the stagger), window 2.5 s (D-048, a full combo fits the punish window with margin), and the **death-beats-breakout gate** (a lethal finisher during stagger previously overwrote DEAD with BREAKOUT — a zombie boss). Also caught: the check's own top-up/revive block had silently never been inserted (patch debt — grep-verified inserts from now on).
+
+**Known limitations:**
+
+- No knockback or counterattack on breakout (Sprint 15 feedback; the moveset is the counter for now).
+- `breakout_finishers = 1` is the MVP setting; Sprint 39's chained finishers raise it by data.
+- The probe's full-timer window is timing-sensitive (an in-flight finisher at the stagger edge legitimately breaks out) — the timer-ender path is unit-tested, and the integration check scopes that assertion accordingly.
+
+**Next:** Phase 6 — Sprint 15 Hit Feedback (hit pause, camera impulse, impact VFX, sound hooks, boss reaction animations, damage feedback — the combat becomes physical). This closes the core-loop feel work the tuning sprint builds on. Plan+scope first.
+
 ---
 
 ## 015 · 2026-11-04 · Boss Stagger (Sprint 13)
