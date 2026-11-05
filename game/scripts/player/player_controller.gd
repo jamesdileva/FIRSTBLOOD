@@ -24,7 +24,8 @@ enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK, BLOCK_STARTUP,
 @export var acceleration := 40.0
 @export var deceleration := 50.0
 @export var turn_speed := 12.0
-@export var arena_half_extent := 18.0
+## Sprint 17: the Colosseum is round — radial bound inside the wall ring.
+@export var arena_radius := 16.0
 ## Placeholder responsiveness feedback until real animations exist (D-008).
 @export var lean_amount := 0.08
 
@@ -466,9 +467,12 @@ func _apply_lean(delta: float) -> void:
 	_visual.rotation.z = lerpf(_visual.rotation.z, target_roll, 1.0 - exp(-10.0 * delta))
 
 func _enforce_arena_bounds() -> void:
-	# Temporary arena boundary until Sprint 17 adds the real Colosseum walls.
-	global_position.x = clampf(global_position.x, -arena_half_extent, arena_half_extent)
-	global_position.z = clampf(global_position.z, -arena_half_extent, arena_half_extent)
+	# Sprint 17: the Colosseum is round — radial clamp inside the wall ring.
+	var flat := Vector2(global_position.x, global_position.z)
+	if flat.length() > arena_radius:
+		flat = flat.normalized() * arena_radius
+		global_position.x = flat.x
+		global_position.z = flat.y
 
 func _camera_relative_direction(input_dir: Vector2) -> Vector3:
 	if input_dir == Vector2.ZERO:

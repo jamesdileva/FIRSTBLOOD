@@ -55,6 +55,18 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] A swing's **recovery** can be dodge/block-canceled (Sprint 09) —
       startup and the hit itself stay committed.
 
+### The Colosseum (Sprint 17)
+
+- [ ] The fight happens in a **round walled arena**: sand disc, stone wall
+      ring with an entry gate and posts, three rising spectator tiers
+      outside the wall.
+- [ ] You and the boss stay **inside the ring** — hugging the wall, walking
+      into it, lunging: nobody escapes or clips through.
+- [ ] The wall doesn't block your view at combat distance; the camera stays
+      usable near the wall (no clipping through stone).
+- [ ] The arena feels big enough to dodge around the boss but not so big
+      that combat feels empty.
+
 ### The New Gladiator (Sprints 10–12)
 
 - [ ] The boss (tan gladiator with sword and shield) walks up and fights:

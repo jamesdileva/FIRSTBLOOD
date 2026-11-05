@@ -19,7 +19,8 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUAR
 @export var acceleration := 20.0
 @export var deceleration := 25.0
 @export var turn_speed := 8.0
-@export var arena_half_extent := 18.0
+## Sprint 17: the Colosseum is round — radial bound inside the wall ring.
+@export var arena_radius := 16.0
 
 @export_group("Breakout")
 ## Sprint 14 (D-045): a hit with this attack id during the stagger window
@@ -598,8 +599,12 @@ func _apply_gravity(delta: float) -> void:
 		velocity.y -= _gravity * delta
 
 func _enforce_arena_bounds() -> void:
-	global_position.x = clampf(global_position.x, -arena_half_extent, arena_half_extent)
-	global_position.z = clampf(global_position.z, -arena_half_extent, arena_half_extent)
+	# Sprint 17: radial clamp inside the wall ring.
+	var flat := Vector2(global_position.x, global_position.z)
+	if flat.length() > arena_radius:
+		flat = flat.normalized() * arena_radius
+		global_position.x = flat.x
+		global_position.z = flat.y
 
 ## Animation hook (guide §16 naming). No-ops until an AnimationPlayer with
 ## the named animation is attached.

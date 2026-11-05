@@ -36,7 +36,7 @@ func _run() -> void:
 		boss_ref.set_physics_process(false)
 
 	await _wait(SETTLE_FRAMES)
-	# Untyped on purpose: reads script members (arena_half_extent) Godot's
+	# Untyped on purpose: reads script members (arena_radius) Godot's
 	# CharacterBody3D class doesn't define.
 	var player := get_first_node_in_group("player")
 	if player == null:
@@ -72,13 +72,14 @@ func _run() -> void:
 	if stop_travel.length() > 1.0:
 		failures.append("player slid %.2f m past the release point" % stop_travel.length())
 
-	# 4. Arena boundary: a player placed outside is clamped back inside.
+	# 4. Arena boundary: a player placed outside is clamped back inside the
+	# round Colosseum ring (radial clamp, Sprint 17).
 	player.global_position = Vector3(100.0, 5.0, 100.0)
 	player.velocity = Vector3.ZERO
 	await _wait(BOUND_FRAMES)
-	if absf(player.global_position.x) > player.arena_half_extent + 0.5 \
-			or absf(player.global_position.z) > player.arena_half_extent + 0.5:
-		failures.append("player escaped arena bounds at %s" % player.global_position)
+	var boundary_flat: float = Vector2(player.global_position.x, player.global_position.z).length()
+	if boundary_flat > player.arena_radius + 0.5:
+		failures.append("player escaped arena bounds: %.2f > %.1f" % [boundary_flat, player.arena_radius])
 
 	arena.free()
 

@@ -133,8 +133,9 @@ func _run() -> void:
 	Input.action_release("dodge")
 	await _wait(30)
 	Input.action_release("move_right")
-	if absf(player.global_position.x) > player.arena_half_extent + 0.5:
-		failures.append("dodge tunneled the arena boundary: %s" % player.global_position)
+	var flat_out: float = Vector2(player.global_position.x, player.global_position.z).length()
+	if flat_out > player.arena_radius + 0.5:
+		failures.append("dodge tunneled the arena boundary: %.2f > %.1f" % [flat_out, player.arena_radius])
 
 	arena.free()
 

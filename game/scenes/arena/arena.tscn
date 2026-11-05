@@ -1,18 +1,22 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="PackedScene" path="res://game/scenes/player/player.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://game/scenes/bosses/new_gladiator.tscn" id="2"]
 [ext_resource type="Script" path="res://game/scripts/camera/third_person_camera.gd" id="3"]
 [ext_resource type="Script" path="res://game/scripts/debug/debug_overlay.gd" id="4"]
+[ext_resource type="Script" path="res://game/scripts/arena/arena_blockout.gd" id="5"]
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
-size = Vector2(40, 40)
+[sub_resource type="CylinderMesh" id="CylinderMesh_floor"]
+top_radius = 18.0
+bottom_radius = 18.0
+height = 0.5
 
-[sub_resource type="BoxShape3D" id="BoxShape_floor"]
-size = Vector3(40, 0.5, 40)
+[sub_resource type="CylinderShape3D" id="CylinderShape_floor"]
+radius = 18.0
+height = 0.5
 
 [sub_resource type="StandardMaterial3D" id="Mat_floor"]
-albedo_color = Color(0.55, 0.47, 0.36, 1)
+albedo_color = Color(0.76, 0.67, 0.5, 1)
 
 [sub_resource type="Environment" id="Environment_main"]
 background_mode = 1
@@ -33,12 +37,15 @@ shadow_enabled = true
 [node name="Floor" type="StaticBody3D" parent="."]
 
 [node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("PlaneMesh_floor")
+mesh = SubResource("CylinderMesh_floor")
 surface_material_override/0 = SubResource("Mat_floor")
 
 [node name="FloorShape" type="CollisionShape3D" parent="Floor"]
 position = Vector3(0, -0.25, 0)
-shape = SubResource("BoxShape_floor")
+shape = SubResource("CylinderShape_floor")
+
+[node name="Blockout" type="Node3D" parent="."]
+script = ExtResource("5")
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
 position = Vector3(-4, 0.5, 0)
