@@ -7,6 +7,20 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 019 · 2026-11-06 · Stylized Art Pass — presentation layer (Sprint 18)
+
+**Goal:** Dress the Colosseum and the fighters for the batch-1 playtest — sky, warm light, post-processing, materials, pillars/torches/banners, floor emblem — with **zero gameplay-logic changes**.
+
+**Deferral note:** the user deferred Sprint 16 (D-052) to post-playtest and asked to pull this sprint forward; the roadmap's art pass (Sprint 18) splits here:
+
+- **D-055 (code-driven presentation now, Blender assets later):** this sprint ships everything expressible in scene resources and code — sky/environment/post-processing, materials, decorative props, light dressing. The guide §17–19 Blender pipeline (real character/arena assets) stays deferred — it needs interactive tooling and is its own future sprint.
+- **D-056 (presentation-only guarantee):** no gameplay-logic files change. New code is presentation scripts only (`arena_dressing.gd`, `torch_flicker.gd`); every check must stay green **unmodified**.
+
+**Scope:** `arena.tscn` (ProceduralSky + Environment w/ glow+fog+filmic tonemap, sun tuning, floor materials), new `game/scripts/arena/arena_dressing.gd` + `torch_flicker.gd` (pillars, torches, banners, emblem ring), `new_gladiator.tscn` / `player.tscn` material polish. **Not touched:** any controller, component, state machine, or check logic.
+**Non-goals:** Blender assets, particle VFX systems, damage numbers, HUD (Sprint 21), animation assets.
+
+---
+
 ## 018 · 2026-11-05 · Colosseum Blockout (Sprint 17)
 
 **Goal:** Replace the temporary flat plane with the actual arena shell — a round walled Colosseum with stand tiers and an entry gate — so the batch-1 playtest happens in the real arena.
