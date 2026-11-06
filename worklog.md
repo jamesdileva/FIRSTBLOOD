@@ -19,7 +19,31 @@ The entry template is at the bottom of this file.
 **Scope:** `arena.tscn` (ProceduralSky + Environment w/ glow+fog+filmic tonemap, sun tuning, floor materials), new `game/scripts/arena/arena_dressing.gd` + `torch_flicker.gd` (pillars, torches, banners, emblem ring), `new_gladiator.tscn` / `player.tscn` material polish. **Not touched:** any controller, component, state machine, or check logic.
 **Non-goals:** Blender assets, particle VFX systems, damage numbers, HUD (Sprint 21), animation assets.
 
----
+**Implemented:** *(2026-11-06)*
+
+- `arena.tscn` — ProceduralSky (warm horizon), Environment: filmic tonemap, glow, subtle warm fog, ambient-from-sky; sun warmed to 1.3 energy; floor disc sand + roughness polish.
+- `arena_dressing.gd` — 8 pillars + caps on the wall-ring joints, 4 flickering torch braziers + warm OmniLights (no shadows, perf), 2 crimson banners at the gate, floor emblem (inner disc + gold ring inlay).
+- `torch_flicker.gd` — presentation-only energy modulation, desynced per torch.
+- `new_gladiator.tscn` / `player.tscn` — material polish (metallic steel sword, bronze shield, roughness tuning).
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 18 resources)
+- [x] Colosseum check — PASS (structure unchanged: 15 walls + 2 posts + 3 tiers; radial clamp holds)
+- [x] Full sweep — all 14 suites PASS, gdUnit4 24/24, frame run parse-clean
+- [ ] **Visual verification = the batch-1 playtest** (the point of pulling this sprint forward): sky/lighting mood, fighter readability against the sand, telegraph colors against the new materials, torch/banner dressing, motion-sickness check on the shake
+
+Result: **PASS (automated + structural)**.
+
+**Known limitations:**
+
+- Everything is code-built primitive geometry and materials — no Blender assets (D-055 keeps that as its own future sprint).
+- Glow/fog values are first-pass guesses; the tuning lab can own them (they're scene-resource tunables).
+- Banners are static quads (no cloth sway); torch flicker is the only animated dressing.
+- The frame-run caught a Variant-inference parse error in the dressing script post-import — fixed by typing the loop variable; noted for the -s-strictness list.
+
+**Next:** the **batch-1 playtest** (user) — then the deferred **Sprint 16 — Combat Tuning Lab** turns those notes into tuning across every export. The art pass's own tuning (glow/fog/sun) rides along in the same lab.
 
 ## 018 · 2026-11-05 · Colosseum Blockout (Sprint 17)
 
