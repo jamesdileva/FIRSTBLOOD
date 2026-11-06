@@ -15,7 +15,8 @@ radius = 0.4
 height = 1.8
 
 [sub_resource type="StandardMaterial3D" id="Mat_player"]
-albedo_color = Color(0.25, 0.5, 0.95, 1)
+albedo_color = Color(0.22, 0.46, 0.9, 1)
+roughness = 0.55
 
 [sub_resource type="SphereMesh" id="SphereMesh_facing"]
 radius = 0.15
