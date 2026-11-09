@@ -22,6 +22,34 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist coverage:** victory and defeat award XP correctly (asserted) · XP survives restart after save (fresh-component load asserted) · XP never negative (guarded) · retry does not duplicate XP (asserted) → `xp_check.gd`.
 
+**Implemented:** *(2026-11-09)*
+
+- `progression_component.gd` — XP accumulation, level thresholds (80 × 1.5^(level−1), carry-over), versioned JSON save (`user://save.json`), lazy boss binding (damage → XP 1:1, boss death → victory bonus), defeat consolation, `total_earned` lifetime metric.
+- `player.tscn` — Progression node; `debug_overlay.gd` — `XP: 34/80  Lv 2` F1 lines.
+- `HealthComponent.apply_damage` — the event now reports the **actual damage dealt** (overkill clamped at remaining health): XP, hit-stop weight, and every future listener see honest numbers.
+- `tools/validation/xp_check.gd` — 7 phases with a clean-save baseline.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 19 resources)
+- [x] XP check — **PASS**: damage 1:1, negative XP guarded, victory bonus (150) on boss death, level-up at the threshold with carry-over (level 3 at 250 XP), defeat consolation (+25), fresh-component save/load, retry does not duplicate or revoke XP
+- [x] Overkill honesty — a lethal 1000-damage event against 80 remaining HP awards **80 XP**, not 1000 (the event reports actual damage)
+- [x] Regressions — all suites PASS, gdUnit4 24/24
+- [ ] XP *feel* (the 150/25 bonus split, the level curve) — the user's next session; all values are exports
+
+Result: **PASS (automated)**.
+
+**Debug story:** the first run's numbers exposed **overkill XP farming** — a lethal 1000-damage event awarded 1000 XP against 80 remaining HP. `HealthComponent.apply_damage` now writes the clamped actual damage back onto the event. Also: `progression.xp` is the carry-over balance (spent on level-ups), so the check asserts `total_earned` — the lifetime metric the HUD will show.
+
+**Known limitations:**
+
+- No stat application on level-up (Sprint 20), no XP display outside F1 (Sprint 21 HUD), no boss XP tuning data files.
+- The save stores xp/level only; `total_earned` rebuilds from thresholds on load.
+- The combo_check late-press needed retiming for the hit-stop clock freeze (fixed; documented margin).
+
+**Next:** Sprint 20 — Basic Level-Up: stat application on level-up (HP/attack/movement from the level curve), the level-up moment made visible, save integration already in place. Plan+scope first.
+
 ---
 
 ## 021 · 2026-11-09 · Combat Tuning Lab (Sprint 16)
