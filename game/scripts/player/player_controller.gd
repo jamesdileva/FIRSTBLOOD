@@ -67,11 +67,18 @@ var state_elapsed := 0.0
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _health: HealthComponent = $Health
+@onready var _progression: ProgressionComponent = $Progression
 @onready var _body_mesh: MeshInstance3D = $Visual/Body
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
 
 var _dead_material: StandardMaterial3D
 var _spawn_position := Vector3.ZERO
+## Sprint 20 (D-066): stats DERIVED from the progression level — never
+## accumulated, so a scene reload re-applies exactly once.
+var _base_movement_speed := 0.0
+var _base_max_health := 100.0
+var attack_stat_bonus := 0.0
+var attack_speed_multiplier := 1.0
 
 var state: State = State.IDLE:
 	set(value):
@@ -105,6 +112,10 @@ var state: State = State.IDLE:
 
 func _ready() -> void:
 	_spawn_position = global_position
+	_base_movement_speed = movement_speed
+	_base_max_health = _health.max_health
+	_progression.level_up.connect(_apply_level_stats)
+	_apply_level_stats(_progression.level)
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
@@ -382,10 +393,24 @@ func _face_nearest_foe() -> void:
 		return
 	rotation.y = atan2(-to_foe.x, -to_foe.z)
 
+## D-066: derive every stat from the level — base + per_level x (level - 1).
+## Called on ready (loaded level), on level-up, and the values are plain
+## variables, so a scene reload re-applies exactly once.
+func _apply_level_stats(level: int) -> void:
+	var steps := float(level - 1)
+	movement_speed = _base_movement_speed + _progression.move_speed_per_level * steps
+	attack_speed_multiplier = 1.0 + _progression.attack_speed_per_level * steps
+	attack_stat_bonus = _progression.attack_per_level * steps
+	var target_max := _base_max_health + _progression.hp_per_level * steps
+	var delta := target_max - _health.max_health
+	_health.max_health = target_max
+	if delta > 0.0:
+		_health.current_health = minf(_health.current_health + delta, target_max)
+
 func _push_step_payload(step: ComboStepData) -> void:
 	# Per-step payload (D-022): the shared hitbox carries what this swing
 	# hits with; the controller carries only timing and chain flow.
-	_attack_hitbox.damage = step.damage
+	_attack_hitbox.damage = step.damage + attack_stat_bonus
 	_attack_hitbox.stagger_damage = step.stagger_damage
 	_attack_hitbox.attack_id = step.attack_id
 	_attack_hitbox.hit_type = step.hit_type

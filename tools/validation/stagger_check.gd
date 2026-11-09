@@ -22,6 +22,10 @@ func _initialize() -> void:
 	_run()
 
 func _run() -> void:
+	# D-065 save isolation: checks never touch the user's real save.
+	OS.set_environment("FIRSTBLOOD_CHECK_SAVE", "1")
+	if FileAccess.file_exists("user://check_save.json"):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://check_save.json"))
 	var failures: PackedStringArray = []
 	var arena_scene: PackedScene = load("res://game/scenes/arena/arena.tscn")
 	if arena_scene == null:

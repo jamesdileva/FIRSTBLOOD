@@ -14,8 +14,22 @@ signal level_up(new_level: int)
 @export var xp_base := 80.0
 @export var xp_growth := 1.5
 
-const SAVE_PATH := "user://save.json"
+## Sprint 20 stat rates (D-066): derived from the level, applied by the
+## player on level-up and load. HP per level; attack damage per level;
+## movement speed per level; attack-speed multiplier per level (4%%).
+@export var hp_per_level := 10.0
+@export var attack_per_level := 2.0
+@export var move_speed_per_level := 0.15
+@export var attack_speed_per_level := 0.04
+
 const SAVE_VERSION := 1
+
+## D-065 save isolation: checks set FIRSTBLOOD_CHECK_SAVE so automation
+## never touches the user's real save file.
+static func _save_path() -> String:
+	if OS.get_environment("FIRSTBLOOD_CHECK_SAVE") != "":
+		return "user://check_save.json"
+	return "user://save.json"
 
 var xp := 0.0
 var level := 1
@@ -65,7 +79,7 @@ func award_defeat_xp() -> void:
 
 func save() -> void:
 	var data := {"version": SAVE_VERSION, "xp": xp, "level": level}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(_save_path(), FileAccess.WRITE)
 	if file == null:
 		push_warning("Progression save failed: %d" % FileAccess.get_open_error())
 		return
@@ -78,16 +92,17 @@ func reset_progression() -> void:
 	level = 1
 	total_earned = 0.0
 	_current_threshold_reset()
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	var save_file := _save_path()
+	if FileAccess.file_exists(save_file):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(save_file))
 
 func _current_threshold_reset() -> void:
 	pass
 
 func load_save() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(_save_path()):
 		return
-	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var file := FileAccess.open(_save_path(), FileAccess.READ)
 	if file == null:
 		return
 	var parsed: Variant = JSON.parse_string(file.get_as_text())

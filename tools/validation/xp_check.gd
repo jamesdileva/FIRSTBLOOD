@@ -15,6 +15,10 @@ func _initialize() -> void:
 	_run()
 
 func _run() -> void:
+	# D-065 save isolation: checks never touch the user's real save.
+	OS.set_environment("FIRSTBLOOD_CHECK_SAVE", "1")
+	if FileAccess.file_exists("user://check_save.json"):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://check_save.json"))
 	var failures: PackedStringArray = []
 	# Clean baseline: XP persists in user://, so this check always starts fresh.
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
