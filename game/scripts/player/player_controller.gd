@@ -140,17 +140,20 @@ func _physics_process(delta: float) -> void:
 	if Time.get_ticks_msec() < HitFeedback.hit_stop_until_msec:
 		velocity = Vector3.ZERO
 		return
+	# Sprint 16 (D-059): universal retry — works after the boss dies OR the
+	# player dies (the playtest caught that the death-only handler left the
+	# boss-dead case with no reset). A stray R mid-fight does nothing.
+	if Input.is_action_just_pressed("retry") and _fight_over():
+		_retry()
 	state_elapsed += delta
 	match state:
 		State.DEAD:
-			# Corpse: inputs dead, gravity only; R/Back retries the fight.
+			# Corpse: inputs dead, gravity only.
 			velocity.x = 0.0
 			velocity.z = 0.0
 			if not is_on_floor():
 				velocity.y -= _gravity * delta
 			move_and_slide()
-			if Input.is_action_just_pressed("retry"):
-				_retry()
 			return
 		State.DODGE:
 			_dodge_physics(delta)
@@ -175,6 +178,13 @@ func is_invulnerable() -> bool:
 
 func is_dead() -> bool:
 	return state == State.DEAD
+
+## D-059: retry arms only when the fight is over (boss dead or player dead).
+func _fight_over() -> bool:
+	if is_dead():
+		return true
+	var boss := get_tree().get_first_node_in_group("boss")
+	return boss != null and boss.has_method("is_dead") and boss.is_dead()
 
 func _on_player_died() -> void:
 	# Sprint 12: the fight is losable — fall over, grey out, wait for retry.

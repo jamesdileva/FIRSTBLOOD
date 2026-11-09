@@ -31,6 +31,11 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUAR
 ## Readable recovery after the breakout, then defend-or-attack (D-046).
 @export var breakout_duration := 0.8
 
+@export_group("Spacing")
+## D-060 (playtest note): the boss visibly creates space when the target
+## hugs it — this band replaces the old narrow min-range-only back-off.
+@export var back_off_distance := 1.4
+
 @export_group("Strings")
 ## D-040: post-string opening (architecture: "predictable recovery"). The
 ## boss stands down this long after a melee string ends, so the player gets
@@ -167,9 +172,10 @@ func _observe_physics(delta: float) -> void:
 		_pause_left -= delta
 		return  # D-040: the post-string opening the player acts in
 	var distance := _flat_distance()
-	if distance < _best_min_range() - 0.2:
-		# D-041: inside every attack's minimum range — create space instead
-		# of standing inert (the soft-lock the flagship check caught).
+	if distance < back_off_distance:
+		# D-060 (playtest note): visibly create space whenever the target
+		# hugs the boss — including during the string pause. Also covers
+		# D-041 (inside every attack's minimum range).
 		_step_away_physics(delta)
 		return
 	if BossBrain.select_attack(attacks, distance, _cooldowns, _rng) != null:
