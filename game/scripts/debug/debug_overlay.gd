@@ -40,6 +40,9 @@ func _update_text() -> void:
 		var player_health := player.get_node_or_null("Health")
 		if player_health != null:
 			lines.append("Player HP: %d/%d" % [roundi(player_health.current_health), roundi(player_health.max_health)])
+		var progression := player.get_node_or_null("Progression")
+		if progression != null:
+			lines.append("XP: %d/%d  Lv %d" % [roundi(progression.xp), roundi(progression.xp_required()), progression.level])
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])

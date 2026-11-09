@@ -144,11 +144,14 @@ func _run() -> void:
 	await _combo_cooldown(player)
 
 	# --- 4. Late input past buffer_close is ignored, not buffered. ---
+	# The hit-stop freezes the combo clock a few ticks per landed hit, so the
+	# late press waits well past buffer_close (18 + freeze) yet still inside
+	# the swing.
 	combo_ids.clear()
 	await _tap_attack()          # light_01 starts
-	await _wait(20)              # past buffer_close (18 ticks), still in recovery
+	await _wait(24)              # past buffer_close + hit-stop extension
 	await _tap_attack()          # late press: must be ignored
-	await _wait(12)              # step ends; grace runs
+	await _wait(10)              # step ends; grace runs
 	await _wait(RESET_MARGIN_FRAMES + 15)  # grace expires -> full reset
 	await _tap_attack()          # must be light_01, not light_02
 	await _wait(STEP_GAP_FRAMES)

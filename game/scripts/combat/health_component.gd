@@ -23,7 +23,11 @@ func is_dead() -> bool:
 func apply_damage(event: DamageEvent) -> void:
 	if _dead or event.amount <= 0.0:
 		return
+	# The event reports the ACTUAL damage dealt (overkill clamped at the
+	# remaining health) — XP and feedback must not reward phantom damage.
+	var applied := minf(event.amount, current_health)
 	current_health = maxf(current_health - event.amount, 0.0)
+	event.amount = applied
 	damaged.emit(event)
 	health_changed.emit(current_health, max_health)
 	if current_health <= 0.0:
