@@ -37,7 +37,34 @@ The entry template is at the bottom of this file.
 - **D-063 (level curve):** `xp_required(level) = 80 × 1.5^(level−1)` — data-driven by exports; XP carries over past a threshold (no waste). Level-up emits a signal; stat application lands in Sprint 20.
 - **D-064 (save):** `user://save.json`, versioned (`version: 1`, migration-ready per needs-review §22), written after meaningful events only (victory/defeat/level-up — never per frame), loaded at ready. The binding to the boss is lazy (first-use) — the player readies before the boss exists in the arena scene.
 
-**Roadmap checklist coverage:** victory and defeat award XP correctly (asserted) · XP survives restart after save (fresh-component load asserted) · XP never negative (guarded) · retry does not duplicate XP (asserted) → `xp_check.gd`.
+**Roadmap checklist coverage:** leveling changes stats (movement/max HP/swing payload/attack-speed multiplier asserted at level 3) · stats persist (a fresh player instance with the saved level derives identical stats — no double-apply) · attack speed cannot bypass state logic (the scaling divides the combo timings; the phase logic is untouched) · the boss takes the boosted damage → `level_check.gd`.
+
+**Implemented:** *(2026-11-09)*
+
+- `player_controller.gd` — `_apply_level_stats(level)`: derives movement/max HP/attack bonus/attack-speed multiplier from the level (base + per-level × (level−1), D-066); connected to the progression's `level_up` and run at ready for the loaded level; the combo timings scale via `_scaled()` (D-067); swing payloads carry `attack_stat_bonus`.
+- `progression_component.gd` — per-level rate exports (hp 10, attack 2, move 0.15, attack speed 0.04) + save isolation (D-065).
+- `TUNING.md` — the level-stat section.
+- `tools/validation/level_check.gd` — L1 base, L3 stats, boosted boss damage, fresh-instance no-double-apply, persistence.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 19 resources)
+- [x] Level check — **PASS** (twice): level 1 base (5.0 m/s, 100 HP, 1.0×, light_01 10); 200 XP → level 3 → **5.3 m/s, 120 max HP, light_01 payload 14, attack-speed 1.08×**; the boss takes the boosted 14 from a landed swing; a fresh player instance with the saved level derives identical stats (no double-apply after reload)
+- [x] Full sweep — all seventeen suites PASS, gdUnit4 24/24, 180-frame run clean
+- [ ] Level *feel* — the user's next session (the curve rates are exports)
+
+Result: **PASS (automated)**.
+
+**Harness lesson (this sprint):** the flagship's phase 4 placed the probe 8 m from the boss (the rewrite dropped the placement) — the forced-hitbox assert read 0 damage. Also: two "successful" batch patches had silently not matched (the `_ready` wiring; the movement_check boundary replace lost a trailing backslash to line-continuation escaping). The loop now grep-verifies every batch-patch insert AND removal; multi-line replacements with backslashes go through the Edit tool.
+
+**Known limitations:**
+
+- Stat bonuses are predefined (no stat choices) — per needs-review §20's "predefined progression"; a choice UI is post-MVP.
+- The level curve rates (hp 10 / attack 2 / move 0.15 / attack-speed 0.04 per level) are first-pass — the tuning lab owns them.
+- No level-up visual moment beyond the F1 numbers (a gold burst candidate for Sprint 15's burst system).
+
+**Next:** Phase 8 is complete (XP + levels + stats + save). The roadmap resumes: **Sprint 21 — HUD** (real HP/XP/level/boss-HP bars replacing the F1 debug lines) — the user's playtest feedback slot. Plan+scope first.
 
 **Implemented:** *(2026-11-09)*
 
