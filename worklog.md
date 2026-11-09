@@ -7,6 +7,27 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 020 · 2026-11-09 · Batch-1 Playtest Results + Camera/Retry Fixes
+
+**Goal:** Record the user's batch-1 playtest (Sprints 02–18) and fix the three issues found.
+
+**Batch-1 verdict (user): "overall felt great, very minimal issues."** All core-loop checkboxes passed: movement, camera orbit, dodge, the full combo/finisher chain, buffering, block + cancels, telegraphs, stagger, breakout, hit feedback, the Colosseum shell, death/HP. This closes the roadmap's Gate A (combat fun) for the shipped loop.
+
+**Issues found (3):**
+
+1. **Camera near the wall** — at the arena edge the outer wall obstructs the view; the user must rotate the camera. Geometry confirmed the cause: the camera orbits ~8.1 m behind the player, so at the ring edge (player r 16) it sits at r ≈ 24 — outside the wall (18.5) — and the sightline to the player passes under the wall top (y 2.5 at the wall vs 4.0 height).
+2. **Initial camera orientation** — on first load the screen is grey (fog/horizon) until the user pans down; panning "back to overhead" shows empty floor. Suspect: the camera rig's `_ready` snap/orientation isn't taking effect on load — diagnose headless before fixing.
+3. **Retry after death doesn't work** — R/Back does nothing. Diagnose headless (action registration, DEAD-branch reachability, `_retry` path).
+
+**Tuning-lab notes (logged for the deferred Sprint 16):**
+
+- Boss back-pedal barely visible — it mostly closes distance; the user exploited it for easy kills. Widen the back-off band / preferred-distance tuning.
+- No art on the gladiator yet (stick + cylinder) — expected; art pass assets deferred (D-055).
+
+**Fixes scoped:** camera wall pull-in (clamp the orbit's horizontal radius inside the wall ring with smoothing — the sightline can then never cross the stone), camera load orientation (per headless diagnosis), retry fix (per headless diagnosis).
+
+---
+
 ## 019 · 2026-11-06 · Stylized Art Pass — presentation layer (Sprint 18)
 
 **Goal:** Dress the Colosseum and the fighters for the batch-1 playtest — sky, warm light, post-processing, materials, pillars/torches/banners, floor emblem — with **zero gameplay-logic changes**.
