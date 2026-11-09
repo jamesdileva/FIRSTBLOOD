@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 021 · 2026-11-09 · Combat Tuning Lab (Sprint 16)
+
+**Goal:** Make tuning cheap and apply the batch-1 playtest notes — a universal retry (works after the boss dies OR the player dies — the playtest caught that retry only existed in the death branch), visible boss spacing (the playtest noted the back-pedal is barely visible), a complete knob table (`TUNING.md`), and a hard-coded-value audit.
+
+**Re-verification (user, 2026-11-09):** camera wall fix ✓ confirmed; grey-screen tier fix ✓ confirmed; **retry still broken — after the boss dies OR the player dies.** Root cause found: the retry check lived only in the player's DEAD branch; with the boss dead and the player alive, no handler exists.
+
+**Scope:** `player_controller.gd` (universal retry), `boss_controller.gd` (spacing tuning exports + visible back-off band), new `TUNING.md` (the complete knob table), new `tools/validation/retry_check.gd`, `docs/playtesting.md`.
+**Non-goals:** an in-game live-tuning panel (deferred — `TUNING.md` + exports satisfy the docs' "adjustable without rewriting scripts" bar; a panel is a Sprint 22+ candidate), new combat mechanics, real art assets.
+
+**Decisions:**
+
+- **D-059 (universal retry):** the retry check moves to the top of the player's `_physics_process` — available in every state — but only **arms when the fight is over** (the boss is dead or the player is dead), so a stray R mid-fight can't reset an ongoing duel. Fixes both playtest cases with one path.
+- **D-060 (boss spacing):** `back_off_distance` (1.4 m) replaces the old narrow band (min_range − 0.2 ≈ 0.8 m): the boss now visibly steps back whenever the target hugs it — including during the string pause — creating the openings the playtest found missing. The lunge still closes distance; the equilibrium (boss backs off, player walks in) is the intended dance.
+- **D-061 (the tuning surface):** all feel values live in exactly one place each — actor exports (Player/Boss nodes), the combo resource (`player_light_combo.tres`), the boss attack resources, and the `HitFeedback` constants. `TUNING.md` is the complete index (name, location, current value, effect). No duplicates; the audit greps the controllers for stray gameplay magic numbers.
+
+---
+
 ## 020 · 2026-11-09 · Batch-1 Playtest Results + Camera/Retry Fixes
 
 **Goal:** Record the user's batch-1 playtest (Sprints 02–18) and fix the three issues found.
