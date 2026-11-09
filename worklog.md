@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 022 · 2026-11-09 · XP (Sprint 19)
+
+**Goal:** Persistent progression rewards — XP from damage dealt, victory and defeat bonuses, a level event at thresholds, and a local save so XP survives restarts.
+
+**Scope:** new `game/scripts/progression/progression_component.gd` + `game/scripts/progression/` (save JSON), `player.tscn` (Progression node), `debug_overlay.gd` (XP/Level lines), new `tools/validation/xp_check.gd`, `TUNING.md` XP section, smoke list.
+**Non-goals:** stat application on level-up (Sprint 20 — this sprint levels the NUMBER only), real HUD (F1 debug lines only until Sprint 21), boss XP tuning data files, settings save.
+
+**Decisions:**
+
+- **D-062 (XP sources):** 1:1 XP from **actual damage dealt to the boss** (bound to the boss's `Health.damaged` — blocked/guarded hits earn nothing, guard-mitigated earn the reduced amount), a **victory bonus** on boss death, and a **defeat consolation** on player death (architecture pillar 8: "failure still advances the player"). Values: victory 150, defeat 25.
+- **D-063 (level curve):** `xp_required(level) = 80 × 1.5^(level−1)` — data-driven by exports; XP carries over past a threshold (no waste). Level-up emits a signal; stat application lands in Sprint 20.
+- **D-064 (save):** `user://save.json`, versioned (`version: 1`, migration-ready per needs-review §22), written after meaningful events only (victory/defeat/level-up — never per frame), loaded at ready. The binding to the boss is lazy (first-use) — the player readies before the boss exists in the arena scene.
+
+**Roadmap checklist coverage:** victory and defeat award XP correctly (asserted) · XP survives restart after save (fresh-component load asserted) · XP never negative (guarded) · retry does not duplicate XP (asserted) → `xp_check.gd`.
+
+---
+
 ## 021 · 2026-11-09 · Combat Tuning Lab (Sprint 16)
 
 **Goal:** Make tuning cheap and apply the batch-1 playtest notes — a universal retry (works after the boss dies OR the player dies — the playtest caught that retry only existed in the death branch), visible boss spacing (the playtest noted the back-pedal is barely visible), a complete knob table (`TUNING.md`), and a hard-coded-value audit.
