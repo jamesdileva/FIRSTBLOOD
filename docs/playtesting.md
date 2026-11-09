@@ -95,6 +95,19 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       previously it revived in place, which read as "nothing happened".
       Verified headlessly (physical R key event → both sides reset).*
 
+### XP (Sprint 19)
+
+- [ ] Dealing damage to the boss earns **XP 1:1** (F1 shows `XP: 34/80 Lv 2`
+      growing as you land swings).
+- [ ] Killing the boss pays a **victory bonus** (+150); dying pays a smaller
+      **consolation** (+25) — failure still progresses you.
+- [ ] XP thresholds trigger **level-ups** (level shown in F1); leftover XP
+      carries toward the next level.
+- [ ] XP **persists across game restarts** (saved on victory/defeat/level-up).
+- [ ] Overkill damage doesn't over-reward (the final blow credits only the
+      boss's remaining health).
+- [ ] Retry doesn't duplicate or revoke XP.
+
 ### Boss stagger + breakout (Sprints 13–14)
 
 - [ ] Land a full combo (string + finisher) and the boss **staggers**: violet
