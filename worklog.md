@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 023 · 2026-11-09 · Basic Level-Up (Sprint 20)
+
+**Goal:** The level curve applies real stat bonuses — HP, attack, movement speed, attack speed — so XP matters; levels persist; nothing double-applies after scene reload; the checks' timing assertions stay deterministic against leveled players.
+
+**Scope:** `progression_component.gd` (per-level stat rate exports), `player_controller.gd` (stat application from the level curve, attack-speed scaling of combo timings, attack bonus in swing payloads), `TUNING.md` (level-stat section), new `tools/validation/level_check.gd`, save isolation for all checks.
+**Non-goals:** level-up screen/UI (F1 shows the level; the visual moment is the gold burst from Sprint 15's burst system), stat *choices* (predefined progression per needs-review §20), enemy scaling.
+
+**Decisions:**
+
+- **D-065 (save isolation):** `user://save.json` is the REAL player save — shared machine-wide — so the check sweeps would wipe the user's progress every run. The progression now reads an env override (`FIRSTBLOOD_CHECK_SAVE`): when set, saves go to `user://check_save.json`. Every check sets it; the game never does. The user's real save is untouchable by automation.
+- **D-066 (derive-from-level):** stats are **derived from the level**, never incrementally accumulated — `stat = base + per_level × (level − 1)`. Scene reload resets the exports to base, then the progression re-applies once for the loaded level: "no stat is applied twice after scene reload" holds by construction.
+- **D-067 (attack speed via timing scale):** attack speed scales the combo step timings (`startup/active/recovery/buffer ÷ multiplier`) — the state machine's phase logic is untouched, so faster swings cannot bypass state rules (needs-review §20: "attack speed cannot bypass state logic").
+
+**Curve (exports on the Progression node):** HP +10/level, attack +2/level, move speed +0.15/level, attack speed +4%/level — at level 3: 120 HP, +4 attack, 5.3 m/s, 1.08× swings.
+
+---
+
 ## 022 · 2026-11-09 · XP (Sprint 19)
 
 **Goal:** Persistent progression rewards — XP from damage dealt, victory and defeat bonuses, a level event at thresholds, and a local save so XP survives restarts.
