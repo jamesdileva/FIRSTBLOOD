@@ -69,24 +69,32 @@ func _build_gate() -> void:
 	add_child(strip)
 
 func _build_tiers() -> void:
+	# D-048 fix: the tiers are RINGS (segment boxes) behind the wall — solid
+	# cylinders would cap the whole play area and occlude the fight from any
+	# camera above their height.
 	var tiers := [
-		{"radius": 20.5, "height": 1.6, "top": 0.8, "color": Color(0.58, 0.54, 0.48, 1.0)},
-		{"radius": 23.0, "height": 3.2, "top": 1.8, "color": Color(0.54, 0.5, 0.45, 1.0)},
-		{"radius": 25.5, "height": 4.8, "top": 2.8, "color": Color(0.5, 0.46, 0.41, 1.0)},
+		{"radius": 20.5, "height": 1.6, "top": 0.8, "color": Color(0.58, 0.54, 0.48, 1.0), "length": 8.3},
+		{"radius": 23.0, "height": 3.2, "top": 1.8, "color": Color(0.54, 0.5, 0.45, 1.0), "length": 9.3},
+		{"radius": 25.5, "height": 4.8, "top": 2.8, "color": Color(0.5, 0.46, 0.41, 1.0), "length": 10.3},
 	]
-	for tier in tiers:
-		var tier_node := MeshInstance3D.new()
-		tier_node.name = "Tier%d" % (int(tier["top"] * 10))
-		var mesh := CylinderMesh.new()
-		mesh.top_radius = tier["radius"]
-		mesh.bottom_radius = tier["radius"]
-		mesh.height = tier["height"]
-		tier_node.mesh = mesh
+	for t_i in tiers.size():
+		var tier: Dictionary = tiers[t_i]
+		var tier_node := Node3D.new()
+		tier_node.name = "Tier%d" % (t_i + 1)
+		add_child(tier_node)
 		var material := StandardMaterial3D.new()
 		material.albedo_color = tier["color"]
-		tier_node.material_override = material
-		tier_node.position = Vector3(0, tier["top"] - tier["height"] / 2.0, 0)
-		add_child(tier_node)
+		for i in WALL_SEGMENTS:
+			var angle := float(i) * TAU / float(WALL_SEGMENTS) + TAU / float(WALL_SEGMENTS) / 2.0
+			var mesh_instance := MeshInstance3D.new()
+			mesh_instance.name = "Tier%dSeg%d" % [(t_i + 1), i]
+			var mesh := BoxMesh.new()
+			mesh.size = Vector3(tier["length"], tier["height"], 2.0)
+			mesh_instance.mesh = mesh
+			mesh_instance.material_override = material
+			mesh_instance.position = Vector3(sin(angle) * tier["radius"], float(tier["top"]) - float(tier["height"]) / 2.0, cos(angle) * tier["radius"])
+			mesh_instance.rotation.y = angle
+			tier_node.add_child(mesh_instance)
 
 func _add_box(parent: Node, node_name: String, size: Vector3, position: Vector3, yaw: float, material: StandardMaterial3D) -> void:
 	var mesh_instance := MeshInstance3D.new()

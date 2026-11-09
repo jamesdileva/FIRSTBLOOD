@@ -41,7 +41,8 @@ glow_intensity = 0.45
 glow_bloom = 0.03
 fog_enabled = true
 fog_light_color = Color(0.76, 0.65, 0.54, 1)
-fog_density = 0.004
+fog_density = 0.003
+fog_sky_affect = 0.15
 
 [node name="Arena" type="Node3D"]
 
@@ -69,6 +70,8 @@ script = ExtResource("5")
 
 [node name="Dressing" type="Node3D" parent="."]
 script = ExtResource("6")
+
+[node name="ScreenshotProbe" type="Node" parent="."]
 
 [node name="PlayerSpawn" type="Marker3D" parent="."]
 position = Vector3(-4, 0.5, 0)

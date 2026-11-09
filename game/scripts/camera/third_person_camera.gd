@@ -5,12 +5,16 @@ extends Node3D
 
 @export var target: Node3D
 @export var distance := 9.0
+## Sprint 15.5 wall fix: the orbit never leaves this radius, so the wall ring
+## can never sit between the camera and the player.
+@export var camera_ring_radius := 17.5
 @export var turn_speed := 2.5
 @export var pitch_min := -0.1
 @export var pitch_max := 1.1
 
 var _yaw := 0.0
-var _pitch := 0.45
+## Steeper default: the fighters fill the frame on load (playtest note).
+var _pitch := 0.55
 ## Sprint 15: current shake amplitude (0..~1), decayed per frame.
 var shake_level := 0.0
 
@@ -44,7 +48,15 @@ func _physics_process(delta: float) -> void:
 		return
 	_yaw = wrapf(_yaw + Input.get_axis("camera_left", "camera_right") * turn_speed * delta, -PI, PI)
 	_pitch = clampf(_pitch + Input.get_axis("camera_up", "camera_down") * turn_speed * delta, pitch_min, pitch_max)
-	global_position = global_position.lerp(_desired_position(), 1.0 - exp(-8.0 * delta))
+	var desired := _desired_position()
+	# Sprint 15.5 wall fix: pull the horizontal orbit inside the wall ring —
+	# the camera lerps in smoothly as the player nears the edge.
+	var flat := Vector2(desired.x, desired.z)
+	if flat.length() > camera_ring_radius:
+		flat = flat.normalized() * camera_ring_radius
+		desired.x = flat.x
+		desired.z = flat.y
+	global_position = global_position.lerp(desired, 1.0 - exp(-8.0 * delta))
 	_camera.look_at(_pivot(), Vector3.UP)
 
 func _pivot() -> Vector3:

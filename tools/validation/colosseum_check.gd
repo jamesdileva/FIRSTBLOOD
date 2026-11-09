@@ -50,8 +50,9 @@ func _run() -> void:
 				walls += 1
 		for node in blockout.find_children("GatePost*", "StaticBody3D", true, false):
 			posts += 1
-		for node in blockout.find_children("Tier*", "MeshInstance3D", true, false):
-			tiers += 1
+		for tier_name in ["Tier1", "Tier2", "Tier3"]:
+			if blockout.get_node_or_null(NodePath(tier_name)) != null:
+				tiers += 1
 		if walls < 14 or walls > 16:
 			failures.append("wall segment count wrong: %d (expected ~15 + gate gap)" % walls)
 		if posts != 2:

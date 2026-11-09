@@ -71,6 +71,7 @@ var state_elapsed := 0.0
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
 
 var _dead_material: StandardMaterial3D
+var _spawn_position := Vector3.ZERO
 
 var state: State = State.IDLE:
 	set(value):
@@ -103,6 +104,7 @@ var state: State = State.IDLE:
 			# without a state change.
 
 func _ready() -> void:
+	_spawn_position = global_position
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
@@ -197,6 +199,8 @@ func reset_for_retry() -> void:
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
+	global_position = _spawn_position
+	velocity = Vector3.ZERO
 	state = State.IDLE
 
 ## Damage resolution (D-027): routes raw hurtbox hits into the signals the

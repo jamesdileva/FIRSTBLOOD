@@ -59,6 +59,7 @@ var _stagger_aura: MeshInstance3D
 var _stagger_mat: StandardMaterial3D
 var _finishers_in_stagger := 0
 var _sword_pivot: Node3D
+var _spawn_position := Vector3.ZERO
 var _pause_left := 0.0
 var _flinch := 0.0
 var state_elapsed := 0.0
@@ -78,6 +79,7 @@ var state: State = State.OBSERVE:
 		state_changed.emit(value)
 
 func _ready() -> void:
+	_spawn_position = global_position
 	_rng.randomize()
 	if attacks.is_empty():
 		push_warning("BossController has no attacks — it will observe but never fight.")
@@ -140,6 +142,8 @@ func flinch_level() -> float:
 
 ## Clean reset for retry flows (roadmap: "boss can be reset cleanly").
 func reset() -> void:
+	global_position = _spawn_position
+	velocity = Vector3.ZERO
 	_health.reset()
 	_cooldowns.clear()
 	_current_attack = null
