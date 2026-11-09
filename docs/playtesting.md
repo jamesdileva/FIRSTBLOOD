@@ -13,6 +13,8 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 
 ## Batch 1 — Sprints 02–09 · Player foundation, offense, defense
 
+> **Batch 1 played (2026-11-09): all core items verified.** Three issues found and fixed the same day: the stand-tier cylinders occluded the fight from raised cameras (now hollow rings), the camera orbit now stays inside the wall ring, and retry now resets the fight to spawn positions (it previously revived in place). Remaining feel notes are logged for the deferred Sprint 16 tuning lab.
+
 ### Movement (Sprint 02)
 
 - [ ] WASD / left stick moves responsively; stops on a dime — no sliding after release.
@@ -62,8 +64,11 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       outside the wall.
 - [ ] You and the boss stay **inside the ring** — hugging the wall, walking
       into it, lunging: nobody escapes or clips through.
-- [ ] The wall doesn't block your view at combat distance; the camera stays
+- [x] The wall doesn't block your view at combat distance; the camera stays
       usable near the wall (no clipping through stone).
+      *FIXED 2026-11-09 — the camera orbit now stays inside the wall ring;
+      previously it orbited outside the wall at the arena edge and the stone
+      blocked the view. Verified by windowed screenshot.*
 - [ ] The arena feels big enough to dodge around the boss but not so big
       that combat feels empty.
 
@@ -73,8 +78,10 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       a **two-swing sword string** (the second swing chains right after the
       first) plus a **heavy overhead** — the sword visibly raises during
       every warning, yellow marker for the string, red for the heavy.
-- [ ] It steps back when you hug it, lunges when you're far, and pauses
+- [~] It steps back when you hug it, lunges when you're far, and pauses
       after each string — you should feel openings to act.
+      *PLAYTEST NOTE: the back-pedal is barely visible — the boss mostly
+      closes distance. Logged for the Sprint 16 tuning lab.*
 - [ ] It sometimes raises a **blue guard** after a string: your normal
       swings do nothing through it (heavies chip 40 %); wait it out.
 - [ ] Hitting it drains its HP (F1 shows Boss HP); ~8–10 clean swings kill
@@ -82,8 +89,11 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] **You have 100 HP now** (F1 shows Player HP): the boss's sword hurts,
       the heavy hurts more, your block negates the light string. **You can
       die** — the gladiator falls, greys out.
-- [ ] **R / Back retries** the fight after death (placeholder until the
+- [x] **R / Back retries** the fight after death (placeholder until the
       real menus) — both sides reset.
+      *FIXED 2026-11-09 — retry now resets the fight to spawn positions;
+      previously it revived in place, which read as "nothing happened".
+      Verified headlessly (physical R key event → both sides reset).*
 
 ### Boss stagger + breakout (Sprints 13–14)
 

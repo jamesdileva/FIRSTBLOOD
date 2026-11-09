@@ -26,6 +26,25 @@ The entry template is at the bottom of this file.
 
 **Fixes scoped:** camera wall pull-in (clamp the orbit's horizontal radius inside the wall ring with smoothing — the sightline can then never cross the stone), camera load orientation (per headless diagnosis), retry fix (per headless diagnosis).
 
+**Implemented:** *(2026-11-09, same day)*
+
+- `third_person_camera.gd` — the orbit's horizontal radius is clamped inside the wall ring (`camera_ring_radius` 17.5) with smooth pull-in; default pitch 0.45 → 0.55 (more overhead on load).
+- Retry (D-058): `_retry()` now repositions the player to its spawn and the boss's `reset()` restores its spawn — a visible fight reset.
+- **Tier occlusion fix (D-057, the big one):** the stand tiers were SOLID cylinders (r 20.5/23/25.5) whose caps covered the entire play area at 0.8/1.8/2.8 m — any camera above their height looked at the caps, not the fight (the user's "grey screen" and the wall-blocked view share this root cause). The tiers are now hollow segment-box rings behind the wall; nothing caps the play area.
+- Headless diagnosis confirmed retry and the camera orientation were functionally correct — the issues were UX/geometry, caught by a windowed screenshot probe (`get_viewport().get_texture()`, removed after use).
+
+**Verification:**
+
+- [x] Colosseum check — PASS twice (structure + radial clamp + tier nodes)
+- [x] Feedback check — PASS (hit-stop magnitudes, camera shake decay, hurt flash via a deterministic mitigated strike)
+- [x] Full sweep — all fourteen suites PASS (the hit-stop's check-margin effects fixed en route), gdUnit4 24/24
+- [x] Screenshot probe (windowed) — the fighters, emblem ring, and wall visible on load ✓
+- [ ] The fixed build re-verified by the user at the next session
+
+Result: **PASS (automated)**.
+
+**Decisions:** **D-057 (tier occlusion):** stand tiers are hollow segment rings, never solid discs — solid radius-N cylinders cap everything inside them. **D-058 (retry semantics):** retry = full fight reset to spawn positions, not an in-place revive.
+
 ---
 
 ## 019 · 2026-11-06 · Stylized Art Pass — presentation layer (Sprint 18)
