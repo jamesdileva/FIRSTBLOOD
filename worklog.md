@@ -22,7 +22,28 @@ The entry template is at the bottom of this file.
 - **D-060 (boss spacing):** `back_off_distance` (1.4 m) replaces the old narrow band (min_range − 0.2 ≈ 0.8 m): the boss now visibly steps back whenever the target hugs it — including during the string pause — creating the openings the playtest found missing. The lunge still closes distance; the equilibrium (boss backs off, player walks in) is the intended dance.
 - **D-061 (the tuning surface):** all feel values live in exactly one place each — actor exports (Player/Boss nodes), the combo resource (`player_light_combo.tres`), the boss attack resources, and the `HitFeedback` constants. `TUNING.md` is the complete index (name, location, current value, effect). No duplicates; the audit greps the controllers for stray gameplay magic numbers.
 
----
+**Implemented:** *(2026-11-09)*
+
+- `player_controller.gd` — universal retry (D-059): the check moved to the top of `_physics_process`, armed only when the fight is over (boss dead or player dead — `_fight_over()`); a stray R mid-fight does nothing.
+- `boss_controller.gd` — `back_off_distance` (1.4, D-060) replaces the narrow min-range band; the boss visibly steps back whenever the target hugs it, including during the string pause.
+- `TUNING.md` — the complete knob table: player (movement/dodge/block), combo resource, boss (spacing/strings/guard/breakout/attacks/stagger/health), hit-feedback constants, camera, arena — with current values, locations, and effects, plus the tuning rules from the design docs.
+- `tools/validation/retry_check.gd` — case A (player dies → R → both sides reset to spawn), case B (boss dies → R → both sides reset), case C (a stray R mid-fight does nothing).
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Retry check — **PASS**: case A (player-death retry revives + repositions both), case B (boss-death retry revives + repositions both), case C (a stray R mid-fight does nothing — D-059 arming)
+- [x] Full sweep — all suites PASS in the round arena, gdUnit4 24/24
+- [ ] Boss-spacing *feel* (is 1.4 m enough?) — the user's next quick session; the knob is one export
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No in-game live-tuning panel — `TUNING.md` + exports satisfy the docs' bar; a panel is a Sprint 22+ candidate.
+- The boss's back-off and the player's walk-in can oscillate at the band edge — observed harmless in checks; a hysteresis pass is a tuning-lab note.
+
+**Next:** the user re-verifies the retry + boss spacing, then the roadmap resumes: **Sprint 19 — XP** (Phase 8, progression: XP on victory and defeat, save hook) — the user's call on pacing.
 
 ## 020 · 2026-11-09 · Batch-1 Playtest Results + Camera/Retry Fixes
 
