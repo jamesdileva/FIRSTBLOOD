@@ -7,6 +7,21 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 023 · 2026-11-10 · HUD (Sprint 21)
+
+**Goal:** Player-facing combat information — player HP, boss HP with name, XP/level, and a telegraph warning — always-on during combat, readable, never covering the action.
+
+**Scope:** new `game/scenes/ui/hud.tscn` + `game/scripts/ui/hud.gd` (a polling CanvasLayer), instanced into the arena, smoke list, new `tools/validation/hud_check.gd`, `docs/playtesting.md`.
+**Non-goals:** pause indicator/menus (Sprint 22), combo indicator (optional, deferred), damage numbers (deferred per docs "only if useful"), animated bar tweens (a polish pass), F1 changes (stays debug-only).
+
+**Decisions:**
+
+- **D-068 (polling HUD):** the HUD polls group lookups (`player`/`boss` → Health/Progression/state) every frame instead of receiving pushes — robust to retry/resets/revives with zero cross-node wiring, and the checks can assert bar values directly.
+- **D-069 (two-layer UI):** the HUD (this sprint) is always-on player-facing information; the F1 overlay (Sprint 01) stays debug-only with the diagnostic lines. "No debug values ship in normal mode" holds — the HUD shows only HP/XP/level/telegraph, no positions or state names.
+- **D-070 (telegraph support):** the HUD's telegraph bar mirrors the boss's warning window (remaining time, colored yellow/red by hit type — the same language as the ground markers), so the warning reads at HUD level too without washing out the world markers.
+
+---
+
 ## 023 · 2026-11-09 · Basic Level-Up (Sprint 20)
 
 **Goal:** The level curve applies real stat bonuses — HP, attack, movement speed, attack speed — so XP matters; levels persist; nothing double-applies after scene reload; the checks' timing assertions stay deterministic against leveled players.
