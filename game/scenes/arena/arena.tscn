@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="PackedScene" path="res://game/scenes/player/player.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://game/scenes/bosses/new_gladiator.tscn" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://game/scripts/arena/arena_blockout.gd" id="5"]
 [ext_resource type="Script" path="res://game/scripts/arena/arena_dressing.gd" id="6"]
 [ext_resource type="PackedScene" path="res://game/scenes/ui/hud.tscn" id="8"]
+[ext_resource type="Script" path="res://game/scripts/arena/match_flow.gd" id="9"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMat"]
 sky_top_color = Color(0.32, 0.45, 0.68, 1)
@@ -96,6 +97,9 @@ current = true
 fov = 55.0
 
 [node name="HUD" parent="." instance=ExtResource("8")]
+
+[node name="MatchFlow" type="Node" parent="."]
+script = ExtResource("9")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="."]
 script = ExtResource("4")

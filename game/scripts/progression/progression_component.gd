@@ -99,6 +99,19 @@ func reset_progression() -> void:
 func _current_threshold_reset() -> void:
 	pass
 
+## Static read for UI (the title screen): the parsed save dict, or {}.
+static func read_save() -> Dictionary:
+	if not FileAccess.file_exists(_save_path()):
+		return {}
+	var file := FileAccess.open(_save_path(), FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return {}
+	return parsed
+
 func load_save() -> void:
 	if not FileAccess.file_exists(_save_path()):
 		return
