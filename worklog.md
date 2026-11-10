@@ -21,6 +21,35 @@ The entry template is at the bottom of this file.
 
 **Roadmap checklist mapping:** fresh install (the check-save deleted; the title loads) ✓ victory ✓ defeat ✓ XP ✓ retry ✓ no soft-locks (the whole loop driven headlessly) → `playthrough_check.gd`.
 
+**Implemented:** *(2026-11-10)*
+
+- `tools/validation/playthrough_check.gd` — the real-scene-loop check (D-074): fresh title → `start_fight()` scene swap → the probe defeats the gladiator (451 ticks) → VICTORY + XP poll → R revives both → the probe dies → DEFEAT + the +25 consolation → T back to the title → the save round-trips (`level 3, xp 75` — correct carry-over math).
+- `title_screen.gd` — `start_fight()` extracted as a named method so the check (and future automation) drives the same path a player's button press does.
+- `smoke_check.gd` — resource list 21 → 23 (the two Sprint 22 additions).
+- `health_component.gd` — the overkill clamp (D-075) landed in this sprint's first pass.
+- Stub audit: `hit_feedback.gd`'s empty `_init` stub removed; no reset_placeholder/TODO/FIXME markers anywhere in `game/`.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Playthrough check — **PASS ×3** (first run FAILED on 3 timing races, see lessons; two clean runs after the fix for flake confidence)
+- [x] Full sweep — **all 21 validation checks PASS** (attack, block, boss, breakout, colosseum, combat, combo, defense, dodge, feedback, flow, gladiator, hud, level, movement, playthrough, retry, smoke, stagger, telegraph, xp)
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot of the title main scene
+- [ ] Full-loop *feel* (pacing across title → fight → overlays → title) — the user's next batch session
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- Reading a polled transition **immediately after its trigger races the countdown**: the flow's 1.2 s victory/defeat delay means `flow.state` is still RUNNING for ~72 ticks after the killing blow. Fixed by polling each transition with a `_wait_for_state` helper (the flow_check pattern) instead of fixed waits — 3 of 3 first-run failures were this one race.
+- A grep across a check's output that matches **nothing** means look at the log tail: the first instrumented run failed to parse (`player_health` referenced before declaration) and never printed a single marker.
+
+**Known limitations:**
+
+- The playthrough probe is a simple band-holder/masher — it validates the **loop**, not balance feel (the Sprint 16 tuning lab and human playtesting remain the feel gates).
+- Export presets remain deferred (post-MVP packaging task).
+
 ---
 
 ## 025 · 2026-11-10 · Menus/Retry (Sprint 22)

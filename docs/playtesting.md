@@ -146,8 +146,43 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] The warning is readable at normal camera distance and doesn't wash
       out the fight.
 
+### HUD (Sprint 21)
+
+- [ ] **Player HP bar** (bottom-left) drains when the boss hits you and
+      refills on retry/level-up HP gains.
+- [ ] **Boss panel** (top): NEW GLADIATOR name + HP bar — appears when the
+      fight starts, hides when the boss dies.
+- [ ] **XP bar + LV N** label: fills as you deal damage, levels up visibly.
+- [ ] **Telegraph warning bar** under the boss panel: drains while the boss
+      warns; yellow for the quick string, red for the heavy — mirrors the
+      world marker.
+
+### Menus & match flow (Sprint 22)
+
+- [ ] Launch → **title screen**: START FIGHT (Enter / Space / gamepad A or
+      Start); Esc quits. With a save it reads `CONTINUE — LV N`.
+- [ ] **Pause** (Esc/Start mid-fight) freezes everything — boss, timer,
+      telegraphs; PAUSED overlay; pressing again resumes cleanly.
+- [ ] Killing the boss: after a readable ~1.2 s beat, the **VICTORY**
+      overlay appears (R — Retry, T — Title).
+- [ ] Dying: the **YOU DIED** overlay with the same options.
+- [ ] **No soft-locks**: R mid-fight, R on an overlay, T to title — every
+      route lands somewhere sane, and starting a new fight from the title
+      always works.
+
+### Full MVP playthrough (Sprint 23)
+
+- [ ] From a fresh install: title → fight → win → R → fight → die → T →
+      the title now shows `CONTINUE — LV N` matching the XP you earned;
+      relaunching the game keeps it (save round-trip).
+- [ ] XP accrues through the **whole loop**: damage during the fight, the
+      +150 victory bonus, the +25 defeat consolation — nothing lost at the
+      overlays or the scene swaps.
+- [ ] The entire loop is playable **controller-only** — no keyboard-only
+      gate anywhere.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
-- Boss stagger/reactions to your hits (Sprint 13), boss breakout (Sprint
-  14), hit feedback like hitstop/VFX (Sprint 15), HUD other than F1
-  (Sprint 21), XP (Sprint 19).
+- (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
+  items — magic, gear sets, boss selection, difficulty modes — remain out
+  by design.)
