@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 025 · 2026-11-10 · Menus/Retry (Sprint 22)
+
+**Goal:** The complete basic game loop — title → fight → victory/defeat → retry/title, with pause — every path controller-first, no state persisting accidentally.
+
+**Scope:** new `game/scripts/arena/match_flow.gd` (MatchFlow component: RUNNING/VICTORY/DEFEAT + pause), new `game/scenes/ui/title_screen.tscn` + `title_screen.gd` (the new main scene), `project.godot` (main_scene, `start_match`/`to_title` actions), new `tools/validation/flow_check.gd`, `TUNING.md` flow section, `docs/playtesting.md`, smoke list.
+**Non-goals:** settings/video menus, real art on the screens, mouse/keyboard-only UI (controller-first ✓ the actions accept both), level-up screen (Sprint 20 shipped the stat part; a dedicated screen is polish).
+
+**Decisions:**
+
+- **D-071 (MatchFlow):** a component on the arena polls (the D-068 pattern) player/boss death → a 1.2 s countdown (the death animation reads) → **VICTORY/DEFEAT**; a self-healing poll returns to RUNNING when a retry heals both sides (checks and the universal R can reset without routing through the flow). Pause = `get_tree().paused` with the flow at `PROCESS_MODE_ALWAYS` — combat freezes by engine semantics ("pause cannot break combat state" holds structurally), the countdown freezes with it, and Esc/Start resumes.
+- **D-072 (title as the entry point):** `title_screen.tscn` becomes the main scene — Enter/Space/gamepad A/Start fights, Esc quits, and the save is read to show `CONTINUE — LV N`. The checks instantiate `arena.tscn` directly and are unaffected.
+- **D-073 (code-built overlays):** the victory/defeat/pause panels are code-built CanvasLayers layered above the HUD (30 > 20) — the D-054/D-055 precedent; the art pass replaces them.
+
+**Retire:** the placeholder R-retry (D-059) becomes one path among several — R still works mid-fight and on the end screens (armed when the fight is over); the overlays' Retry calls the same `_retry()`/reset flow, so all routes share one semantics (D-058: reset to spawn positions).
+
+---
+
 ## 024 · 2026-11-10 · HUD (Sprint 21)
 
 **Goal:** Player-facing combat information — player HP, boss HP with name, XP/level, and a telegraph warning — always-on during combat, readable, never covering the action.
