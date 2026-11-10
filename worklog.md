@@ -22,7 +22,37 @@ The entry template is at the bottom of this file.
 
 **Retire:** the placeholder R-retry (D-059) becomes one path among several — R still works mid-fight and on the end screens (armed when the fight is over); the overlays' Retry calls the same `_retry()`/reset flow, so all routes share one semantics (D-058: reset to spawn positions).
 
----
+**Implemented:** *(2026-11-10)*
+
+- `match_flow.gd` — the MatchFlow component on the arena: RUNNING/VICTORY/DEFEAT polled from player/boss death, a 1.2 s countdown, self-healing (a retry that heals both sides returns the flow to RUNNING even when reset bypasses the flow), pause handling (ALWAYS process mode), code-built overlays above the HUD (layer 30): VICTORY / YOU DIED / PAUSED with R/T hints.
+- `title_screen.tscn` + `title_screen.gd` — the new main scene: Enter/Space/gamepad A/Start fights, Esc quits, the save read (`ProgressionComponent.read_save()`, static) shows CONTINUE — LV N.
+- `project.godot` — main scene → the title; `start_match` (Enter/Space/A/Start) and `to_title` (T/Y) actions.
+- `tools/validation/flow_check.gd` — death→overlays, R resets, pause freeze/resume, to_title present.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 21 resources)
+- [x] Flow check — **PASS**: the player's death → DEFEAT overlay; R → RUNNING + both revived + the panel hidden; the boss's death → VICTORY overlay; R again → RUNNING; pause froze the tree AND the boss's state clock (combat state untouched); resume restored the fight; `to_title` present
+- [x] Frame-run — the title loads as the main scene, parse-clean
+- [x] Full sweep — all suites PASS, gdUnit4 24/24
+- [ ] Flow *feel* (the 1.2 s delays, panel readability) — the user's next session
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- `Label.new()` without a name gets an auto-generated one — the code-built panels' `get_node("Title")` failed until the nodes were named.
+- In a `-s` SceneTree script, `get_tree()` doesn't exist — `paused` is accessed directly (the script IS the tree).
+- The sweep "hung" twice on aborted check coroutines (a runtime error in `_run` skips `quit()` — the tree runs forever). The lesson stands: any runtime error in a check's coroutine = hang; timeout every first run of a new check.
+
+**Known limitations:**
+
+- The title is text-only (the art pass assets will dress it).
+- Pause during the outcome overlays is allowed (both panels coexist — harmless).
+- No settings video/audio menus (post-MVP per docs).
+
+**Next:** Phase 9 is complete (HUD + menus/retry + XP + levels). The roadmap resumes: **Sprint 23 — Full MVP Playthrough** (the docs' Phase 10: the whole game as a player would — launch → fight → die/win → XP → retry, no soft-locks) — largely covered by the flagship checks; the plan+scope will map the docs' checklist onto what remains. Plan+scope first.
 
 ## 024 · 2026-11-10 · HUD (Sprint 21)
 
