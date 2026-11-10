@@ -25,6 +25,8 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/combat/combo_step_data.gd",
 	"res://game/scripts/combat/health_component.gd",
 	"res://game/scripts/progression/progression_component.gd",
+	"res://game/scenes/ui/hud.tscn",
+	"res://game/scripts/ui/hud.gd",
 	"res://game/resources/attacks/player_light_combo.tres",
 	"res://game/scripts/bosses/boss_controller.gd",
 	"res://game/scripts/bosses/boss_brain.gd",
