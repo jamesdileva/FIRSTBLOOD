@@ -7,6 +7,22 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 026 · 2026-11-10 · Full MVP Playthrough (Sprint 23)
+
+**Goal:** One cohesive build validated end-to-end through the REAL scene flow — title → fight → victory/defeat → retry/title — plus the prototype-only-dependency audit the docs' Sprint 23 asks for.
+
+**Scope:** new `tools/validation/playthrough_check.gd` (the real scene-change loop: title → start_match → arena → probe fight → victory → retry → defeat → to_title, with XP persistence through the save), stub/audit cleanup, smoke list.
+**Non-goals:** new mechanics, art assets (the presentation layer shipped in Sprint 18), export presets (a real export build is a packaging task, not a code sprint).
+
+**Decisions:**
+
+- **D-074 (the playthrough check drives the REAL scene flow):** `change_scene_to_file` paths are exercised for real — the title's `start_fight()`, the flow's `to_title()`, and the current-scene swaps are all asserted (not bypassed by direct instantiation like the other checks). In `-s` mode the check sets `current_scene` manually so `change_scene_to_file` has a valid source.
+- **D-075 (XP honesty extends to overkill):** `HealthComponent.apply_damage` now writes the **actual damage dealt** back onto the event (overkill clamped at remaining health) — XP, hit-stop weight, and every future listener see honest numbers. Found by the XP check's first run (a lethal 1000-damage event awarded 1000 XP against 80 remaining HP).
+
+**Roadmap checklist mapping:** fresh install (the check-save deleted; the title loads) ✓ victory ✓ defeat ✓ XP ✓ retry ✓ no soft-locks (the whole loop driven headlessly) → `playthrough_check.gd`.
+
+---
+
 ## 025 · 2026-11-10 · Menus/Retry (Sprint 22)
 
 **Goal:** The complete basic game loop — title → fight → victory/defeat → retry/title, with pause — every path controller-first, no state persisting accidentally.
