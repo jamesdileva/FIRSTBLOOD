@@ -17,7 +17,11 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("start_match"):
-		get_tree().change_scene_to_file(ARENA_SCENE)
+		start_fight()
 	elif event is InputEventKey and event.pressed and not event.echo \
 			and event.physical_keycode == KEY_ESCAPE:
 		get_tree().quit()
+
+## Named for the playthrough check: the REAL path from title to fight.
+func start_fight() -> void:
+	get_tree().change_scene_to_file(ARENA_SCENE)
