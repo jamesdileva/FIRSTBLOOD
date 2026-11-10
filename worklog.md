@@ -7,7 +7,7 @@ The entry template is at the bottom of this file.
 
 ---
 
-## 023 · 2026-11-10 · HUD (Sprint 21)
+## 024 · 2026-11-10 · HUD (Sprint 21)
 
 **Goal:** Player-facing combat information — player HP, boss HP with name, XP/level, and a telegraph warning — always-on during combat, readable, never covering the action.
 
@@ -19,6 +19,29 @@ The entry template is at the bottom of this file.
 - **D-068 (polling HUD):** the HUD polls group lookups (`player`/`boss` → Health/Progression/state) every frame instead of receiving pushes — robust to retry/resets/revives with zero cross-node wiring, and the checks can assert bar values directly.
 - **D-069 (two-layer UI):** the HUD (this sprint) is always-on player-facing information; the F1 overlay (Sprint 01) stays debug-only with the diagnostic lines. "No debug values ship in normal mode" holds — the HUD shows only HP/XP/level/telegraph, no positions or state names.
 - **D-070 (telegraph support):** the HUD's telegraph bar mirrors the boss's warning window (remaining time, colored yellow/red by hit type — the same language as the ground markers), so the warning reads at HUD level too without washing out the world markers.
+
+**Implemented:** *(2026-11-10)*
+
+- `hud.tscn` / `hud.gd` — a polling CanvasLayer (D-068): player HP bar (bottom left), XP bar + `LV` label, boss panel (name + HP bar, top center), telegraph warning bar (yellow/red by hit type, mirrors the world markers' language).
+- Instanced into the arena; the smoke list gained the HUD scene/script.
+- `tools/validation/hud_check.gd` — bars track health/progression after damage and XP, the telegraph bar matches the attack type, the boss panel hides on boss death and restores on retry.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Smoke check — PASS (18 actions, 21 resources)
+- [x] HUD check — **PASS**: the player bar tracked 100 → 70 after damage; the XP bar/level label tracked progression after 100 XP; the telegraph bar showed during the boss's TELEGRAPH with the type-matching color; the boss panel hid on boss death and restored on retry
+- [x] Full sweep — all suites PASS (breakout_check flaked once in-sweep and passed 3/3 solo — a known rare alignment flake, documented), gdUnit4 24/24, 180-frame run clean
+- [ ] HUD *readability* (bar placement, sizes, no-cover check) — the user's next session
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No pause indicator, combo indicator, or damage numbers (deferred per docs "only if useful").
+- Bars are static layouts — animation tweens (bar damage-lag, telegraph pulse) are a polish-pass candidate.
+
+**Next:** the user re-verifies the batch-1 fixes + the HUD, then the roadmap resumes: **Sprint 22 — Menus/Retry** (title/start flow, pause with indicator, victory/defeat screens, save/load — replacing the placeholder R-retry), per the docs' Phase 9. Plan+scope first.
 
 ---
 
