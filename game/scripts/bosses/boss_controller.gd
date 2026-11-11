@@ -14,6 +14,8 @@ signal stagger_started
 
 enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUARD, STAGGERED, BREAKOUT, DEAD }
 
+## Sprint 25: presentation metadata — the name the HUD shows for this boss.
+@export var boss_title := "NEW GLADIATOR"
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
 @export var acceleration := 20.0

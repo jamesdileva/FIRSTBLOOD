@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="BossRoster" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/bosses/boss_roster.gd" id="1"]
+[ext_resource type="Script" path="res://game/scripts/bosses/boss_entry.gd" id="2"]
+[ext_resource type="PackedScene" path="res://game/scenes/bosses/new_gladiator.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://game/scenes/bosses/sparring_gladiator.tscn" id="4"]
+
+[sub_resource type="Resource" id="entry_new"]
+script = ExtResource("2")
+display_name = "NEW GLADIATOR"
+blurb = "The Colosseum's champion. Full 100 health."
+scene = ExtResource("3")
+
+[sub_resource type="Resource" id="entry_sparring"]
+script = ExtResource("2")
+display_name = "SPARRING GLADIATOR"
+blurb = "A practice partner. Same moves, 60 health."
+scene = ExtResource("4")
+
+[resource]
+script = ExtResource("1")
+entries = [SubResource("entry_new"), SubResource("entry_sparring")]

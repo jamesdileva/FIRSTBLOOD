@@ -89,6 +89,12 @@ Lunge speeds: light 2.0, light_2 1.0.
 |---|---|---|
 | [E] `max_health` | 100 | ~8–10 clean player swings |
 
+## Boss roster — `game/resources/bosses/boss_roster.tres` (Sprint 25)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] entries | New Gladiator + Sparring Gladiator | The select screen's menu order; first = the arena's default |
+| [E] entry scene | `sparring_gladiator.tscn` (inherits `new_gladiator.tscn`) | Data-only variant: `max_health` 60, `boss_title` SPARRING GLADIATOR |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

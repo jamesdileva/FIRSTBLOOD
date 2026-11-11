@@ -4,7 +4,7 @@ extends Control
 ## the continue level — never the check-save override (the checks don't run
 ## the title).
 
-const ARENA_SCENE := "res://game/scenes/arena/arena.tscn"
+const BOSS_SELECT_SCENE := "res://game/scenes/ui/boss_select.tscn"
 
 func _ready() -> void:
 	var save := ProgressionComponent.read_save()
@@ -22,6 +22,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			and event.physical_keycode == KEY_ESCAPE:
 		get_tree().quit()
 
-## Named for the playthrough check: the REAL path from title to fight.
+## Named for the playthrough check: the REAL path from title onward.
+## Sprint 25: the fight starts from the boss select screen.
 func start_fight() -> void:
-	get_tree().change_scene_to_file(ARENA_SCENE)
+	get_tree().change_scene_to_file(BOSS_SELECT_SCENE)

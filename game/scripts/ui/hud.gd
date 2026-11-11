@@ -32,6 +32,8 @@ func _process(_delta: float) -> void:
 	var boss_health := boss.get_node_or_null("Health") as HealthComponent
 	var boss_alive: bool = boss_health != null and not boss_health.is_dead()
 	_boss_panel.visible = boss_alive
+	# Sprint 25: the name follows the selected encounter.
+	_boss_name_label.text = boss.boss_title
 	if boss_health != null and boss_alive:
 		_boss_bar.max_value = boss_health.max_health
 		_boss_bar.value = boss_health.current_health

@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://game/scripts/arena/arena_dressing.gd" id="6"]
 [ext_resource type="PackedScene" path="res://game/scenes/ui/hud.tscn" id="8"]
 [ext_resource type="Script" path="res://game/scripts/arena/match_flow.gd" id="9"]
+[ext_resource type="Script" path="res://game/scripts/arena/arena.gd" id="10"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMat"]
 sky_top_color = Color(0.32, 0.45, 0.68, 1)
@@ -47,6 +48,7 @@ fog_density = 0.003
 fog_sky_affect = 0.15
 
 [node name="Arena" type="Node3D"]
+script = ExtResource("10")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_main")

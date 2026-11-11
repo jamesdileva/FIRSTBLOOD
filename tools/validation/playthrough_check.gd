@@ -32,8 +32,27 @@ func _run() -> void:
 	if title.get_node_or_null("Title") == null:
 		failures.append("the title did not build its UI")
 
-	# --- 2. start_fight -> the arena is the current scene. ---
+	# --- 2. start_fight -> the BOSS SELECT screen -> confirm -> the arena. ---
 	title.start_fight()
+	var select_ready := false
+	for _i in 120:
+		await physics_frame
+		if current_scene != null and current_scene.name == "BossSelect":
+			select_ready = true
+			break
+	if not select_ready:
+		failures.append("start_fight did not swap to the boss select screen")
+	var confirm := InputEventKey.new()
+	confirm.physical_keycode = KEY_ENTER
+	confirm.keycode = KEY_ENTER
+	confirm.pressed = true
+	Input.parse_input_event(confirm)
+	await _wait(2)
+	var release_confirm := InputEventKey.new()
+	release_confirm.physical_keycode = KEY_ENTER
+	release_confirm.keycode = KEY_ENTER
+	release_confirm.pressed = false
+	Input.parse_input_event(release_confirm)
 	var arena_ready := false
 	for _i in 120:
 		await physics_frame
@@ -41,7 +60,7 @@ func _run() -> void:
 			arena_ready = true
 			break
 	if not arena_ready:
-		failures.append("start_fight did not swap to the arena")
+		failures.append("the select screen's confirm did not swap to the arena")
 	var player = get_first_node_in_group("player")
 	var boss = get_first_node_in_group("boss")
 	var flow = current_scene.get_node_or_null("MatchFlow") if current_scene != null else null
