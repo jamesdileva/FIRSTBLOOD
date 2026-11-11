@@ -7,6 +7,23 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
+
+**Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
+
+**Scope:** new `BossEntry`/`BossRoster` resources + `game/resources/bosses/boss_roster.tres`; new `MatchSetup` static holder (session selection); new `game/scenes/ui/boss_select.tscn` + `boss_select.gd` (controller-first: cycle/confirm/back); new `arena.gd` root script that swaps the arena's Boss node for the selected entry at `_enter_tree`; new `sparring_gladiator.tscn` (inherited scene, pure data overrides: HP 60, its own title) as the second roster entry; `boss_controller.gd` gains a `boss_title` export (presentation metadata only); `hud.gd` reads it for the boss name; `title_screen.gd`'s `start_fight()` now routes to the select screen; new `boss_select_check.gd`; `playthrough_check.gd` phase 2 follows the real new path; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** brand-new boss behaviors (the sparring variant reuses the same gladiator controller), per-boss arenas, difficulty modes, unlock/lock logic, boss-select art.
+
+**Decisions (planned):**
+
+- **D-076 (roster is data, the framework is roster-agnostic):** adding a boss = adding a `BossEntry` resource pointing at a boss scene — the selector and the arena swap change zero lines. The roadmap verification ("multiple boss data entries can be selected and loaded") is met with two entries: the New Gladiator and a sparring variant.
+- **D-077 (selection transport = static holder, not an autoload):** `MatchSetup.selected` (a `class_name` static, the D-065 static precedent). Autoloads would alter project.godot semantics and `-s` check behavior mid-project for no gain; the selection only needs to survive a scene change within a session.
+- **D-078 (second entry = scene-inherited sparring variant):** `sparring_gladiator.tscn` inherits `new_gladiator.tscn`, overriding only data (max_health 60, boss_title). Pure-data proof of the framework, and a deliberately easier first opponent for the Sprint 24 external playtest.
+
+**Verification (planned):** `boss_select_check.gd` — roster integrity (≥2 entries, scenes resolve), the real path title → select → cycle → confirm → the arena spawns the *chosen* boss (assert boss_title + max_health), back navigation to the title, and the no-selection default keeps the scene's New Gladiator. `playthrough_check.gd` follows the real path through the select screen. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 026 · 2026-11-10 · Full MVP Playthrough (Sprint 23)
 
 **Goal:** One cohesive build validated end-to-end through the REAL scene flow — title → fight → victory/defeat → retry/title — plus the prototype-only-dependency audit the docs' Sprint 23 asks for.
