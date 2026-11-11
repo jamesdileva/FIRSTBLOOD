@@ -181,6 +181,20 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] The entire loop is playable **controller-only** — no keyboard-only
       gate anywhere.
 
+### Boss selection (Sprint 25)
+
+- [ ] The title's START FIGHT now opens a **SELECT YOUR OPPONENT** screen:
+      one card per boss, the selection highlighted in gold.
+- [ ] **Left/Right (d-pad or arrows)** cycles the cards and wraps around.
+- [ ] **A / Enter** starts the fight against the **chosen** boss; the HUD's
+      boss name matches the card you picked.
+- [ ] **SPARRING GLADIATOR** is a deliberately easier partner — same moves,
+      visibly less health (60 vs 100); a good first opponent.
+- [ ] **B / Esc** returns to the title from the select screen; starting a
+      fight from there always works (no soft-locks).
+- [ ] The selection **sticks** between fights in the same session —
+      returning to the select screen re-highlights your last pick.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

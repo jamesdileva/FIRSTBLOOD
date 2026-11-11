@@ -22,6 +22,39 @@ The entry template is at the bottom of this file.
 
 **Verification (planned):** `boss_select_check.gd` — roster integrity (≥2 entries, scenes resolve), the real path title → select → cycle → confirm → the arena spawns the *chosen* boss (assert boss_title + max_health), back navigation to the title, and the no-selection default keeps the scene's New Gladiator. `playthrough_check.gd` follows the real path through the select screen. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-11)*
+
+- `boss_entry.gd` + `boss_roster.gd` — the data layer: a selectable encounter (display name, blurb, scene) and the ordered roster. `game/resources/bosses/boss_roster.tres` holds the two entries.
+- `match_setup.gd` — `MatchSetup.selected` static holder (D-077): the session's chosen entry; `null` = the arena's scene default.
+- `arena.gd` (new root script on `arena.tscn`) — at `_enter_tree` (before anything is in the tree), swaps the default Boss child for the selected entry's scene at the BossSpawn position; group lookups, the progression binding, and the flow see exactly one boss from frame one.
+- `boss_select.tscn` + `boss_select.gd` — the select screen: one code-built card per entry (gold border + full color on the selection), ui_left/ui_right cycle (wraps), `start_match` confirms, ui_cancel returns to the title. The default selection resumes at the previously chosen entry.
+- `sparring_gladiator.tscn` — inherits `new_gladiator.tscn` with data-only overrides: `max_health` 60, `boss_title` "SPARRING GLADIATOR" (D-078).
+- `boss_controller.gd` — `@export var boss_title` (presentation metadata only); `hud.gd` sets the boss-name label from it in its existing poll.
+- `title_screen.gd` — `start_fight()` routes to the select screen (the fight now starts from its confirm).
+- `tools/validation/boss_select_check.gd` — the six-phase check below; `playthrough_check.gd` phase 2 now goes title → BossSelect → Enter → Arena; smoke list 23 → 33 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Boss select check — **PASS first run**: roster integrity (2 entries, distinct scenes, names), the real path title → select, `ui_right` moves the selection, confirm spawns the CHOSEN boss (sparring override `max_health` 60 + title asserted), back navigation via Esc, and the no-selection default keeps the scene's New Gladiator
+- [x] Playthrough check — **PASS** (671 ticks): the full MVP loop now flows through the select screen
+- [x] Full sweep — **all 22 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Select-screen *feel* (card readability, cycle/confirm pacing) — the user's next session
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The boss swap must happen at `_enter_tree` of the arena root, not from a sibling's `_ready`: sibling `_ready` order would free the boss before its `_ready` ran (or after the player's progression already bound to it) — entering-tree-time replacement keeps exactly one boss for every listener.
+- Writing an inherited scene by hand works fine: `[node name="Health" parent="." index="4"]` overrides resolve by name, and the root instance override sets script exports directly.
+
+**Known limitations:**
+
+- The sparring variant shares the New Gladiator's attack resources — it differs only in health (and title). Real per-boss attack sets arrive with future boss content.
+- The select screen is code-built placeholder UI (the D-073 precedent); the art pass dresses it.
+
 ---
 
 ## 026 · 2026-11-10 · Full MVP Playthrough (Sprint 23)
