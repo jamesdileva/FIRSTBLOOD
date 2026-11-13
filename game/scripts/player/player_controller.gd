@@ -68,6 +68,7 @@ var state_elapsed := 0.0
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _health: HealthComponent = $Health
 @onready var _progression: ProgressionComponent = $Progression
+@onready var _equipment: EquipmentComponent = get_node_or_null("Equipment")
 @onready var _body_mesh: MeshInstance3D = $Visual/Body
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
 
@@ -114,8 +115,10 @@ func _ready() -> void:
 	_spawn_position = global_position
 	_base_movement_speed = movement_speed
 	_base_max_health = _health.max_health
-	_progression.level_up.connect(_apply_level_stats)
-	_apply_level_stats(_progression.level)
+	_progression.level_up.connect(_on_level_up)
+	if _equipment != null:
+		_equipment.equipment_changed.connect(_on_equipment_changed)
+	_recompute_stats(_progression.level)
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
 	_hurtbox.damaged.connect(_resolve_incoming_damage)
@@ -233,9 +236,19 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 			hit_blocked.emit(event)
 			return
 		event.amount *= block_heavy_multiplier
+		event.amount = _soak_armor(event.amount)
 		hit_mitigated.emit(event)
 		return
+	event.amount = _soak_armor(event.amount)
 	hit_taken.emit(event)
+
+## D-081: flat armor soak on whatever reaches the body, floored at 1 —
+## gear never fully negates a hit. Blocked NORMAL hits never reach this.
+func _soak_armor(amount: float) -> float:
+	var armor := 0.0
+	if _equipment != null:
+		armor = _equipment.armor_total()
+	return maxf(amount - armor, 1.0)
 
 func _neutral_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
@@ -393,19 +406,37 @@ func _face_nearest_foe() -> void:
 		return
 	rotation.y = atan2(-to_foe.x, -to_foe.z)
 
-## D-066: derive every stat from the level — base + per_level x (level - 1).
-## Called on ready (loaded level), on level-up, and the values are plain
-## variables, so a scene reload re-applies exactly once.
-func _apply_level_stats(level: int) -> void:
+## D-066 + Sprint 26 (D-079): stats = base + level part + gear part, in the
+## level-stat units. Never accumulated — a scene reload re-applies exactly
+## once. Level-ups and equipment changes both route here, so neither wipes
+## the other.
+func _recompute_stats(level: int) -> void:
 	var steps := float(level - 1)
-	movement_speed = _base_movement_speed + _progression.move_speed_per_level * steps
-	attack_speed_multiplier = 1.0 + _progression.attack_speed_per_level * steps
-	attack_stat_bonus = _progression.attack_per_level * steps
-	var target_max := _base_max_health + _progression.hp_per_level * steps
+	var gear_hp := 0.0
+	var gear_move := 0.0
+	var gear_attack_speed := 0.0
+	var gear_attack := 0.0
+	if _equipment != null:
+		gear_hp = _equipment.hp_bonus()
+		gear_move = _equipment.movement_bonus()
+		gear_attack_speed = _equipment.attack_speed_bonus()
+		gear_attack = _equipment.attack_bonus()
+	movement_speed = _base_movement_speed + _progression.move_speed_per_level * steps + gear_move
+	attack_speed_multiplier = 1.0 + _progression.attack_speed_per_level * steps + gear_attack_speed
+	attack_stat_bonus = _progression.attack_per_level * steps + gear_attack
+	var target_max := _base_max_health + _progression.hp_per_level * steps + gear_hp
 	var delta := target_max - _health.max_health
 	_health.max_health = target_max
 	if delta > 0.0:
 		_health.current_health = minf(_health.current_health + delta, target_max)
+	elif delta < 0.0:
+		_health.current_health = minf(_health.current_health, target_max)
+
+func _on_level_up(_level: int) -> void:
+	_recompute_stats(_progression.level)
+
+func _on_equipment_changed() -> void:
+	_recompute_stats(_progression.level)
 
 func _push_step_payload(step: ComboStepData) -> void:
 	# Per-step payload (D-022): the shared hitbox carries what this swing

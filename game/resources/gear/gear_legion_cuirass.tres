@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "legion_cuirass"
+display_name = "LEGION CUIRASS"
+slot = &"BODY"
+hp_bonus = 12.0
+armor = 1.0

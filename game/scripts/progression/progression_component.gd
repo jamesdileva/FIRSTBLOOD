@@ -78,7 +78,12 @@ func award_defeat_xp() -> void:
 	save()
 
 func save() -> void:
-	var data := {"version": SAVE_VERSION, "xp": xp, "level": level}
+	# D-080: read-merge — the save file holds per-system keys (Sprint 26's
+	# gear owns "equipment"); each writer preserves the others'.
+	var data := read_save()
+	data["version"] = SAVE_VERSION
+	data["xp"] = xp
+	data["level"] = level
 	var file := FileAccess.open(_save_path(), FileAccess.WRITE)
 	if file == null:
 		push_warning("Progression save failed: %d" % FileAccess.get_open_error())

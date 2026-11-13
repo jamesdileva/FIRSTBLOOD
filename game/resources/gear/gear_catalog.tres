@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GearCatalog" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_catalog.gd" id="1"]
+[ext_resource type="Resource" path="res://game/resources/gear/gear_trainees_cap.tres" id="2"]
+[ext_resource type="Resource" path="res://game/resources/gear/gear_legion_cuirass.tres" id="3"]
+[ext_resource type="Resource" path="res://game/resources/gear/gear_wrist_wraps.tres" id="4"]
+[ext_resource type="Resource" path="res://game/resources/gear/gear_sprinters_sandals.tres" id="5"]
+
+[resource]
+script = ExtResource("1")
+items = [ExtResource("2"), ExtResource("3"), ExtResource("4"), ExtResource("5")]

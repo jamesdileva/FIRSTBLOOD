@@ -95,6 +95,14 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] entries | New Gladiator + Sparring Gladiator | The select screen's menu order; first = the arena's default |
 | [E] entry scene | `sparring_gladiator.tscn` (inherits `new_gladiator.tscn`) | Data-only variant: `max_health` 60, `boss_title` SPARRING GLADIATOR |
 
+## Gear — `game/resources/gear/gear_catalog.tres` (Sprint 26)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] Trainee's Cap (HEAD) | HP +6 | Starter piece |
+| [E] Legion Cuirass (BODY) | HP +12, Armor 1 | Armor soaks 1 per unblocked hit (floored at 1) |
+| [E] Wrist Wraps (HANDS) | ATTACK +2 | Joins the level attack bonus on every swing's payload |
+| [E] Sprinter's Sandals (FEET) | SPEED +0.3, SWING +2% | Movement m/s and the attack-speed multiplier fraction |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

@@ -5,6 +5,7 @@ extends Control
 ## the title).
 
 const BOSS_SELECT_SCENE := "res://game/scenes/ui/boss_select.tscn"
+const ARMORY_SCENE := "res://game/scenes/ui/armory.tscn"
 
 func _ready() -> void:
 	var save := ProgressionComponent.read_save()
@@ -18,6 +19,8 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("start_match"):
 		start_fight()
+	elif event.is_action_pressed("armory"):
+		get_tree().change_scene_to_file(ARMORY_SCENE)
 	elif event is InputEventKey and event.pressed and not event.echo \
 			and event.physical_keycode == KEY_ESCAPE:
 		get_tree().quit()

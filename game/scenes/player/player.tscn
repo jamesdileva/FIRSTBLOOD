@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://game/scripts/combat/hitbox_component.gd" id="3"]
 [ext_resource type="Script" path="res://game/scripts/combat/health_component.gd" id="4"]
 [ext_resource type="Script" path="res://game/scripts/progression/progression_component.gd" id="8"]
+[ext_resource type="Script" path="res://game/scripts/player/equipment_component.gd" id="9"]
 [ext_resource type="Resource" path="res://game/resources/attacks/player_light_combo.tres" id="5"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
@@ -75,3 +76,6 @@ max_health = 100.0
 
 [node name="Progression" type="Node" parent="."]
 script = ExtResource("8")
+
+[node name="Equipment" type="Node" parent="."]
+script = ExtResource("9")

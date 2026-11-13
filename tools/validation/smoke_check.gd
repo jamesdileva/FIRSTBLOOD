@@ -8,6 +8,7 @@ const REQUIRED_ACTIONS := [
 	"attack", "block", "dodge", "pause", "debug_toggle",
 	"spell_modifier", "spell_a", "spell_b", "spell_x", "spell_y",
 	"camera_left", "camera_right", "camera_up", "camera_down",
+	"armory",
 ]
 
 const REQUIRED_PATHS := [
@@ -36,6 +37,17 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/ui/boss_select.gd",
 	"res://game/scripts/arena/match_setup.gd",
 	"res://game/scripts/arena/arena.gd",
+	"res://game/scripts/gear/gear_data.gd",
+	"res://game/scripts/gear/gear_catalog.gd",
+	"res://game/scripts/gear/gear_library.gd",
+	"res://game/scripts/player/equipment_component.gd",
+	"res://game/resources/gear/gear_catalog.tres",
+	"res://game/resources/gear/gear_trainees_cap.tres",
+	"res://game/resources/gear/gear_legion_cuirass.tres",
+	"res://game/resources/gear/gear_wrist_wraps.tres",
+	"res://game/resources/gear/gear_sprinters_sandals.tres",
+	"res://game/scenes/ui/armory.tscn",
+	"res://game/scripts/ui/armory.gd",
 	"res://game/scripts/bosses/boss_entry.gd",
 	"res://game/scripts/bosses/boss_roster.gd",
 	"res://game/resources/bosses/boss_roster.tres",

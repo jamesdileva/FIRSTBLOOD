@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "sprinters_sandals"
+display_name = "SPRINTER'S SANDALS"
+slot = &"FEET"
+movement_bonus = 0.3
+attack_speed_bonus = 0.02
