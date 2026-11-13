@@ -195,6 +195,21 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] The selection **sticks** between fights in the same session —
       returning to the select screen re-highlights your last pick.
 
+### Armory & gear (Sprint 26)
+
+- [ ] The title opens the **ARMORY** with **G / gamepad X**.
+- [ ] Four starter pieces, one per slot: UP/DOWN navigates, **A wears or
+      removes**, worn pieces show a **WORN** tag and a brighter row.
+- [ ] The **totals line** updates as you dress: HP, ARMOR, ATTACK, SPEED,
+      SWING %.
+- [ ] Wearing the **Legion Cuirass** raises max HP (the HUD bar) and every
+      unblocked hit hurts 1 less; F1's Player HP shows the bigger pool.
+- [ ] **Wrist Wraps** make every swing hit chunkier (+2 damage per swing).
+- [ ] The loadout **survives** returning to the title, starting a fight,
+      AND a full game restart (it lives in the same save as your level).
+- [ ] B/Esc returns to the title from the armory; boss select and the
+      fight still work with gear worn (no soft-locks).
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

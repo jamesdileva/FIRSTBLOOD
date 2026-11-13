@@ -22,8 +22,37 @@ The entry template is at the bottom of this file.
 
 **Verification (planned):** `gear_check.gd` — catalog integrity (unique slots, non-negative bonuses), aggregation math + slot swap, player stat composition (max health, attack payload bonus, armor soak on a resolved DamageEvent), persistence round-trip through the check save + the progression-save merge safety, and the real path title → armory (G) → equip → Esc → title → fight → the spawned player wears the loadout. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-13)*
 
+- `gear_data.gd` + `gear_catalog.gd` — the data layer per guide §24 (minus `elemental_effects`/`set_id`, explicitly post-MVP): id, display name, string slot, flat bonuses in the level-stat units, plus a `summary()` one-liner for the armory. `game/resources/gear/` holds the starter catalog: Trainee's Cap (HEAD, HP+6), Legion Cuirass (BODY, HP+12/Armor 1), Wrist Wraps (HANDS, ATK+2), Sprinter's Sandals (FEET, SPEED+0.3/SWING+2%).
+- `gear_library.gd` — static loadout (D-080): session holder ↔ the save's `equipment` key, read-merge both ways; unknown ids resolve to nothing (a removed piece never crashes a load).
+- `equipment_component.gd` — one piece per slot, swap-on-equip, on-demand totals, `equipment_changed`; applies the GearLibrary loadout at ready and mirrors every change back into it + the save. The armory uses a headless staging component as its editor — the slot-swap logic exists once.
+- `player_controller.gd` — `_apply_level_stats` became `_recompute_stats` (level part + gear part); level-ups and equipment changes both route through it, so neither wipes the other; max-health shrink clamps current HP. Armor soaks unblocked incoming damage at `_resolve_incoming_damage` (D-081: floor 1; blocked normals still fully negate; blocking heavies takes multiplier-then-soak).
+- `progression_component.gd` — `save()` is now read-merge so the shared save file keeps per-system keys (D-080); the equipment key is additive, old saves load with an empty loadout, version stays 1.
+- `armory.tscn`/`armory.gd` — the equip affordance off the title (new `armory` action: G / gamepad X): one row per piece (name, stat summary, WORN tag, gold highlight), ui_up/ui_down navigate, start_match wears/removes, ui_cancel back; a totals line sums the worn modifiers.
+- `tools/validation/gear_check.gd` — the five-phase check; smoke list +13 paths and the `armory` action.
 
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Gear check — **PASS** (one run failed first: the check's own expected-value arithmetic forgot the wraps contribute attack, not HP — 32 is correct after the HEAD swap; the code was right). Catalog integrity, aggregation + slot swap + is_equipped, player composition (100 → 112 HP, attack payload +2), armor soak 10→9 and the floor at 1, level-up preserves gear (2×2+2=6), loadout round-trip, progression-save merge keeps the gear key, unknown ids resolve harmlessly, and the real path title → armory → equip → title → fight spawns a player wearing the loadout at 112 max HP
+- [x] Full sweep — **all 23 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Armory *feel* (row readability, toggle responsiveness) and combat impact of armor/attack gear — the user's next batch session
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- Twice now, prepending a worklog entry by matching the previous entry's HEADER ate that header — the fix is to anchor the edit on the previous entry's TAIL (its last paragraph) instead. (Applied this sprint; noted so the next agent doesn't rediscover it.)
+- The gear check's first failure was its own expected-value arithmetic (34 vs 32) — when an assert fails, recompute the expectation before touching the code.
+
+**Known limitations:**
+
+- The armory is the only equip path (between fights, no player alive); in-fight swapping has no UI and no stat-change moment mid-combat.
+- No gear acquisition yet — the four starter pieces are the whole catalog; drops/purchases are future work.
+- Armor is a flat soak (floor 1); percentage mitigation can come later if builds need it.
 
 ---
 
