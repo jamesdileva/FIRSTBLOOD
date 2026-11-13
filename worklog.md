@@ -7,6 +7,26 @@ The entry template is at the bottom of this file.
 
 ---
 
+## 028 · 2026-11-13 · Gear Framework (Sprint 26, post-MVP)
+
+**Goal:** Equippable gear data with stat modifiers that change player stats and persist correctly — gear can be added without rewriting player combat (roadmap Sprint 26, guide §24).
+
+**Scope:** new `GearData`/`GearCatalog` resources (guide §24 fields minus the explicitly-post-MVP `elemental_effects`/`set_id`) + a starter 4-piece catalog; new `GearLibrary` static (session loadout ↔ save); new `EquipmentComponent` on the player (one piece per slot, swap-on-equip); player stat composition joins level stats + gear totals (D-066 path extended, not replaced); armor soaks unblocked incoming damage at the `_resolve_incoming_damage` hook; `progression.save()` becomes read-merge so the shared save file keeps per-system keys; a minimal Armory screen off the title (new `armory` action: G / gamepad Y) as the equip affordance; new `gear_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** gear sets, elemental effects, weapon variants (Sprint 27's separate sprint), in-fight equip UI, gear art, drop/loot systems.
+
+**Decisions (planned):**
+
+- **D-079 (gear is data with string slots):** `GearData` carries `slot` (StringName: HEAD/BODY/HANDS/FEET) plus flat bonuses matching the level-stat units (hp, armor, attack, movement, attack-speed fraction). The EquipmentComponent enforces one piece per slot; equipping into an occupied slot swaps. Adding a piece = adding a resource to the catalog — zero combat-code changes.
+- **D-080 (shared save file, per-system keys):** the loadout lives in a `GearLibrary` static (the D-077 precedent) synced to `user://save.json`'s new `equipment` key. One file, many owners: every writer read-merges, so `progression.save()` (fixed this sprint) preserves the gear key and gear saves preserve XP/level. Version stays 1 — the key is additive; old saves load with an empty loadout.
+- **D-081 (armor = flat soak, floor 1):** unblocked incoming damage loses `armor` points (floored at 1 so nothing becomes a total negate); blocked NORMAL hits still fully negate; a block-mitigated heavy takes the multiplier first, then the soak. Applied at the player's single damage-resolution hook — never by mutating HP directly (the DamageEvent stays the only payload).
+
+**Verification (planned):** `gear_check.gd` — catalog integrity (unique slots, non-negative bonuses), aggregation math + slot swap, player stat composition (max health, attack payload bonus, armor soak on a resolved DamageEvent), persistence round-trip through the check save + the progression-save merge safety, and the real path title → armory (G) → equip → Esc → title → fight → the spawned player wears the loadout. Full sweep + gdUnit4 + frame-run.
+
+
+
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
