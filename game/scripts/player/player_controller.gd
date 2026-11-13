@@ -20,6 +20,9 @@ signal hit_taken(event: DamageEvent)
 
 enum State { IDLE, MOVE, AIRBORNE, DODGE, DODGE_RECOVERY, ATTACK, BLOCK_STARTUP, BLOCK_ACTIVE, BLOCK_RECOVERY, DEAD }
 
+## Sprint 27: the dull-sword blade tint when no weapon is equipped.
+const DEFAULT_BLADE_COLOR := Color(0.82, 0.8, 0.75)
+
 @export var movement_speed := 5.0
 @export var acceleration := 40.0
 @export var deceleration := 50.0
@@ -69,10 +72,15 @@ var state_elapsed := 0.0
 @onready var _health: HealthComponent = $Health
 @onready var _progression: ProgressionComponent = $Progression
 @onready var _equipment: EquipmentComponent = get_node_or_null("Equipment")
+@onready var _weapon_blade: MeshInstance3D = get_node_or_null("Visual/WeaponBlade")
 @onready var _body_mesh: MeshInstance3D = $Visual/Body
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
 
 var _dead_material: StandardMaterial3D
+var _blade_material: StandardMaterial3D
+## Sprint 27 (D-083): the scene-assigned combo — what a no-weapon loadout
+## swings. Captured before equipment application.
+var _default_combo: ComboData
 var _spawn_position := Vector3.ZERO
 ## Sprint 20 (D-066): stats DERIVED from the progression level — never
 ## accumulated, so a scene reload re-applies exactly once.
@@ -118,6 +126,9 @@ func _ready() -> void:
 	_progression.level_up.connect(_on_level_up)
 	if _equipment != null:
 		_equipment.equipment_changed.connect(_on_equipment_changed)
+	_default_combo = combo
+	_apply_weapon()
+	_ensure_combo()
 	_recompute_stats(_progression.level)
 	_ensure_combo()
 	_attack_hitbox.hit_landed.connect(_on_attack_hit_landed)
@@ -436,7 +447,35 @@ func _on_level_up(_level: int) -> void:
 	_recompute_stats(_progression.level)
 
 func _on_equipment_changed() -> void:
+	_apply_weapon()
 	_recompute_stats(_progression.level)
+
+## Sprint 27 (D-082): the ONE weapon application point. An equipped
+## WEAPON piece swaps this player's combo and blade visuals; anything else
+## (or no weapon) restores the scene default (D-083). The compact combat
+## model is untouched — same buttons, different data.
+func _apply_weapon() -> void:
+	var weapon := _equipped_weapon()
+	if weapon != null and weapon.combo != null:
+		combo = weapon.combo
+	else:
+		combo = _default_combo
+	if _weapon_blade != null:
+		if _blade_material == null:
+			_blade_material = StandardMaterial3D.new()
+			_weapon_blade.material_override = _blade_material
+		var blade_color := DEFAULT_BLADE_COLOR
+		var blade_length := 1.0
+		if weapon != null:
+			blade_color = weapon.visual_color
+			blade_length = weapon.blade_length
+		_blade_material.albedo_color = blade_color
+		_weapon_blade.scale = Vector3(1.0, blade_length, 1.0)
+
+func _equipped_weapon() -> WeaponData:
+	if _equipment == null:
+		return null
+	return _equipment.equipped.get(&"WEAPON") as WeaponData
 
 func _push_step_payload(step: ComboStepData) -> void:
 	# Per-step payload (D-022): the shared hitbox carries what this swing

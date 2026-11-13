@@ -35,7 +35,7 @@ func _run() -> void:
 			failures.append("a catalog piece has no id")
 		if item.display_name.is_empty():
 			failures.append("gear piece %s has no display name" % item.id)
-		if slots.has(item.slot):
+		if slots.has(item.slot) and item.slot != &"WEAPON":
 			failures.append("duplicate slot %s in the catalog" % item.slot)
 		slots[item.slot] = true
 		for value in [item.hp_bonus, item.armor, item.attack_bonus, item.movement_bonus, item.attack_speed_bonus]:

@@ -103,6 +103,13 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] Wrist Wraps (HANDS) | ATTACK +2 | Joins the level attack bonus on every swing's payload |
 | [E] Sprinter's Sandals (FEET) | SPEED +0.3, SWING +2% | Movement m/s and the attack-speed multiplier fraction |
 
+## Weapons — `game/resources/weapons/` (Sprint 27)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] Dull Sword | default combo (`player_light_combo`), grey blade | The no-weapon default; 10/12/14 +25 F |
+| [E] Legion Gladius | `gladius_light_combo`: 12/14/16 +28 F, heavier recoveries (+0.02–0.02 s), steel-blue blade ×0.9 | Damage up, recovery slightly longer |
+| [E] Trainer's Spear | `spear_light_combo`: 8/9/11 +20 F, faster startups (−0.02–0.03 s), wood-bronze blade ×1.35 | Damage down, swings faster, longer visual blade |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

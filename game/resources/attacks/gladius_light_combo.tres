@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="ComboData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/combat/combo_data.gd" id="1"]
+[ext_resource type="Script" path="res://game/scripts/combat/combo_step_data.gd" id="2"]
+
+; Sprint 27 Legion Gladius: the dull sword's shape with +2 damage per swing
+; and slightly heavier recoveries (D-084).
+[sub_resource type="Resource" id="Resource_step1"]
+script = ExtResource("2")
+attack_id = &"light_01"
+animation = &"attack_01"
+damage = 12.0
+stagger_damage = 6.0
+startup = 0.1
+active = 0.12
+recovery = 0.27
+buffer_open = 0.05
+buffer_close = 0.3
+
+[sub_resource type="Resource" id="Resource_step2"]
+script = ExtResource("2")
+attack_id = &"light_02"
+animation = &"attack_02"
+damage = 14.0
+stagger_damage = 7.0
+startup = 0.08
+active = 0.12
+recovery = 0.28
+buffer_open = 0.04
+buffer_close = 0.3
+
+[sub_resource type="Resource" id="Resource_step3"]
+script = ExtResource("2")
+attack_id = &"light_03"
+animation = &"attack_03"
+damage = 16.0
+stagger_damage = 8.0
+startup = 0.12
+active = 0.14
+recovery = 0.32
+buffer_open = 0.05
+buffer_close = 0.44
+
+[sub_resource type="Resource" id="Resource_finisher"]
+script = ExtResource("2")
+attack_id = &"finisher_01"
+animation = &"finisher_01"
+damage = 28.0
+stagger_damage = 17.0
+hit_type = 1
+startup = 0.18
+active = 0.16
+recovery = 0.42
+buffer_open = 0.05
+buffer_close = 0.0
+
+[resource]
+script = ExtResource("1")
+steps = [SubResource("Resource_step1"), SubResource("Resource_step2"), SubResource("Resource_step3")]
+finisher = SubResource("Resource_finisher")
+reset_timeout = 0.35

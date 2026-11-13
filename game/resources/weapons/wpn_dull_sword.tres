@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/weapon_data.gd" id="1"]
+[ext_resource type="Resource" path="res://game/resources/attacks/player_light_combo.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "dull_sword"
+display_name = "DULL SWORD"
+slot = &"WEAPON"
+combo = ExtResource("2")
+visual_color = Color(0.82, 0.8, 0.75, 1)
+blade_length = 1.0

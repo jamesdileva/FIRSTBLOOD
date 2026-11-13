@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/weapon_data.gd" id="1"]
+[ext_resource type="Resource" path="res://game/resources/attacks/gladius_light_combo.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = "legion_gladius"
+display_name = "LEGION GLADIUS"
+slot = &"WEAPON"
+combo = ExtResource("2")
+visual_color = Color(0.65, 0.72, 0.85, 1)
+blade_length = 0.9

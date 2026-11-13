@@ -1,0 +1,61 @@
+[gd_resource type="Resource" script_class="ComboData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/combat/combo_data.gd" id="1"]
+[ext_resource type="Script" path="res://game/scripts/combat/combo_step_data.gd" id="2"]
+
+; Sprint 27 Trainer's Spear: lighter and faster than the dull sword, less
+; damage per swing (D-084).
+[sub_resource type="Resource" id="Resource_step1"]
+script = ExtResource("2")
+attack_id = &"light_01"
+animation = &"attack_01"
+damage = 8.0
+stagger_damage = 4.0
+startup = 0.08
+active = 0.12
+recovery = 0.22
+buffer_open = 0.05
+buffer_close = 0.28
+
+[sub_resource type="Resource" id="Resource_step2"]
+script = ExtResource("2")
+attack_id = &"light_02"
+animation = &"attack_02"
+damage = 9.0
+stagger_damage = 5.0
+startup = 0.07
+active = 0.12
+recovery = 0.23
+buffer_open = 0.04
+buffer_close = 0.28
+
+[sub_resource type="Resource" id="Resource_step3"]
+script = ExtResource("2")
+attack_id = &"light_03"
+animation = &"attack_03"
+damage = 11.0
+stagger_damage = 6.0
+startup = 0.1
+active = 0.14
+recovery = 0.26
+buffer_open = 0.05
+buffer_close = 0.4
+
+[sub_resource type="Resource" id="Resource_finisher"]
+script = ExtResource("2")
+attack_id = &"finisher_01"
+animation = &"finisher_01"
+damage = 20.0
+stagger_damage = 12.0
+hit_type = 1
+startup = 0.15
+active = 0.16
+recovery = 0.36
+buffer_open = 0.05
+buffer_close = 0.0
+
+[resource]
+script = ExtResource("1")
+steps = [SubResource("Resource_step1"), SubResource("Resource_step2"), SubResource("Resource_step3")]
+finisher = SubResource("Resource_finisher")
+reset_timeout = 0.35

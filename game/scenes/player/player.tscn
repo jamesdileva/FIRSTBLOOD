@@ -24,6 +24,9 @@ roughness = 0.55
 radius = 0.15
 height = 0.3
 
+[sub_resource type="BoxMesh" id="BoxMesh_weapon"]
+size = Vector3(0.07, 1.0, 0.07)
+
 [sub_resource type="CapsuleShape3D" id="CapsuleShape_hurtbox"]
 radius = 0.45
 height = 1.8
@@ -50,6 +53,11 @@ surface_material_override/0 = SubResource("Mat_player")
 position = Vector3(0, 0.9, -0.45)
 mesh = SubResource("SphereMesh_facing")
 surface_material_override/0 = SubResource("Mat_player")
+
+[node name="WeaponBlade" type="MeshInstance3D" parent="Visual"]
+position = Vector3(0.45, 0.95, 0.1)
+rotation = Vector3(0.25, 0, 0)
+mesh = SubResource("BoxMesh_weapon")
 
 [node name="Hurtbox" type="Area3D" parent="."]
 position = Vector3(0, 0.9, 0)
