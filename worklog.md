@@ -71,6 +71,48 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `weapon_check.gd` — catalog integrity (≥2 WEAPON pieces, each combo resolves with steps + finisher), behavior (default → weapon → default combo reference swap, payload damage from the weapon's own step data), visuals (blade tint + length follow the weapon, restore on unequip), and the real path armory → equip spear → fight → the spawned player swings the spear's combo with the spear's blade. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-13)*
+
+- `weapon_data.gd` — `WeaponData extends GearData` (D-082): `combo: ComboData`, `visual_color`, `blade_length`; `summary()` appends the damage chain ("swings 12/14/16/28 F").
+- `game/resources/weapons/` — Dull Sword (the default combo, explicitly referenced), Legion Gladius, Trainer's Spear; `game/resources/attacks/` gains `gladius_light_combo.tres` (+2 damage/swing, +0.02–0.03 s recoveries) and `spear_light_combo.tres` (−2 damage/swing, faster startups). Catalog updated to 7 pieces.
+- `player.tscn` — a primitive `WeaponBlade` BoxMesh beside the body (the prototype-visual language).
+- `player_controller.gd` — `_default_combo` captured at ready; `_apply_weapon()` is the single application point (D-082/083): equipped WEAPON → its combo + blade tint/length; anything else restores the default. Wired into `_ready` and `_on_equipment_changed`.
+- `gear_check.gd` — the slot-uniqueness assertion now exempts `WEAPON` (alternatives legitimately share it); `weapon_check.gd` new; smoke list +6 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Weapon check — **PASS first run**: catalog integrity (3 weapons, every combo resolves with steps + finisher), the Dull Sword references the default combo, default → gladius → default combo-reference swap, the gladius payload carried from its own step data (12.0), blade tint + length follow and restore (steel-blue ×0.9 ↔ default grey ×1.0), and the real path armory → equip the spear → fight spawns a player on the spear's combo with the spear's blade
+- [x] Gear check regression — PASS (7-piece catalog, weapons in the armory)
+- [x] Full sweep — **all 24 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Weapon *feel* (gladius vs spear pacing, damage readability) — the user's next batch session
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- Reach is visual only (blade length) — the hitbox geometry is shared; per-weapon reach is a future behavior change if builds want it.
+- Weapon-specific animations/models are art-pass work; all weapons share the placeholder swing set.
+
+---
+
+## 029 · 2026-11-13 · Weapon Variants (Sprint 27, post-MVP)
+
+**Goal:** Different weapons change attack behavior (their own combo data) and visuals, with no controller bloat — gear can be added without rewriting player combat, and weapons are no exception (roadmap Sprint 27).
+
+**Scope:** new `WeaponData` (extends `GearData`, slot `WEAPON`: carries a `ComboData` + blade color/length); three weapons in the catalog (the Dull Sword = the current default combo, a Legion Gladius = heavier swings, a Trainer's Spear = lighter/faster, longer blade); two new combo resources; a primitive `WeaponBlade` mesh on the player tinted/scaled per weapon; one weapon application point in the player controller (`_apply_weapon()`); gear_check's slot-uniqueness assertion learns that WEAPON holds alternatives; new `weapon_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** per-weapon hitbox reach/geometry (data-only variants this sprint), weapon art models, weapon-specific animations, drops/acquisition, two-handed stances.
+
+**Decisions (planned):**
+
+- **D-082 (a weapon is gear that carries behavior):** `WeaponData extends GearData` — the armory rows, the one-per-slot swap, and the save persistence all reuse the Sprint 26 framework with zero new UI or save code. The player has a single application point (`_apply_weapon()`): equipped WEAPON → its `combo` + visuals; nothing else in the controller changes. The compact combat model holds — same buttons, different data.
+- **D-083 (default-first):** no weapon equipped = the scene-assigned combo (`player_light_combo.tres`) and the dull-sword visuals — every existing check and the current feel are untouched; the Dull Sword resource references the default combo explicitly for self-documentation.
+- **D-084 (variants are pure data):** gladius (damage +2 per swing, slightly heavier recoveries) and spear (lighter/faster, longer visual blade) are resource-level tunes of the same combo shape. Hitbox reach stays out of scope — behavior means damage/stagger/timings this sprint.
+
+**Verification (planned):** `weapon_check.gd` — catalog integrity (≥2 WEAPON pieces, each combo resolves with steps + finisher), behavior (default → weapon → default combo reference swap, payload damage from the weapon's own step data), visuals (blade tint + length follow the weapon, restore on unequip), and the real path armory → equip spear → fight → the spawned player swings the spear's combo with the spear's blade. Full sweep + gdUnit4 + frame-run.
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

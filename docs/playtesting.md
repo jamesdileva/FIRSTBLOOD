@@ -210,6 +210,22 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] B/Esc returns to the title from the armory; boss select and the
       fight still work with gear worn (no soft-locks).
 
+### Weapons (Sprint 27)
+
+- [ ] The armory now lists **three weapons** at the bottom (the WEAPON
+      slot): DULL SWORD, LEGION GLADIUS, TRAINER'S SPEAR — wearing one
+      swaps the old one out, and your blade mesh **recolors and resizes**
+      to match.
+- [ ] **Legion Gladius** hits noticeably harder (12/14/16 +28 finisher vs
+      the sword's 10/12/14 +25) but recovers a touch slower.
+- [ ] **Trainer's Spear** swings faster and lighter (8/9/11 +20 finisher)
+      with a visibly longer blade.
+- [ ] Unequipping the weapon (A on the worn row) returns you to the
+      default sword and grey blade.
+- [ ] The equipped weapon **survives** a game restart like other gear.
+- [ ] The whole fight still plays the same with any weapon — same buttons,
+      same combo rhythm, just different numbers (no controller changes).
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
