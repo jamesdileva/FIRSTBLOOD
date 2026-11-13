@@ -56,6 +56,23 @@ Result: **PASS (automated)**.
 
 ---
 
+## 029 · 2026-11-13 · Weapon Variants (Sprint 27, post-MVP)
+
+**Goal:** Different weapons change attack behavior (their own combo data) and visuals, with no controller bloat — gear can be added without rewriting player combat, and weapons are no exception (roadmap Sprint 27).
+
+**Scope:** new `WeaponData` (extends `GearData`, slot `WEAPON`: carries a `ComboData` + blade color/length); three weapons in the catalog (the Dull Sword = the current default combo, a Legion Gladius = heavier swings, a Trainer's Spear = lighter/faster, longer blade); two new combo resources; a primitive `WeaponBlade` mesh on the player tinted/scaled per weapon; one weapon application point in the player controller (`_apply_weapon()`); gear_check's slot-uniqueness assertion learns that WEAPON holds alternatives; new `weapon_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** per-weapon hitbox reach/geometry (data-only variants this sprint), weapon art models, weapon-specific animations, drops/acquisition, two-handed stances.
+
+**Decisions (planned):**
+
+- **D-082 (a weapon is gear that carries behavior):** `WeaponData extends GearData` — the armory rows, the one-per-slot swap, and the save persistence all reuse the Sprint 26 framework with zero new UI or save code. The player has a single application point (`_apply_weapon()`): equipped WEAPON → its `combo` + visuals; nothing else in the controller changes. The compact combat model holds — same buttons, different data.
+- **D-083 (default-first):** no weapon equipped = the scene-assigned combo (`player_light_combo.tres`) and the dull-sword visuals — every existing check and the current feel are untouched; the Dull Sword resource references the default combo explicitly for self-documentation.
+- **D-084 (variants are pure data):** gladius (damage +2 per swing, slightly heavier recoveries) and spear (lighter/faster, longer visual blade) are resource-level tunes of the same combo shape. Hitbox reach stays out of scope — behavior means damage/stagger/timings this sprint.
+
+**Verification (planned):** `weapon_check.gd` — catalog integrity (≥2 WEAPON pieces, each combo resolves with steps + finisher), behavior (default → weapon → default combo reference swap, payload damage from the weapon's own step data), visuals (blade tint + length follow the weapon, restore on unequip), and the real path armory → equip spear → fight → the spawned player swings the spear's combo with the spear's blade. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
