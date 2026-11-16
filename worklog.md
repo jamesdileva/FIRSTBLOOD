@@ -98,6 +98,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 030 · 2026-11-16 · Mana (Sprint 28, Phase 12 opener)
+
+**Goal:** A reliable mana subsystem — mana decreases on use and regenerates after the configured delay (roadmap Sprint 28; architecture §14: "exact values are tuning decisions").
+
+**Scope:** new `ManaComponent` (atomic spend, regen delay set on every spend, flat regen rate after the delay — all exports on the player scene); the player gains the Mana node and `reset_for_retry` refills it; the HUD gains a mana bar (the D-069 poll pattern) and the F1 debug overlay a Mana line; new `mana_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** spell consumers (Sprint 29's four-slot input + Sprint 30's spell pool), mana costs per spell, persistence (mana is per-fight state like HP), UI polish.
+
+**Decisions (planned):**
+
+- **D-085 (atomic spend + delayed flat regen):** `spend()` is all-or-nothing (no partial spends, no negative mana); every spend resets the regen-delay timer; after the delay, mana regenerates at a flat rate per second until full. Values (max 100, delay 3.0 s, rate 20/s) are exports on the player scene — the docs leave them to tuning.
+- **D-086 (a subsystem with observability, no spender yet):** nothing consumes mana this sprint — the consumers are Sprint 29's input mapping and Sprint 30's spells. So the sprint ships *observable* mana: the F1 overlay shows current/max + regen state, and the HUD gains the mana bar so the player-facing surface exists before the first spell does. Playtesting.md explains the bar sits full until then. R-retry refills mana (the D-058 full-reset semantics).
+
+**Verification (planned):** `mana_check.gd` — API math (spend true/false, no over-spend), the delay honored (no regen inside the window, flat-rate regen after it, clamp at max), the real player's component (retry refills), and the HUD bar tracking through a spend→delay→regen cycle. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
