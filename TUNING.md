@@ -120,7 +120,10 @@ Lunge speeds: light 2.0, light_2 1.0.
 ## Magic — `player.tscn` → `Magic` node (Sprint 29)
 | Knob | Value | Effect |
 |---|---|---|
-| [E] slots A/B/X/Y | ARCANE SPARK ×4 (cost 10) | The guide's MagicLoadout; Sprint 30's pool fills these |
+| [E] slot A | HEAL — cost 25, restores 30 HP (clamped) | Green flash |
+| [E] slot B | FIREBOLT — cost 20, a 16-damage projectile (10 m/s, 2 s life) | Flies straight at the boss |
+| [E] slot X | FREEZE — cost 30, roots the boss 2.0 s (it still swings) | Ice-blue tint |
+| [E] slot Y | REFLECT — cost 35, 3.0 s: negates hits, returns 10 to the attacker | Cyan tint |
 | [R] cast states | ground neutral (IDLE/MOVE) only | LB held owns the face press; committed actions stay committed |
 
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]

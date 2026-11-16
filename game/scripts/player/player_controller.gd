@@ -79,6 +79,7 @@ var state_elapsed := 0.0
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
 
 var _dead_material: StandardMaterial3D
+var _spell_tint_material: StandardMaterial3D
 var _blade_material: StandardMaterial3D
 ## Sprint 27 (D-083): the scene-assigned combo — what a no-weapon loadout
 ## swings. Captured before equipment application.
@@ -231,10 +232,24 @@ func _retry() -> void:
 	if boss != null and boss.has_method("reset"):
 		boss.reset()
 
+## Sprint 30: spell feedback — a temporary full-body tint (clear resets to
+## the scene material). The dead-grey override shares this slot; death and
+## spells never tint simultaneously in practice.
+func set_body_tint(color: Color) -> void:
+	if _spell_tint_material == null:
+		_spell_tint_material = StandardMaterial3D.new()
+	_spell_tint_material.albedo_color = color
+	_body_mesh.material_override = _spell_tint_material
+
+func clear_body_tint() -> void:
+	_body_mesh.material_override = null
+
 func reset_for_retry() -> void:
 	_health.reset()
 	if _mana != null:
 		_mana.reset()
+	if _magic != null and _magic.reflect_active():
+		_magic.end_reflect()
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
@@ -246,6 +261,18 @@ func reset_for_retry() -> void:
 ## rest of the game consumes. Active block negates NORMAL hits and reduces
 ## HEAVY/SPECIAL ones; startup/recovery leave the player fully vulnerable.
 func _resolve_incoming_damage(event: DamageEvent) -> void:
+	# Sprint 30 (D-091): the reflect window negates the hit and returns a
+	# flat amount to the event's source — honest DamageEvent flow, so the
+	# XP system sees reflected damage as the real boss damage it is.
+	if _magic != null and _magic.reflect_active() and event.source != null:
+		var source_health := event.source.get_node_or_null("Health") as HealthComponent
+		if source_health != null:
+			var returned := DamageEvent.new()
+			returned.source = self
+			returned.amount = _magic.reflect_power()
+			returned.attack_id = &"spell_reflect"
+			source_health.apply_damage(returned)
+		return
 	if state == State.BLOCK_ACTIVE:
 		if event.hit_type == CombatTypes.HitType.NORMAL:
 			hit_blocked.emit(event)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/magic/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "fire"
+display_name = "FIREBOLT"
+mana_cost = 20.0
+effect = &"fire"
+power = 16.0

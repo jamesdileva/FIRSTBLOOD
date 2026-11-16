@@ -34,6 +34,13 @@ func apply_damage(event: DamageEvent) -> void:
 		_dead = true
 		died.emit()
 
+## Sprint 30: honest HP gain — clamped at max, emitted like damage.
+func heal(amount: float) -> void:
+	if amount <= 0.0 or _dead:
+		return
+	current_health = minf(current_health + amount, max_health)
+	health_changed.emit(current_health, max_health)
+
 ## Full restore for retry flows (Sprint 22) — also the setup call for tests.
 func reset() -> void:
 	current_health = max_health

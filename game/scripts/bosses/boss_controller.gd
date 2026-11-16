@@ -69,6 +69,8 @@ var _sword_pivot: Node3D
 var _spawn_position := Vector3.ZERO
 var _pause_left := 0.0
 var _flinch := 0.0
+var _freeze_left := 0.0
+var _frozen_speed := 0.0
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
@@ -109,6 +111,13 @@ func _physics_process(delta: float) -> void:
 		return
 	state_elapsed += delta
 	_tick_cooldowns(delta)
+	# Sprint 30: the freeze spell's root timer.
+	if _freeze_left > 0.0:
+		_freeze_left -= delta
+		if _freeze_left <= 0.0:
+			_freeze_left = 0.0
+			movement_speed = _frozen_speed
+			_apply_frozen_tint(false)
 	if _target == null or not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Node3D
 	match state:
@@ -147,6 +156,32 @@ func is_dead() -> bool:
 func flinch_level() -> float:
 	return _flinch
 
+## Sprint 30 (D-091): the freeze spell roots movement for the duration —
+## the state machine keeps running (the boss still telegraphs and swings),
+## only the feet stop. Tinted ice-blue while held.
+func freeze_for(duration: float) -> void:
+	if state == State.DEAD:
+		return
+	if _freeze_left <= 0.0:
+		_frozen_speed = movement_speed
+		_apply_frozen_tint(true)
+	movement_speed = 0.0
+	_freeze_left = duration
+
+func is_frozen() -> bool:
+	return _freeze_left > 0.0
+
+func _apply_frozen_tint(frozen: bool) -> void:
+	var body := get_node_or_null("Visual/Body") as MeshInstance3D
+	if body == null:
+		return
+	if frozen:
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.55, 0.75, 0.95)
+		body.material_override = material
+	else:
+		body.material_override = null
+
 ## Clean reset for retry flows (roadmap: "boss can be reset cleanly").
 func reset() -> void:
 	global_position = _spawn_position
@@ -160,6 +195,11 @@ func reset() -> void:
 	_hide_stagger()
 	_stagger.reset()
 	_pause_left = 0.0
+	_freeze_left = 0.0
+	if _frozen_speed > 0.0:
+		movement_speed = _frozen_speed
+		_frozen_speed = 0.0
+	_apply_frozen_tint(false)
 	state = State.OBSERVE
 
 func _observe_physics(delta: float) -> void:

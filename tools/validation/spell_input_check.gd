@@ -9,7 +9,6 @@ extends SceneTree
 ## recovery). Exits 0 on PASS, 1 on FAIL.
 
 const SETTLE_FRAMES := 30
-const SPARK_COST := 10.0
 const BTN_LB := 9
 const BTN_A := 0
 const BTN_B := 1
@@ -35,28 +34,30 @@ func _run() -> void:
 	for slot in ["a", "b", "x", "y"]:
 		if magic._spell(StringName(slot)) == null:
 			failures.append("slot %s has no spell assigned" % slot)
-	var spark: SpellData = magic._spell(&"a")
-	if spark == null or spark.mana_cost <= 0.0:
-		failures.append("the assigned spell carries no mana cost")
-	if spark != null and not is_equal_approx(spark.mana_cost, SPARK_COST):
-		failures.append("the spark cost drifted: %.1f (expected %.1f)" % [spark.mana_cost, SPARK_COST])
+	var slot_a_spell: SpellData = magic._spell(&"a")
+	if slot_a_spell == null or slot_a_spell.mana_cost <= 0.0:
+		failures.append("slot a carries no mana cost")
+	var cost_a: float = slot_a_spell.mana_cost if slot_a_spell != null else 0.0
 
 	# --- B. The mana-gated cast path (direct calls). ---
 	var mana: ManaComponent = player.get_node("Mana")
 	if not magic.cast_slot(&"a"):
 		failures.append("casting an assigned slot returned false")
-	if not is_equal_approx(mana.current_mana, 90.0):
-		failures.append("the spark cast cost %.1f instead of %.1f (pool %.1f)" % [
-			100.0 - mana.current_mana, SPARK_COST, mana.current_mana,
+	if not is_equal_approx(mana.current_mana, mana.max_mana - cost_a):
+		failures.append("the slot-a cast spent %.1f instead of %.1f (pool %.1f)" % [
+			mana.max_mana - mana.current_mana, cost_a, mana.current_mana,
 		])
 	if magic.cast_slot(&"b") == false:
 		failures.append("slot b did not cast")
 	if magic.cast_slot(&"q"):
 		failures.append("an unknown slot cast successfully")
-	mana.spend(75.0)  # pool: 80 - 75 = 5 (spend() is atomic: 85 would bounce)
+	# leave the pool one mana short of slot x's cost (spend() is atomic:
+	# an over-amount call bounces, so shave precisely)
+	var cost_x: float = magic._spell(&"x").mana_cost
+	mana.spend(mana.current_mana - cost_x + 1.0)
 	if magic.cast_slot(&"x"):
 		failures.append("a mana-short cast succeeded")
-	if not is_equal_approx(mana.current_mana, 5.0):
+	if not is_equal_approx(mana.current_mana, cost_x - 1.0):
 		failures.append("the mana-short cast spent mana (%.1f)" % mana.current_mana)
 	mana.reset()
 
@@ -78,29 +79,34 @@ func _run() -> void:
 	if not is_equal_approx(mana.current_mana, mana.max_mana):
 		mana.reset()
 		await _wait(2)
-	# hold LB, press and release each face button once
+	# hold LB; each face casts its own slot at its own cost
 	Input.parse_input_event(_pad(BTN_LB, true))
 	await _wait(2)
-	var before := mana.current_mana
-	for button in [BTN_A, BTN_B, BTN_X, BTN_Y]:
+	var slot_costs := {"a": BTN_A, "b": BTN_B, "x": BTN_X, "y": BTN_Y}
+	for slot in slot_costs:
+		var button: int = slot_costs[slot]
+		mana.reset()
+		await _wait(2)
+		var before := mana.current_mana
 		Input.parse_input_event(_pad(button, true))
 		await _wait(2)
 		Input.parse_input_event(_pad(button, false))
 		await _wait(2)
-	var spent := before - mana.current_mana
-	if absf(spent - 4.0 * SPARK_COST) > 1.0:
-		failures.append("four face casts spent %.1f mana (expected %.1f)" % [spent, 4.0 * SPARK_COST])
+		var expected: float = magic._spell(StringName(slot)).mana_cost
+		var spent := before - mana.current_mana
+		if absf(spent - expected) > 1.0:
+			failures.append("slot %s cast spent %.1f mana (expected %.1f)" % [slot, spent, expected])
 	# LB up: a face press must NOT cast (A is start_match; X would attack —
 	# both leave the pool alone here)
 	Input.parse_input_event(_pad(BTN_LB, false))
 	await _wait(2)
-	before = mana.current_mana
+	var before_lb := mana.current_mana
 	Input.parse_input_event(_pad(BTN_A, true))
 	await _wait(2)
 	Input.parse_input_event(_pad(BTN_A, false))
 	await _wait(2)
-	if not is_equal_approx(mana.current_mana, before):
-		failures.append("a face press without LB spent mana (%.1f -> %.1f)" % [before, mana.current_mana])
+	if not is_equal_approx(mana.current_mana, before_lb):
+		failures.append("a face press without LB spent mana (%.1f -> %.1f)" % [before_lb, mana.current_mana])
 
 	# --- D. Melee coexistence: no casting mid-attack. ---
 	mana.reset()
@@ -137,7 +143,7 @@ func _run() -> void:
 			await _wait(2)
 			Input.parse_input_event(_pad(BTN_A, false))
 			await _wait(2)
-			if not is_equal_approx(mana.current_mana, mana.max_mana - SPARK_COST):
+			if not is_equal_approx(mana.current_mana, mana.max_mana - cost_a):
 				failures.append("casting did not work again after recovery (pool %.1f)" % mana.current_mana)
 			Input.parse_input_event(_pad(BTN_LB, false))
 			await _wait(2)
