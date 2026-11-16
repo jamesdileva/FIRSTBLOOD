@@ -151,6 +151,35 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `spell_input_check.gd` — loadout integrity (four assigned slots, cost > 0), the cast path (mana drops by the cost, empty slot false, mana-short false with no spend), real joypad input (LB+A/B/X/Y each casts exactly once per press; LB up → a face press does nothing), and melee coexistence (casting is rejected mid-attack and works again after recovery). Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-16)*
+
+- `spell_data.gd` — `SpellData` (D-088): id, display name, `mana_cost`, and an `effect` dispatch key; `game/resources/magic/spell_arcane_spark.tres` is the Sprint 29 placeholder (cost 10 — the mana spend IS its effect until Sprint 30's pool).
+- `magic_component.gd` — the four slot exports (guide §25's MagicLoadout) + `cast_slot()`: resolve the slot → the sibling ManaComponent's atomic `spend()` → `spell_cast` → the effect dispatcher (spark = no-op; unknown keys warn). `loadout_debug()` feeds F1.
+- `player.tscn` gains the `Magic` node with all four slots assigned the spark; `player_controller.gd` gains the D-087 gate at the top of the ground-neutral input branch: LB held → `_spell_slot_pressed()` → cast (or consume the press); LB up → melee inputs untouched. Committed states (attack/block/dodge) never reach it.
+- `debug_overlay.gd` — `Spells: A=ARCANE SPARK(10) B=... X=... Y=...` line.
+- `tools/validation/spell_input_check.gd` — real joypad events (LB=9, faces 0-3); smoke list +3 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Spell input check — **PASS** (first run failed on three CHECK bugs, not engine bugs: the mana-short arithmetic ignored that `spend()` is atomic — 85 bounced off a pool of 80; the bare instantiation never landed so the player hung in AIRBORNE with no floor to stand the ground-neutral gate on; and one nonsense double-call line. Fixed: `spend(75)`, a StaticBody floor, cleaner asserts). Covers: four assigned slots, direct cast path (−10 per cast, unknown slot false, mana-short false with the pool untouched), four real LB+face casts spending exactly 40, no cast with LB up, no cast mid-attack, cast working again after recovery
+- [x] Full sweep — **all 26 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Cast *feel* — with the batch (still the spark placeholder until Sprint 30; the real spells are the feel test)
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- A bare `player.tscn` instantiation floats in AIRBORNE forever — any check that exercises ground-state input needs a StaticBody floor under the spawn (spell_input_check adds a 20×1×20 box at y −0.5).
+- When asserting a resource pool, remember the API's own invariants first: atomic `spend()` means an over-amount call is a no-op, not a partial drain.
+
+**Known limitations:**
+
+- The spark placeholder has no world effect — the mana spend is the observable; real spells (and the feel) arrive with Sprint 30's pool.
+- Casting is ground-neutral only; airborne/block-state casting and spell-canceling an attack recovery are future tunes.
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

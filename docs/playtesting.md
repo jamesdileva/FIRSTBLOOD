@@ -236,6 +236,21 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Retrying (R) keeps it full; a full scene restart spawns you with a
       full pool.
 
+### Spell input (Sprint 29)
+
+- [ ] **Hold LB and press A / B / X / Y** — each fires the slot's spell
+      (all four are the ARCANE SPARK placeholder for now) and the **mana
+      bar drops by 10** per cast. F1 shows the loadout.
+- [ ] The casts are **mana-gated**: dry the pool (cast ~10 times quickly)
+      and further LB+face presses do nothing until it regenerates.
+- [ ] **LB up, the same buttons stay melee**: X still swings, B still
+      dodges/blocks — holding LB never leaks a surprise swing when the
+      pool is empty.
+- [ ] Casting only works **on the ground while neutral** — mid-swing,
+      blocking, or dodging, LB+face does nothing, and the swing you
+      started finishes normally.
+- [ ] Mana regenerates after its ~3 s delay as usual.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
