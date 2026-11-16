@@ -197,6 +197,38 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `spell_pool_check.gd` (arena-based) — four distinct slots with distinct positive costs; heal restores clamped HP; fire's projectile reaches and damages the boss through the real pipeline and despawns; freeze roots the boss (speed 0 → restored, `is_frozen()` toggles); reflect negates a boss-sourced hit and returns its power to the boss, then expires. `spell_input_check.gd` re-anchored to the new costs (dynamic, per-slot asserts). Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-16)*
+
+- `spell_data.gd` — `power`/`duration` params (D-089); four spell resources: HEAL (25 mana, +30 HP), FIREBOLT (20, 16 damage), FREEZE (30, 2.0 s root), REFLECT (35, 3.0 s, 10 returned per hit). The spark stays in resources as the unassigned debug spell; slots A/B/X/Y become heal/fire/freeze/reflect.
+- `magic_component.gd` — the dispatcher (D-089): heal (clamped, green flash), fire (D-090: a code-built `SpellProjectile` — faction-PLAYER `HitboxComponent` + glowing mesh flying straight at the boss's chest, despawn on first hit/2 s lifetime), freeze (delegates to the boss), reflect (timed window + cyan tint, ended by timeout or retry).
+- `health_component.gd` — `heal()`: honest HP gain (clamped, emits `health_changed`).
+- `boss_controller.gd` — `freeze_for(duration)`/`is_frozen()` (D-091): roots movement only — the state machine keeps running so telegraphs/swings continue; ice-blue tint; `reset()` clears the root and tint.
+- `player_controller.gd` — `set_body_tint`/`clear_body_tint` (spell feedback, shared slot with the dead-grey override); the reflect branch in `_resolve_incoming_damage` (D-091): negates the hit and applies `DamageEvent(power, source=player)` to the event's source — reflected damage is real boss damage and earns XP.
+- `spell_pool_check.gd` (new, arena-based); `spell_input_check.gd` re-anchored to dynamic per-slot costs; smoke list +6 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Spell pool check — **PASS** (two check-run findings fixed along the way): distinct slots/costs (25/20/30/35), heal 60→90 clamped at max, the firebolt crossed 8 m and dealt exactly 16 through the real hurtbox→Health pipeline then despawned, freeze rooted (speed 0, released at 2.0 s to the pre-freeze speed), reflect negated a boss-sourced 12-hit and returned 10, expired cleanly (a post-window hit landed normally, no return). **The pool check's first run caught a REAL bug**: `freeze_for` captured the pre-freeze speed but never zeroed `movement_speed` — the boss kept walking, roamed into attack range during the reflect test, and its real attacks lit up the reflect window (the phantom boss damage in the first run's asserts). One-line fix; the instrumentation confirmed the deterministic sequence before removal
+- [x] Spell input check re-anchored — PASS (per-slot costs asserted dynamically; the LB-up and mid-attack coexistence asserts unchanged)
+- [x] Full sweep — **all 27 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Spell *feel* — THE batch-playtest item this arc was building toward: costs, the firebolt's readability, freeze-vs-swing rhythm, reflect timing
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The `-s` `get_tree()` lesson bit a THIRD time (the pool check used `get_tree().get_nodes_in_group`) — in a SceneTree script the tree methods are on `self`.
+- When a pooled resource's assert fails by exactly one resource's worth (boss −20 instead of −10), suspect the environment was live: the unfrozen boss walked into range and its real attacks triggered the reflect window during the test. Park the actors BEFORE the window opens, not after.
+
+**Known limitations:**
+
+- One spell per slot, no equip UI (the pool is exactly the four slots' contents; a spell library arrives when there are more spells than slots).
+- The firebolt is a straight line — no arc, no splash; freeze roots only the feet (attacks continue) by design.
+- Reflected damage earns XP (it is real boss damage) — if that ever over-rewards defensive play, it's a tuning knob, not a rewrite.
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

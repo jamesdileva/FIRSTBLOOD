@@ -251,6 +251,26 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       started finishes normally.
 - [ ] Mana regenerates after its ~3 s delay as usual.
 
+### The spell pool (Sprint 30)
+
+- [ ] The four slots now carry **real spells** (LB + face):
+      **A — HEAL** (25 mana, +30 HP, green flash), **B — FIREBOLT** (20, a
+      16-damage bolt flies at the boss), **X — FREEZE** (30, the boss is
+      rooted 2 s — ice-blue, but it can still swing if you're close),
+      **Y — REFLECT** (35, 3 s: you flash cyan, incoming hits do nothing,
+      and the attacker takes 10 back per hit).
+- [ ] Each spell **costs differently** — the mana bar drains at different
+      rates, and the ~3 s regen delay starts on every cast.
+- [ ] **Heal can't overheal** (caps at max HP) and **can't revive** (a
+      killing blow ends the fight regardless of mana).
+- [ ] **Freeze reads as a window**: the boss stops walking but its
+      telegraphs/swings continue — use it to escape or set up, not to
+      face-tank.
+- [ ] **Reflect** rewards baiting: cast it as the boss commits, and its
+      damage comes back (reflected damage earns XP like real damage).
+- [ ] Dry the pool (cast until empty) — presses do nothing while short,
+      and nothing leaks into melee.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
