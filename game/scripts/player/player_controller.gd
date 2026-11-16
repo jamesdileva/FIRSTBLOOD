@@ -73,6 +73,7 @@ var state_elapsed := 0.0
 @onready var _progression: ProgressionComponent = $Progression
 @onready var _equipment: EquipmentComponent = get_node_or_null("Equipment")
 @onready var _mana: ManaComponent = get_node_or_null("Mana")
+@onready var _magic: MagicComponent = get_node_or_null("Magic")
 @onready var _weapon_blade: MeshInstance3D = get_node_or_null("Visual/WeaponBlade")
 @onready var _body_mesh: MeshInstance3D = $Visual/Body
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
@@ -264,9 +265,29 @@ func _soak_armor(amount: float) -> float:
 		armor = _equipment.armor_total()
 	return maxf(amount - armor, 1.0)
 
+## Sprint 29: which spell face button was pressed this frame (with LB held).
+func _spell_slot_pressed() -> StringName:
+	if Input.is_action_just_pressed("spell_a"):
+		return &"a"
+	if Input.is_action_just_pressed("spell_b"):
+		return &"b"
+	if Input.is_action_just_pressed("spell_x"):
+		return &"x"
+	if Input.is_action_just_pressed("spell_y"):
+		return &"y"
+	return &""
+
 func _neutral_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	if is_on_floor():
+		# Sprint 29 (D-087): LB held -> the spell layer owns the face press.
+		# A cast happens, or nothing does — a mana-short press never becomes
+		# a surprise swing. LB up -> the same buttons stay melee inputs.
+		if _magic != null and Input.is_action_pressed("spell_modifier"):
+			var slot := _spell_slot_pressed()
+			if slot != &"":
+				_magic.cast_slot(slot)
+				return
 		if Input.is_action_just_pressed("dodge"):
 			_start_dodge(input_dir)
 			return

@@ -7,6 +7,8 @@
 [ext_resource type="Script" path="res://game/scripts/progression/progression_component.gd" id="8"]
 [ext_resource type="Script" path="res://game/scripts/player/equipment_component.gd" id="9"]
 [ext_resource type="Script" path="res://game/scripts/player/mana_component.gd" id="10"]
+[ext_resource type="Script" path="res://game/scripts/player/magic_component.gd" id="11"]
+[ext_resource type="Resource" path="res://game/resources/magic/spell_arcane_spark.tres" id="12"]
 [ext_resource type="Resource" path="res://game/resources/attacks/player_light_combo.tres" id="5"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
@@ -91,3 +93,10 @@ script = ExtResource("9")
 
 [node name="Mana" type="Node" parent="."]
 script = ExtResource("10")
+
+[node name="Magic" type="Node" parent="."]
+script = ExtResource("11")
+slot_a = ExtResource("12")
+slot_b = ExtResource("12")
+slot_x = ExtResource("12")
+slot_y = ExtResource("12")

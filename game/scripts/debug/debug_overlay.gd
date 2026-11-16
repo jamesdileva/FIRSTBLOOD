@@ -47,6 +47,9 @@ func _update_text() -> void:
 		if mana != null:
 			var mana_state := "regening" if mana.current_mana < mana.max_mana else "full"
 			lines.append("Mana: %d/%d (%s)" % [roundi(mana.current_mana), roundi(mana.max_mana), mana_state])
+		var magic := player.get_node_or_null("Magic") as MagicComponent
+		if magic != null:
+			lines.append("Spells: " + magic.loadout_debug())
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])

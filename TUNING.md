@@ -117,6 +117,12 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] `regen_delay` | 3.0 s | Silence after any spend before regen starts |
 | [E] `regen_rate` | 20/s | Flat refill rate once the delay ends (~5 s to full) |
 
+## Magic — `player.tscn` → `Magic` node (Sprint 29)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] slots A/B/X/Y | ARCANE SPARK ×4 (cost 10) | The guide's MagicLoadout; Sprint 30's pool fills these |
+| [R] cast states | ground neutral (IDLE/MOVE) only | LB held owns the face press; committed actions stay committed |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

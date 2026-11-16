@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SpellData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/magic/spell_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "arcane_spark"
+display_name = "ARCANE SPARK"
+mana_cost = 10.0
+effect = &"spark"
