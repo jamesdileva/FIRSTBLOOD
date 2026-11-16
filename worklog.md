@@ -182,6 +182,23 @@ Result: **PASS (automated)**.
 
 ---
 
+## 032 · 2026-11-16 · Initial Magic (Sprint 30, Phase 12)
+
+**Goal:** The first real spell pool — each spell has distinct behavior and a distinct resource cost (roadmap Sprint 30; the guide's candidates: heal, reflect, fire, freeze).
+
+**Scope:** `SpellData` gains generic `power`/`duration` params (per-effect interpretation, no per-spell field sprawl); four spell resources with distinct costs (heal 25 / fire 20 / freeze 30 / reflect 35); the dispatcher implements all four effects — heal (HP restore, clamped, honest `health_changed`), fire (a real projectile: a moving `HitboxComponent` carrier, damage via the existing DamageEvent path, despawn on hit/timeout), freeze (the boss rooted for the duration, tinted, restored — `BossController.freeze_for`), reflect (a timed buff: incoming damage negated and a flat amount returned to the event's `source`); `HealthComponent.heal()`; player body-tint helper for spell feedback; the spark stays in resources as the unassigned debug spell; slots A/B/X/Y become heal/fire/freeze/reflect; `spell_input_check.gd` re-anchors to dynamic costs; new `spell_pool_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** spell equip UI (one spell per slot is the whole pool for now), per-spell animations/VFX art, spell leveling, elemental status effects beyond the four.
+
+**Decisions (planned):**
+
+- **D-089 (effects dispatch by key, params are generic):** `SpellData.power`/`duration` mean what the effect says (heal: HP; fire: projectile damage; freeze: seconds rooted; reflect: damage returned / seconds active). Adding a spell = a resource with an effect key the dispatcher knows — no new fields per spell.
+- **D-090 (the projectile reuses the combat pipeline):** the fire spell spawns a code-built carrier whose HitboxComponent (faction PLAYER) travels in a straight line and lands its `DamageEvent` through the same hurtbox→Health path as melee — no bespoke damage code; despawn on first hit or a 2 s lifetime.
+- **D-091 (reflect is honest through the event):** during the window, incoming damage to the player is negated and `DamageEvent(power, source=player)` is applied to the incoming event's `source` — the XP system sees reflected damage as real boss damage (it is). Freezing roots movement only; the boss still attacks, keeping the fight's rhythm readable.
+
+**Verification (planned):** `spell_pool_check.gd` (arena-based) — four distinct slots with distinct positive costs; heal restores clamped HP; fire's projectile reaches and damages the boss through the real pipeline and despawns; freeze roots the boss (speed 0 → restored, `is_frozen()` toggles); reflect negates a boss-sourced hit and returns its power to the boss, then expires. `spell_input_check.gd` re-anchored to the new costs (dynamic, per-slot asserts). Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
