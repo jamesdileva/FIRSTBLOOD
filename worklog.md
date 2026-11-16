@@ -137,6 +137,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 031 · 2026-11-16 · Four-Slot Spell Input (Sprint 29, Phase 12)
+
+**Goal:** LB + A/B/X/Y resolves four equipped spell slots, reliably, without breaking melee controls (roadmap Sprint 29; guide §25's MagicLoadout shape).
+
+**Scope:** new `SpellData` resource (id, display name, mana cost, effect key); the Arcane Spark placeholder spell (mana-only — the Sprint 30 pool replaces it with real effects); new `MagicComponent` on the player (four slot exports, mana-gated cast, `spell_cast` signal, effect dispatch stub); the LB-gate in the player's neutral-state input handling (modifier held → the spell layer owns the face press); F1 loadout line; new `spell_input_check.gd` (real joypad events); smoke list; TUNING.md; playtesting.md.
+**Non-goals:** real spell effects (Sprint 30's pool: heal/reflect/fire/freeze), spell equip UI/library (arrives with multiple spells), casting from attack/block/dodge/airborne states, cast animations, HUD slot indicators.
+
+**Decisions (planned):**
+
+- **D-087 (the modifier owns the press):** LB held + a face button = the spell layer consumes that press — the cast happens, or nothing does (a mana-short cast never becomes a surprise sword swing). LB up → the same buttons remain attack/dodge/block untouched. The gate lives in the neutral-state handler only: committed actions (attack/block/dodge) stay committed, and casting from other states is a future tune.
+- **D-088 (slots are data, effects are dispatch):** `MagicComponent` holds the four `SpellData` exports (the guide's MagicLoadout) and resolves each cast through the ManaComponent's atomic `spend()`; the spell's `effect` key dispatches to implementations — Sprint 29 ships only the spark no-op, Sprint 30 fills the dispatcher with the real pool.
+
+**Verification (planned):** `spell_input_check.gd` — loadout integrity (four assigned slots, cost > 0), the cast path (mana drops by the cost, empty slot false, mana-short false with no spend), real joypad input (LB+A/B/X/Y each casts exactly once per press; LB up → a face press does nothing), and melee coexistence (casting is rejected mid-attack and works again after recovery). Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
