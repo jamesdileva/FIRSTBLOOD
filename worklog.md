@@ -112,6 +112,29 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `mana_check.gd` — API math (spend true/false, no over-spend), the delay honored (no regen inside the window, flat-rate regen after it, clamp at max), the real player's component (retry refills), and the HUD bar tracking through a spend→delay→regen cycle. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-16)*
+
+- `mana_component.gd` — `ManaComponent` (D-085): atomic `spend()` (all-or-nothing, `is_available()` for future spells), the regen delay set on every spend, flat-rate regen after the delay with a clamp at max (the D-068 poll), `mana_changed`/`mana_spent` signals, and `reset()` for the D-058 retry semantics. Values are exports on the player's `Mana` node (max 100, delay 3.0 s, rate 20/s — the docs' tuning-decision slot).
+- `player.tscn` gains the `Mana` node; `reset_for_retry()` refills it.
+- `hud.tscn`/`hud.gd` — a blue `ManaBar` under the XP bar, polled like every other HUD value (D-069); `debug_overlay.gd` — a `Mana: 100/100 (full|regening)` F1 line (D-086: the subsystem ships observable, with its spenders arriving in Sprints 29/30).
+- `tools/validation/mana_check.gd` — the four-phase check; smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Mana check — **PASS first run**: atomic spend math (30 true, 80 over-spend false and unchanged, 0-cost true), `is_available` boundary, the player pool spawns full, NO regen inside the 1.67 s window, ~+10 after 0.5 s of post-delay regen (20/s confirmed), full refill + clamp, retry refill, and the HUD bar tracking a spend→delay→refill cycle with the component's max
+- [x] Full sweep — **all 25 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Mana *feel* — deferred with the rest of the batch; nothing consumes the pool until Sprint 29/30
+
+Result: **PASS (automated)**.
+
+**Known limitations:**
+
+- No mana spender exists yet (by design — D-086); the first real cost arrives with the Sprint 30 spell pool.
+- Regen is flat; the docs' later spells could want burst/weighted regen — a tune, not a rewrite.
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

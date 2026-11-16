@@ -226,6 +226,16 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] The whole fight still plays the same with any weapon — same buttons,
       same combo rhythm, just different numbers (no controller changes).
 
+### Mana (Sprint 28)
+
+- [ ] A **blue mana bar** sits under the XP bar in the HUD, and F1 shows
+      `Mana: 100/100 (full)`.
+- [ ] It stays full during normal fighting — **nothing spends mana yet**:
+      the spells that consume it arrive in the next two sprints. Don't
+      report the unused bar as a bug; it's the surface being prepared.
+- [ ] Retrying (R) keeps it full; a full scene restart spawns you with a
+      full pool.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
