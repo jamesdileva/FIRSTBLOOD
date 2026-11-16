@@ -43,6 +43,10 @@ func _update_text() -> void:
 		var progression := player.get_node_or_null("Progression")
 		if progression != null:
 			lines.append("XP: %d/%d  Lv %d" % [roundi(progression.xp), roundi(progression.xp_required()), progression.level])
+		var mana := player.get_node_or_null("Mana") as ManaComponent
+		if mana != null:
+			var mana_state := "regening" if mana.current_mana < mana.max_mana else "full"
+			lines.append("Mana: %d/%d (%s)" % [roundi(mana.current_mana), roundi(mana.max_mana), mana_state])
 		lines.append("Player pos: (%.1f, %.1f, %.1f)" % [
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])

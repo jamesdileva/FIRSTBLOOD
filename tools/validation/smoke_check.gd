@@ -41,6 +41,7 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/gear/gear_catalog.gd",
 	"res://game/scripts/gear/gear_library.gd",
 	"res://game/scripts/player/equipment_component.gd",
+	"res://game/scripts/player/mana_component.gd",
 	"res://game/resources/gear/gear_catalog.tres",
 	"res://game/resources/gear/gear_trainees_cap.tres",
 	"res://game/resources/gear/gear_legion_cuirass.tres",

@@ -16,6 +16,9 @@ bg_color = Color(0.3, 0.62, 0.9, 1)
 [sub_resource type="StyleBoxFlat" id="SB_xp_fill"]
 bg_color = Color(0.85, 0.7, 0.3, 1)
 
+[sub_resource type="StyleBoxFlat" id="SB_mana_fill"]
+bg_color = Color(0.35, 0.5, 0.95, 1)
+
 [sub_resource type="StyleBoxFlat" id="SB_boss_bg"]
 bg_color = Color(0.08, 0.06, 0.06, 0.8)
 border_width_left = 1
@@ -101,6 +104,17 @@ theme_override_styles/background = SubResource("SB_player_bg")
 theme_override_styles/fill = SubResource("SB_xp_fill")
 max_value = 80.0
 value = 0.0
+show_percentage = false
+
+[node name="ManaBar" type="ProgressBar" parent="."]
+offset_left = 24.0
+offset_top = 672.0
+offset_right = 324.0
+offset_bottom = 680.0
+theme_override_styles/background = SubResource("SB_player_bg")
+theme_override_styles/fill = SubResource("SB_mana_fill")
+max_value = 100.0
+value = 100.0
 show_percentage = false
 
 [node name="LevelLabel" type="Label" parent="."]

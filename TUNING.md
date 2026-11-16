@@ -110,6 +110,13 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] Legion Gladius | `gladius_light_combo`: 12/14/16 +28 F, heavier recoveries (+0.02–0.02 s), steel-blue blade ×0.9 | Damage up, recovery slightly longer |
 | [E] Trainer's Spear | `spear_light_combo`: 8/9/11 +20 F, faster startups (−0.02–0.03 s), wood-bronze blade ×1.35 | Damage down, swings faster, longer visual blade |
 
+## Mana — `player.tscn` → `Mana` node (Sprint 28)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_mana` | 100 | The pool; spells (Sprint 30) will spend against it |
+| [E] `regen_delay` | 3.0 s | Silence after any spend before regen starts |
+| [E] `regen_rate` | 20/s | Flat refill rate once the delay ends (~5 s to full) |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

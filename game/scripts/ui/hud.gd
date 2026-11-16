@@ -5,6 +5,7 @@ extends CanvasLayer
 ## and the telegraph warning. Debug diagnostics stay in the F1 overlay.
 
 @onready var _player_bar: ProgressBar = $PlayerBar
+@onready var _mana_bar: ProgressBar = $ManaBar
 @onready var _xp_bar: ProgressBar = $XPBar
 @onready var _level_label: Label = $LevelLabel
 @onready var _boss_panel: Control = $BossPanel
@@ -24,6 +25,12 @@ func _process(_delta: float) -> void:
 			_xp_bar.max_value = progression.xp_required()
 			_xp_bar.value = progression.xp
 			_level_label.text = "LV %d" % progression.level
+		# Sprint 28 (D-086): the mana surface exists before the first spell
+		# does — the bar sits full until Sprint 29/30 give it spenders.
+		var mana := player.get_node_or_null("Mana") as ManaComponent
+		if mana != null:
+			_mana_bar.max_value = mana.max_mana
+			_mana_bar.value = mana.current_mana
 	var boss := get_tree().get_first_node_in_group("boss")
 	if boss == null:
 		_boss_panel.visible = false

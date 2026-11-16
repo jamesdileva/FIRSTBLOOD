@@ -72,6 +72,7 @@ var state_elapsed := 0.0
 @onready var _health: HealthComponent = $Health
 @onready var _progression: ProgressionComponent = $Progression
 @onready var _equipment: EquipmentComponent = get_node_or_null("Equipment")
+@onready var _mana: ManaComponent = get_node_or_null("Mana")
 @onready var _weapon_blade: MeshInstance3D = get_node_or_null("Visual/WeaponBlade")
 @onready var _body_mesh: MeshInstance3D = $Visual/Body
 @onready var _facing_mesh: MeshInstance3D = $Visual/Facing
@@ -231,6 +232,8 @@ func _retry() -> void:
 
 func reset_for_retry() -> void:
 	_health.reset()
+	if _mana != null:
+		_mana.reset()
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
