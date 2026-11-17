@@ -289,6 +289,26 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Stagger/breakout works on him (harder threshold — a full combo
       still staggers), and killing him pays VICTORY + XP like anyone.
 
+### The Medusa (Sprint 32)
+
+- [ ] Fourth boss card: **MEDUSA** — 120 HP, frail (staggers easily —
+      punish her windows), keeps her distance.
+- [ ] **Ranged pressure**: at mid-long range she **spits green bolts** —
+      close in by dodging through them; standing still at range means
+      eating bolts.
+- [ ] **The gaze is the threat**: a long telegraph at mid-range — if it
+      lands you're **petrified** (stone-grey, fully locked ~1.5 s, a free
+      hit for her). Don't linger in the mid-range band; blocking a gaze
+      negates the petrify too.
+- [ ] **The mirror**: she flashes **silver** for ~3 s — your hits do
+      NOTHING and bounce back for 10. Stop attacking until it drops;
+      punish right after.
+- [ ] Her kit should force you to **adapt distance and timing** vs the
+      other bosses: spit at range, cleave up close, gaze in between,
+      mirror whenever you get greedy.
+- [ ] Stagger/breakout, retry, XP, and the full fight loop all work
+      against her like the others.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

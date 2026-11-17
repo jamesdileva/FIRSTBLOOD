@@ -292,6 +292,37 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `medusa_check.gd` — roster of four distinct entries; the data carries a projectile-shaped ranged attack, a petrify-status gaze, and a mirror; behavior in the arena: parked far, the spit's bolt crosses and lands (−12) — ranged pressure proven; the gaze's hit petrifies the player (rooted + tint, clears on timeout); with the mirror forced, damage to the boss is negated and returned to the player (−10), and lands normally after expiry. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-17)*
+
+- `boss_attack_data.gd` — `attack_shape` (melee/projectile/shield, D-094), `status_effect`, `duration`; `hitbox_component.gd` — the `status_effect` export forwarded into the DamageEvent (the D-021 field finally has a sender).
+- `boss_controller.gd` — the ATTACK-phase shape dispatch (projectile: one bolt via the generic `Projectile` carrier at faction BOSS; shield: the timed mirror — negated hits return `DamageEvent(damage)` to the source, silver tint, `is_mirroring()`); the lunge and hitbox-window gating now respect the shape; `_push_payload` resets the once-per-attack shape guard; `reset()` clears the mirror.
+- `player_controller.gd` — the petrify status (D-095): `petrify_for`/`petrify_active`, a body-lock that skips the state machine (retry still works, gravity still applies, dead-guarded), stone tint, cleared by timeout/retry; a clean hit carrying `&"petrify"` applies it — blocked/mitigated paths never do (blocking the gaze is counter-tech).
+- `projectile.gd` — renamed `SpellProjectile` → `Projectile`, moved to `combat/` (both factions use it now); `magic_component.gd` + smoke list re-referenced.
+- `medusa.tscn` — the serpent (slim green capsule, hood), 120 HP, 2.6 m/s, stagger threshold 12, four attacks: the spit (projectile, 3–9 m), the gaze (SPECIAL, petrify status, footprint ×(1.5, 1, 2.2)), the cleave (HEAVY), the mirror (shield, 3 s/10 return); roster entry four ("Spits from range, petrifies what lingers, mirrors what strikes").
+- `medusa_check.gd` (new, real select path at index 3); `minotaur_check.gd`'s roster assert updated to the grown roster; smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Medusa check — **PASS**: four distinct entries; the spit is projectile-shaped with a 9 m band, the gaze carries `&"petrify"` as SPECIAL, the mirror is a 3 s shield; the real select path spawns the MEDUSA at 120 HP; the spit's bolt crossed 6 m and landed −12 (ranged pressure); the gaze petrified a mid-range player (−8, rooted, released ~1.5 s); the mirror negated a 15-damage strike and returned 10 to the player, then expired (a post-mirror hit landed fully)
+- [x] The sweep caught TWO check-layer races the solo run hid: (1) the **poke-overwrite race** — phase D's spit recovery ended *after* phase E poked the cooldowns, so the natural 1.6 s cooldown overwrote the poke and a stray spit fired mid-gaze-test (the "20 instead of 8" symptom); fixed by waiting for OBSERVE before poking (the recovery's write lands first); (2) the **minotaur check's stale roster count** (three) bailed via `quit(1)` before printing — the empty-log hang signature. Both fixed; the framework code itself was correct
+- [x] Full sweep — **all 29 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Medusa *feel* (gaze dodge windows, mirror timing, ranged-pressure balance) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- A check that pokes cooldowns must wait for the actor's OBSERVE (recovery done) first — a pending recovery writes its natural cooldown OVER the poke. The sweep's back-to-back load exposed it where the solo run hid it.
+- An early `quit(1)` before the failure print produces the empty-log hang signature — print the failures or fail loudly.
+
+**Known limitations:**
+
+- The petrify is a full body-lock (no slow-move variant); the gaze is a zone threat, not a camera-facing rule (post-MVP polish).
+- One projectile shape per boss faction; reflected damage during the boss's mirror can stack with the player's own reflect window (an exotic interaction to watch in playtesting).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
