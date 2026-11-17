@@ -67,6 +67,7 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/bosses/boss_roster.gd",
 	"res://game/resources/bosses/boss_roster.tres",
 	"res://game/scenes/bosses/sparring_gladiator.tscn",
+	"res://game/scenes/bosses/minotaur.tscn",
 	"res://game/scripts/bosses/boss_controller.gd",
 	"res://game/scripts/bosses/boss_brain.gd",
 	"res://game/scripts/bosses/boss_attack_data.gd",

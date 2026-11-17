@@ -126,6 +126,17 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] slot Y | REFLECT — cost 35, 3.0 s: negates hits, returns 10 to the attacker | Cyan tint |
 | [R] cast states | ground neutral (IDLE/MOVE) only | LB held owns the face press; committed actions stay committed |
 
+## Minotaur — `game/scenes/bosses/minotaur.tscn` (Sprint 31)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 150 | A longer fight than the gladiator |
+| [E] `movement_speed` | 2.2 m/s | Slower feet — positioning is the counter |
+| [E] Stagger threshold | 25 | Harder to stagger than the gladiator's 15 |
+| [E] mino_light swing | 14 dmg, telegraph 0.5 s | The bread-and-butter single swing (no string) |
+| [E] mino_heavy overhead | 22 dmg HEAVY, telegraph 0.8 s | Slow, punish the windup |
+| [E] mino_charge | 20 dmg HEAVY, 9 m/s lunge, 3–8 m band, telegraph 0.9 s | Fires when you stand FAR; dodge sideways |
+| [E] mino_shockwave | 24 dmg HEAVY, footprint ×(2.4, 1, 1.8), telegraph 0.9 s | Point-blank ground slam; the marker shows the zone |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

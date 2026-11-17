@@ -27,3 +27,7 @@ extends Resource
 ## Sprint 12: forward lunge toward the target during the active window
 ## (the "approach/pressure" attack). 0 = rooted.
 @export var lunge_speed := 0.0
+## Sprint 31 (D-092): per-attack footprint — scales the attack BoxShape and
+## the ground marker (ONE = the scene's base shape; a wide slab makes a
+## shockwave, the marker mirrors it for the danger zone).
+@export var hitbox_size_scale := Vector3.ONE

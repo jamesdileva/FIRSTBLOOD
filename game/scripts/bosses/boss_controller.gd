@@ -71,6 +71,9 @@ var _pause_left := 0.0
 var _flinch := 0.0
 var _freeze_left := 0.0
 var _frozen_speed := 0.0
+## Sprint 31 (D-092): the scene's attack footprint, captured before any
+## per-attack scaling.
+var _base_hitbox_size := Vector3.ZERO
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
@@ -78,6 +81,7 @@ var state_elapsed := 0.0
 @onready var _hurtbox: HurtboxComponent = $Hurtbox
 @onready var _health: HealthComponent = $Health
 @onready var _stagger: StaggerComponent = $Stagger
+@onready var _hitbox_shape: CollisionShape3D = $AttackHitbox/CollisionShape3D
 
 var state: State = State.OBSERVE:
 	set(value):
@@ -293,6 +297,7 @@ func _cancel_telegraph() -> void:
 	state = State.OBSERVE
 
 func _show_telegraph(attack: BossAttackData) -> void:
+	_apply_attack_footprint(attack)
 	# One visual language: yellow = NORMAL, red = HEAVY/SPECIAL (D-034).
 	if _telegraph_mat != null:
 		_telegraph_mat.albedo_color = Color(1.0, 0.2, 0.15, 0.5) if attack.hit_type != CombatTypes.HitType.NORMAL \
@@ -606,6 +611,21 @@ func _push_payload(attack: BossAttackData) -> void:
 	_attack_hitbox.stagger_damage = attack.stagger_damage
 	_attack_hitbox.attack_id = attack.attack_id
 	_attack_hitbox.hit_type = attack.hit_type
+	_apply_attack_footprint(attack)
+
+## Sprint 31 (D-092): scale the attack's footprint and the ground marker
+## together — the danger zone shown during TELEGRAPH is the zone that hits.
+func _apply_attack_footprint(attack: BossAttackData) -> void:
+	var box_shape := _hitbox_shape.shape as BoxShape3D
+	if box_shape == null:
+		return
+	if _base_hitbox_size == Vector3.ZERO:
+		_base_hitbox_size = box_shape.size
+	box_shape.size = _base_hitbox_size * attack.hitbox_size_scale
+	if _telegraph_marker != null and _telegraph_marker.mesh is BoxMesh:
+		var marker_mesh := _telegraph_marker.mesh as BoxMesh
+		var scaled := _base_hitbox_size * attack.hitbox_size_scale
+		marker_mesh.size = Vector3(scaled.x, marker_mesh.size.y, scaled.z)
 
 func _tick_cooldowns(delta: float) -> void:
 	for attack_id in _cooldowns.keys():
