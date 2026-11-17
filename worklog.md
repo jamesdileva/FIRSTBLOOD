@@ -231,6 +231,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 033 · 2026-11-17 · Minotaur (Sprint 31, Phase 13 opener)
+
+**Goal:** A second boss whose behavior is clearly distinct from the New Gladiator — charge, heavy attacks, shockwaves, positioning (roadmap Sprint 31). Hosted by the existing boss framework, not a new architecture.
+
+**Scope:** `BossAttackData` gains `hitbox_size_scale` (D-092: the per-attack footprint); `BossController._apply_attack_footprint` resizes the attack BoxShape AND the telegraph marker at every attack entry (telegraph shows the scaled danger zone, D-035's mirror stays truthful); new `minotaur.tscn` — the bull (primitive: dark horned bulk), HP 150, slower feet (2.2 m/s), a harder-to-stagger threshold (25), and four data-only attacks: a light swing, a slow HEAVY overhead, **the charge** (9 m/s lunge across a 3–8 m band after a 0.9 s red telegraph — data via the existing `lunge_speed`), and **the shockwave slam** (a 24-damage HEAVY whose footprint scales to a wide slab — the ground marker shows it); the roster gains the Minotaur (D-076: zero selector code); new `minotaur_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** new boss states/behaviors beyond the data (no wall-splat, no enraged phase), real bull art, a third arena, per-boss music.
+
+**Decisions (planned):**
+
+- **D-092 (the footprint is attack data):** `hitbox_size_scale` on BossAttackData, applied at every attack entry so the hitbox, the ground marker, and the danger all stay the same shape. A shockwave is a *scaled* attack, not a new system — the guide's data-driven attack principle holds.
+- **D-093 (the charge is the positioning lesson):** the charge is the existing lunge with extreme numbers (9 m/s, 0.5 s active, a far 3–8 m range band, long red telegraph) — standing far is no longer free; standing still while it fires is punished. Combined with the point-blank slam, the Minotaur forces movement: the fight is about where you stand, not just when you swing.
+
+**Verification (planned):** `minotaur_check.gd` — roster integrity (three entries, distinct scenes), data distinctness (a far-band lunge attack + a scaled HEAVY footprint the gladiator lacks), and the behavioral proof in the arena: the real select path spawns the MINOTAUR (title + 150 HP); parked far, the boss charges and a stationary player eats 20; parked point-blank, the slam's scaled footprint lands 24; stepping out during the telegraph takes nothing. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
