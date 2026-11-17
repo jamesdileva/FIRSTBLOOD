@@ -102,7 +102,7 @@ func _spawn_fire_projectile(spell: SpellData) -> void:
 	var boss := get_tree().get_first_node_in_group("boss") as Node3D
 	if boss != null and (not boss.has_method("is_dead") or not boss.is_dead()):
 		direction = ((boss.global_position + Vector3.UP * 1.0) - origin).normalized()
-	var projectile := SpellProjectile.new()
+	var projectile := Projectile.new()
 	projectile.velocity = direction * PROJECTILE_SPEED
 	projectile.position = origin + direction * 0.6
 	var hitbox := HitboxComponent.new()

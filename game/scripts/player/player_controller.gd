@@ -85,6 +85,10 @@ var _blade_material: StandardMaterial3D
 ## swings. Captured before equipment application.
 var _default_combo: ComboData
 var _spawn_position := Vector3.ZERO
+## Sprint 32 (D-095): the petrify status — caught by the Medusa's gaze and
+## rooted for `petrify_duration`; retry clears it.
+var _petrify_left := 0.0
+@export var petrify_duration := 1.5
 ## Sprint 20 (D-066): stats DERIVED from the progression level — never
 ## accumulated, so a scene reload re-applies exactly once.
 var _base_movement_speed := 0.0
@@ -173,6 +177,19 @@ func _physics_process(delta: float) -> void:
 	# boss-dead case with no reset). A stray R mid-fight does nothing.
 	if Input.is_action_just_pressed("retry") and _fight_over():
 		_retry()
+	# Sprint 32 (D-095): the petrify status — a full body-lock that skips
+	# the state machine (retry still works above; gravity still applies).
+	if _petrify_left > 0.0:
+		_petrify_left -= delta
+		velocity.x = 0.0
+		velocity.z = 0.0
+		if not is_on_floor():
+			velocity.y -= _gravity * delta
+		move_and_slide()
+		if _petrify_left <= 0.0:
+			_petrify_left = 0.0
+			clear_body_tint()
+		return
 	state_elapsed += delta
 	match state:
 		State.DEAD:
@@ -244,12 +261,25 @@ func set_body_tint(color: Color) -> void:
 func clear_body_tint() -> void:
 	_body_mesh.material_override = null
 
+## D-095: the petrify status — full body-lock (movement AND inputs) for the
+## duration. Not applied to a corpse; retry clears it with everything else.
+func petrify_for(duration: float) -> void:
+	if _health.is_dead():
+		return
+	if _petrify_left <= 0.0:
+		set_body_tint(Color(0.62, 0.62, 0.66))
+	_petrify_left = maxf(_petrify_left, duration)
+
+func petrify_active() -> bool:
+	return _petrify_left > 0.0
+
 func reset_for_retry() -> void:
 	_health.reset()
 	if _mana != null:
 		_mana.reset()
 	if _magic != null and _magic.reflect_active():
 		_magic.end_reflect()
+	_petrify_left = 0.0
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
@@ -283,6 +313,10 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 		return
 	event.amount = _soak_armor(event.amount)
 	hit_taken.emit(event)
+	# D-095: a clean hit can carry a status (the Medusa's petrify gaze);
+	# blocked/mitigated paths never reach here.
+	if event.status_effect == &"petrify":
+		petrify_for(petrify_duration)
 
 ## D-081: flat armor soak on whatever reaches the body, floored at 1 —
 ## gear never fully negates a hit. Blocked NORMAL hits never reach this.

@@ -74,6 +74,13 @@ var _frozen_speed := 0.0
 ## Sprint 31 (D-092): the scene's attack footprint, captured before any
 ## per-attack scaling.
 var _base_hitbox_size := Vector3.ZERO
+## Sprint 32 (D-094/096): the mirror window and the once-per-attack shape
+## dispatch guard.
+var _mirror_left := 0.0
+var _mirror_power := 0.0
+var _shape_fired := false
+
+const BOSS_PROJECTILE_SPEED := 10.0
 var state_elapsed := 0.0
 
 @onready var _attack_hitbox: HitboxComponent = $AttackHitbox
@@ -122,6 +129,12 @@ func _physics_process(delta: float) -> void:
 			_freeze_left = 0.0
 			movement_speed = _frozen_speed
 			_apply_frozen_tint(false)
+	# Sprint 32: the mirror shield's timer.
+	if _mirror_left > 0.0:
+		_mirror_left -= delta
+		if _mirror_left <= 0.0:
+			_mirror_left = 0.0
+			_apply_mirror_tint(false)
 	if _target == null or not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Node3D
 	match state:
@@ -204,6 +217,10 @@ func reset() -> void:
 		movement_speed = _frozen_speed
 		_frozen_speed = 0.0
 	_apply_frozen_tint(false)
+	_mirror_left = 0.0
+	_mirror_power = 0.0
+	_shape_fired = false
+	_apply_mirror_tint(false)
 	state = State.OBSERVE
 
 func _observe_physics(delta: float) -> void:
@@ -369,7 +386,23 @@ func _attack_physics(delta: float) -> void:
 	# Rooted unless this attack lunges (the pressure/approach attack).
 	var active := state_elapsed >= _current_attack.startup \
 			and state_elapsed < _current_attack.startup + _current_attack.active
-	if _current_attack.lunge_speed > 0.0 and active and _target != null:
+	# Sprint 32 (D-094): non-melee shapes act once at the active window's
+	# opening instead of the hitbox window.
+	match _current_attack.attack_shape:
+		&"projectile":
+			if not _shape_fired:
+				_shape_fired = true
+				_spawn_attack_projectile(_current_attack)
+		&"shield":
+			if not _shape_fired:
+				_shape_fired = true
+				_mirror_left = _current_attack.duration
+				_mirror_power = _current_attack.damage
+				_apply_mirror_tint(true)
+		_:
+			pass
+	if _current_attack.lunge_speed > 0.0 and _current_attack.attack_shape == &"melee" \
+			and active and _target != null:
 		var to_target := _target.global_position - global_position
 		to_target.y = 0.0
 		var direction := to_target.normalized() if to_target.length() > 0.05 else Vector3.ZERO
@@ -379,9 +412,64 @@ func _attack_physics(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
 		velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 	move_and_slide()
-	_attack_hitbox.set_active(active)
+	if _current_attack.attack_shape == &"melee":
+		_attack_hitbox.set_active(active)
 	if state_elapsed >= _current_attack.startup + _current_attack.active:
 		state = State.RECOVERY
+
+## D-094: the ranged-pressure attack — the same Projectile carrier the
+## player's firebolt uses, boss faction, aimed at the target's chest.
+func _spawn_attack_projectile(attack: BossAttackData) -> void:
+	if _target == null:
+		return
+	var origin: Vector3 = global_position + Vector3.UP * 1.4
+	var direction := -global_transform.basis.z
+	if is_instance_valid(_target):
+		direction = ((_target.global_position + Vector3.UP * 1.0) - origin).normalized()
+	var projectile := Projectile.new()
+	projectile.velocity = direction * BOSS_PROJECTILE_SPEED
+	projectile.position = origin + direction * 0.8
+	var hitbox := HitboxComponent.new()
+	hitbox.name = "Hitbox"
+	hitbox.faction = CombatTypes.Faction.BOSS
+	hitbox.damage = attack.damage
+	hitbox.stagger_damage = attack.stagger_damage
+	hitbox.attack_id = attack.attack_id
+	hitbox.hit_type = attack.hit_type
+	hitbox.status_effect = attack.status_effect
+	var shape := CollisionShape3D.new()
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.25
+	shape.shape = sphere
+	hitbox.add_child(shape)
+	var mesh := MeshInstance3D.new()
+	var sphere_mesh := SphereMesh.new()
+	sphere_mesh.radius = 0.18
+	sphere_mesh.height = 0.36
+	mesh.mesh = sphere_mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(0.35, 0.9, 0.45)
+	material.emission_enabled = true
+	material.emission = Color(0.2, 0.9, 0.3)
+	mesh.material_override = material
+	projectile.add_child(hitbox)
+	projectile.add_child(mesh)
+	get_parent().add_child(projectile)
+
+func is_mirroring() -> bool:
+	return _mirror_left > 0.0
+
+func _apply_mirror_tint(mirroring: bool) -> void:
+	var body := get_node_or_null("Visual/Body") as MeshInstance3D
+	if body == null:
+		return
+	if mirroring:
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.8, 0.82, 0.9)
+		material.metallic = 0.6
+		body.material_override = material
+	else:
+		body.material_override = null
 
 func _recovery_physics(delta: float) -> void:
 	_apply_gravity(delta)
@@ -456,6 +544,17 @@ func _on_died() -> void:
 ## ones before they reach health — the mirror of the player's block.
 func _resolve_incoming_damage(event: DamageEvent) -> void:
 	if is_dead():
+		return
+	# Sprint 32 (D-096): the mirror window — the boss-side twin of the
+	# player's reflect: negate the hit, return it to the source.
+	if _mirror_left > 0.0 and event.source != null:
+		var source_health := event.source.get_node_or_null("Health") as HealthComponent
+		if source_health != null:
+			var returned := DamageEvent.new()
+			returned.source = self
+			returned.amount = _mirror_power
+			returned.attack_id = &"med_mirror"
+			source_health.apply_damage(returned)
 		return
 	if state == State.STAGGERED:
 		_health.apply_damage(event)
@@ -611,6 +710,8 @@ func _push_payload(attack: BossAttackData) -> void:
 	_attack_hitbox.stagger_damage = attack.stagger_damage
 	_attack_hitbox.attack_id = attack.attack_id
 	_attack_hitbox.hit_type = attack.hit_type
+	_attack_hitbox.status_effect = attack.status_effect
+	_shape_fired = false
 	_apply_attack_footprint(attack)
 
 ## Sprint 31 (D-092): scale the attack's footprint and the ground marker

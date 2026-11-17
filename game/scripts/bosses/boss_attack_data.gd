@@ -31,3 +31,12 @@ extends Resource
 ## the ground marker (ONE = the scene's base shape; a wide slab makes a
 ## shockwave, the marker mirrors it for the danger zone).
 @export var hitbox_size_scale := Vector3.ONE
+## Sprint 32 (D-094): how the ATTACK phase behaves — &"melee" (the hitbox
+## window, default), &"projectile" (spawn a bolt toward the target), or
+## &"shield" (a timed self-buff; `duration` seconds, `damage` returned).
+@export var attack_shape := &"melee"
+## Sprint 32: a status applied by this attack's hits (e.g. &"petrify"),
+## carried by the DamageEvent to the victim's resolution.
+@export var status_effect := StringName("")
+## Sprint 32: seconds for timed shapes (the shield's mirror window).
+@export var duration := 0.0

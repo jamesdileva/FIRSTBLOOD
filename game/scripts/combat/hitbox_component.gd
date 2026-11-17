@@ -12,6 +12,8 @@ signal hit_landed(event: DamageEvent, target: HurtboxComponent)
 @export var knockback := Vector3.ZERO
 @export var hit_type: CombatTypes.HitType = CombatTypes.HitType.NORMAL
 @export var attack_id := StringName("")
+## Sprint 32: a status carried by this hit's DamageEvent (e.g. &"petrify").
+@export var status_effect := StringName("")
 
 var _active := false
 var _hit_targets: Dictionary = {}
@@ -62,6 +64,7 @@ func _try_hit(area: Area3D) -> void:
 	event.knockback = knockback
 	event.hit_type = hit_type
 	event.attack_id = attack_id
+	event.status_effect = status_effect
 	hurtbox.receive_damage(event)
 	hit_landed.emit(event, hurtbox)
 

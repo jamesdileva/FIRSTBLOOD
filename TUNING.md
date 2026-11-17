@@ -137,6 +137,17 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] mino_charge | 20 dmg HEAVY, 9 m/s lunge, 3–8 m band, telegraph 0.9 s | Fires when you stand FAR; dodge sideways |
 | [E] mino_shockwave | 24 dmg HEAVY, footprint ×(2.4, 1, 1.8), telegraph 0.9 s | Point-blank ground slam; the marker shows the zone |
 
+## Medusa — `game/scenes/bosses/medusa.tscn` (Sprint 32)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 120 | Frail — punish her windows |
+| [E] `movement_speed` | 2.6 m/s | Keeps range; the pressure is distance control |
+| [E] Stagger threshold | 12 | Easiest to stagger — her balance is her weakness |
+| [E] med_spit | 12 dmg bolt, 3–9 m band, telegraph 0.4 s | The ranged pressure; close in through it |
+| [E] med_gaze | 8 dmg SPECIAL + petrify (1.5 s body-lock), footprint ×(1.5, 1, 2.2), telegraph 1.0 s | The threat: don't linger mid-range; blocking negates the gaze AND the petrify |
+| [E] med_cleave | 16 dmg HEAVY, telegraph 0.5 s | Hugging isn't free either |
+| [E] med_mirror | 3.0 s: negates hits, returns 10 | Silver tint — STOP attacking until it drops |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

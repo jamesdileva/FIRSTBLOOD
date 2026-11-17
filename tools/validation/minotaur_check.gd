@@ -24,8 +24,8 @@ func _run() -> void:
 
 	# --- A. Roster: three distinct entries; the third is the Minotaur. ---
 	var roster := MatchSetup.roster()
-	if roster == null or roster.entries.size() != 3:
-		failures.append("the roster does not hold three entries (%s)" % [
+	if roster == null or roster.entries.size() < 3:
+		failures.append("the roster holds fewer than three entries (%s)" % [
 			roster.entries.size() if roster != null else -1,
 		])
 		quit(1)

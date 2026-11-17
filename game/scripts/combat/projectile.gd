@@ -1,9 +1,10 @@
-class_name SpellProjectile
+class_name Projectile
 extends Node3D
-## Sprint 30 (D-090): the fire spell's carrier — a HitboxComponent traveling
-## in a straight line. Its DamageEvent lands through the same hurtbox→Health
-## path as melee (no bespoke damage code); the projectile despawns on its
-## first hit or when its lifetime runs out.
+## Sprint 30/32: a generic projectile carrier — a HitboxComponent traveling
+## in a straight line (the player's firebolt, the Medusa's spit — any
+## faction). Its DamageEvent lands through the same hurtbox→Health path as
+## melee (no bespoke damage code); it despawns on its first hit or when its
+## lifetime runs out.
 
 var velocity := Vector3.ZERO
 var lifetime := 2.0
