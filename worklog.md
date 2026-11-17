@@ -277,6 +277,23 @@ Result: **PASS (automated)**.
 
 ---
 
+## 034 · 2026-11-17 · Medusa (Sprint 32, Phase 13)
+
+**Goal:** A ranged/control boss — petrification threat, ranged pressure, reflection; the player must adapt to facing/range and telegraph differences (roadmap Sprint 32).
+
+**Scope:** `BossAttackData` gains `attack_shape` (melee default / projectile / shield), `status_effect`, and `duration` (D-094: attack *shapes* dispatch, payloads stay data); `HitboxComponent` forwards `status_effect` into the DamageEvent (the field has been waiting since D-021); `BossController` grows three small dispatch branches — the projectile shape spawns a faction-BOSS bolt through the same Projectile carrier the player's firebolt uses, the shield shape raises a timed **mirror** (incoming damage negated, `DamageEvent` returned to the source — the boss-side twin of the player's Sprint 30 reflect); `SpellProjectile` becomes the generic `Projectile` (moved to combat/); the player gains the **petrify** status (D-095: hit by a petrify-status attack → rooted `petrify_duration`, stone tint, cleared by timeout/retry); `medusa.tscn` — the serpent (slim, green, hood), 120 HP, frail stagger (12), and four attacks: the ranged spit (12, 3–9 m band, weight 3 — the pressure), the gaze (SPECIAL, 8 dmg + petrify status, 1.0 s telegraph), a close cleave (16 HEAVY), and the mirror shield; the roster grows to four; new `medusa_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** real stone statues/petrify models, per-boss projectiles beyond one shape, summoning snakes, gaze-mechanics tied to the camera facing (a zone threat, not a look-at-her rule — the roadmap says *threat*, and facing the camera at her is post-MVP polish).
+
+**Decisions (planned):**
+
+- **D-094 (shapes dispatch, data pays):** `attack_shape` picks the ATTACK-phase behavior — melee (the existing hitbox window), projectile (spawn and go), shield (a timed self-buff) — while damage/cooldowns/telegraphs stay the same data every boss already uses. The petrify rides the DamageEvent's existing `status_effect` field: the hit lands honestly, then the status applies.
+- **D-095 (petrify is a full body-lock, not a slow):** caught by the gaze = rooted, stone-grey, no inputs — but the boss's own rhythm (the 1.0 s telegraph, the 6 s cooldown) makes it escapable, and retry clears it. It's a punish window opener, not a death sentence.
+- **D-096 (the mirror is the player's reflect, inverted):** the same negation-and-return semantic the player learned in Sprint 30, now on the boss — the player reads the tint and *stops attacking* for three seconds. Build-oriented play, both directions.
+
+**Verification (planned):** `medusa_check.gd` — roster of four distinct entries; the data carries a projectile-shaped ranged attack, a petrify-status gaze, and a mirror; behavior in the arena: parked far, the spit's bolt crosses and lands (−12) — ranged pressure proven; the gaze's hit petrifies the player (rooted + tint, clears on timeout); with the mirror forced, damage to the boss is negated and returned to the player (−10), and lands normally after expiry. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
