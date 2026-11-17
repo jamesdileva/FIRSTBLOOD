@@ -245,6 +245,36 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `minotaur_check.gd` — roster integrity (three entries, distinct scenes), data distinctness (a far-band lunge attack + a scaled HEAVY footprint the gladiator lacks), and the behavioral proof in the arena: the real select path spawns the MINOTAUR (title + 150 HP); parked far, the boss charges and a stationary player eats 20; parked point-blank, the slam's scaled footprint lands 24; stepping out during the telegraph takes nothing. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-17)*
+
+- `boss_attack_data.gd` — `hitbox_size_scale` (D-092); `boss_controller.gd` — `_apply_attack_footprint` resizes the attack BoxShape AND the telegraph marker's BoxMesh at every attack entry (`_push_payload` for attacks/followups, `_show_telegraph` for the warning), with the base footprint captured once. The danger zone shown is the zone that hits.
+- `minotaur.tscn` — the bull (dark red-brown bulk + ivory horns, primitives), boss_title MINOTAUR, 150 HP, movement_speed 2.2, stagger threshold 25 (vs the gladiator's 15), and four data-only attacks: light swing (14, no string — a deliberate contrast), slow HEAVY overhead (22), the charge (20 HEAVY, 9 m/s lunge, 3–8 m band, 0.9 s telegraph — pure `lunge_speed` data, zero new code), and the shockwave slam (24 HEAVY, footprint ×(2.4, 1, 1.8)).
+- `boss_roster.tres` — the third entry ("150 health, a charge from afar, and a ground slam. Keep moving."); the D-076 promise held: **zero selector or arena code changed**.
+- `minotaur_check.gd` — roster + data-distinctness + the behavioral proof; smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Minotaur check — **PASS**: three distinct roster entries; the Minotaur's data carries a far-band 9 m/s lunge charge and a ×2.4-wide HEAVY slam the gladiator lacks (and the gladiator provably has neither shape); the real select path (title → select → two rights → confirm) spawns the MINOTAUR at 150 HP; the stationary player parked far ate the full charge (−20, the boss carried ~4 m); the point-blank slam landed 24 on its scaled footprint; stepping out during the telegraph took **nothing**
+- [x] First runs' findings: an orphaned `else` parse error in the check, then "never charged" — the instrumentation showed the charge fired during the settle window (the brain selects within ticks); the watch now starts at tick 0. The framework itself needed no fixes — the data was right on the first run
+- [x] Full sweep — **all 28 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Minotaur *feel* (charge dodge timing, slam zone readability, difficulty vs the gladiator) — THE headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- Python replaces with backslash-continuations silently no-match — the grep-verify rule extends to them (the [D] instrumentation "applied" and printed nothing until redone with the Edit tool).
+- Boss brains act FAST after settle: an instrumentation window that starts after a settle period misses the first telegraph entirely. Watch from tick 0.
+
+**Known limitations:**
+
+- The shockwave is a scaled front slab, not a radial ring — it reads as a ground slam; a true ring needs a shape the framework doesn't carry yet.
+- The bull is primitives (body/head/horns); the art pass dresses it.
+- No per-boss stagger behavior differences beyond the threshold (the Minotaur resists more, that's it).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

@@ -271,6 +271,24 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Dry the pool (cast until empty) — presses do nothing while short,
       and nothing leaks into melee.
 
+### The Minotaur (Sprint 31)
+
+- [ ] The boss select screen now lists **three** opponents — pick
+      **MINOTAUR** (third card): 150 HP, slower feet, harder to stagger.
+- [ ] **Stay FAR and he charges**: a long red telegraph, then he crosses
+      the arena fast — **dodge sideways**, not backward. Standing still
+      far away is exactly what he wants.
+- [ ] **Stay CLOSE and he swings/slams**: single heavy swings (no string)
+      and a **ground slam** whose marked zone is visibly wider than his
+      body — the yellow/red marker shows the true footprint.
+- [ ] **The slam punishes point-blank hugging** — step out during the
+      telegraph and it whiffs entirely.
+- [ ] His rhythm feels **different** from the New Gladiator: no swing
+      strings, heavier individual hits, and you should feel *pushed* to
+      keep repositioning.
+- [ ] Stagger/breakout works on him (harder threshold — a full combo
+      still staggers), and killing him pays VICTORY + XP like anyone.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
