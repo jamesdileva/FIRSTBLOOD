@@ -309,6 +309,25 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Stagger/breakout, retry, XP, and the full fight loop all work
       against her like the others.
 
+### The Giant Spider (Sprint 33)
+
+- [ ] Fifth boss card: **GIANT SPIDER** — 110 HP, frail, and the fastest
+      thing in the arena (3.2 m/s).
+- [ ] **Webs slow you**: a pale-blue bolt at mid-long range — if it lands
+      you're tinted and move at ~40% speed for 2.5 s. Dodging a web is
+      easier than escaping after one lands.
+- [ ] **Venom lingers**: its point-blank bite poisons you (green tint) —
+      ~24 damage ticks over 4 s even after you disengage. **The HEAL
+      spell's value just went up.**
+- [ ] **The pounce punishes kiting**: a fast mid-range leap — dodge
+      sideways as it lands, like the Minotaur's charge but shorter.
+- [ ] The whole fight should feel like **status management**: webs slow
+      your escapes, poison punishes trades, and the spider itself dies
+      fast if you can pin it down (easiest stagger of all five).
+- [ ] Poison can **kill you** — the defeat flow works from a DoT tick.
+- [ ] Stagger/breakout, retry (clears webs/poison), XP, and the full loop
+      all work against it like the others.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

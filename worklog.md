@@ -339,6 +339,38 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `spider_check.gd` — five distinct roster entries; the data carries a web-status projectile, a poison-status bite, and a pounce lunge; behavior in the arena: the web bolt lands and the player's speed visibly halves (then recovers), the venom bite poisons (the HP drains in honest ticks, then clears), and the pounce crosses its band into a stationary player. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-18)*
+
+- `player_controller.gd` — the web and poison statuses (D-097): `web_for`/`poison_for` timers, the poison ticking honest `DamageEvent`s through HealthComponent every 0.5 s (it can kill), the web slow applied at the `_neutral_movement` choke point (blocks/dodges compound), the delivery hook now a status `match`, retry clears everything, tints per status (pale-blue web, green poison).
+- `spider.tscn` — the arachnid (dark abdomen, head, six legs — primitives), 110 HP, 3.2 m/s (the fastest boss), stagger threshold 10, three attacks: the web spit (projectile, 6 dmg + slow, 3–8 m), the venom bite (10 + poison, point-blank), the pounce (14 HEAVY, 8 m/s lunge, 2.5–6 m).
+- `boss_roster.tres` — entry five ("Webs slow you, venom lingers, and it pounces. Keep your feet."); `spider_check.gd` (new); smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Spider check — **PASS**: five distinct entries; the web is a projectile carrying `&"web"`, the venom carries `&"poison"`, the pounce lunges ≥7 m/s across a 5 m band; the real select path (four rights → confirm) spawns the GIANT SPIDER at 110 HP; the web bolt landed (−6), the player's speed halved (0.4×, `effective_speed()`), and recovered on expiry; the bite poisoned (−10 + the drain observed), the ticks cleared on expiry; the pounce crossed its band into a stationary player (−14)
+- [x] The first runs' findings were ALL check-layer: the web bolt hit during the settle window (the Sprint 31 brain-speed lesson, again — the watches now start at tick 0); D's 999-second cooldown pokes leaked into E/F (fixed with `clear()` + targeted re-pokes after `wait_observe`); the bite/poison assert needed a captured baseline (the DoT ticks land inside any post-hit window). The instrumentation trace proved the web status itself was correct end-to-end on the first run
+- [x] The sweep also caught the **medusa check's stale roster count** (four → five, the same empty-log bail as last sprint) and its absolute HP asserts broken by legitimate stray spit damage — both hardened to relative asserts (capture-at-telegraph, capture-before-strike); medusa PASS ×2 after
+- [x] Full sweep — **all 30 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Spider *feel* (web slow readability, poison pressure vs the heal spell, pounce dodge rhythm) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The brain-speed lesson now has a general form: **any boss-check watch must start at tick 0 after positioning** — settle windows swallow the first telegraph, and the assert then measures a stale or expired state.
+- Cooldown pokes need `clear()` + targeted re-pokes AFTER `wait_observe` — a pending recovery's natural cooldown write overwrites stale pokes.
+- Absolute HP asserts break the moment a boss has ranged pressure (stray bolts land inside any window) — assert **relative to a capture point** at the phase boundary.
+- Python string-strips can leave mangled indentation (a stray `\t\t\tif`) — grep-verify every strip, and the parse error's file:line is in the log's `at:` line.
+
+**Known limitations:**
+
+- Summons deferred (the roadmap's "possible"): a spawn system is its own sprint.
+- No web-zone pools or wall-crawling; poison doesn't stack (a re-bite refreshes the timer).
+- The spider's six legs are static primitives — no procedural leg animation (art pass).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
