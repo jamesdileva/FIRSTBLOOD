@@ -418,6 +418,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 037 · 2026-11-18 · Mutated Lion (Sprint 35, Phase 13)
+
+**Goal:** An aggressive pursuit boss — pursuit, pounce, bleed, aggression/enrage; the fight has noticeably higher movement pressure without relying only on HP (roadmap Sprint 35).
+
+**Scope:** `BossController` gains the **enrage** (D-101: a health-fraction threshold — crossed once, the boss's movement multiplies and it tints red; polled D-068-style, reset-safe via a captured spawn speed); `player_controller.gd` gains the **bleed** status (D-102: the third DamageEvent-carried status — a heavier, shorter DoT than the spider's poison, same timer pipe); `lion.tscn` — the predator (tawny body, mane — primitives), 115 HP, **3.6 m/s** (the fastest yet), stagger 14, enrage at 50% (×1.6 speed → 5.76), three attacks: the fang bite (12, a 0.35 s telegraph — the pressure), the **pounce** (15 HEAVY, 9 m/s lunge, 2.5–6.5 m), and the **rending claws** (14 + bleed: 5 per 0.5 s for 3 s — 30 total, the heaviest DoT); roster entry seven; new `lion_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** enrage damage multipliers (speed only this sprint), leap-chains, roar knockbacks, real lion art.
+
+**Decisions (planned):**
+
+- **D-101 (enrage is a threshold state, not a phase system):** one poll — at `enrage_threshold` of max health the boss multiplies its movement by `enrage_speed_multiplier`, tints red, and never un-enrages within the fight. It reuses the tint pattern and is reset-safe (a captured spawn speed restores cleanly). Other bosses default to threshold 0 (never).
+- **D-102 (bleed is the pipe's third rider):** like poison but heavier per tick and shorter — the player's status block stays a set of parallel small timers until a third mechanic forces generalization. The movement pressure comes from the lion's FEET (3.6 → 5.76 m/s enraged) plus pounce range, not from HP bloat (115 HP — the lowest of the tier bosses).
+
+**Verification (planned):** `lion_check.gd` — seven distinct roster entries; the data carries a bleed-status attack, a pounce lunge, the pursuit speed, and the enrage exports; behavior in the arena: the real select path spawns the MUTATED LION (115 HP); the rending claws' hit bleeds the player (the ticks drain, then clear); the pounce crosses its band into a stationary player (−15); damaging the lion past 50% enrages it (speed visibly multiplies, red tint) and it **closes distance on a stationary player** — the pursuit. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
