@@ -347,6 +347,23 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Stagger/breakout, retry (the shell re-hardens), XP, and the full
       loop all work against it like the others.
 
+### The Mutated Lion (Sprint 35)
+
+- [ ] Seventh boss card: **MUTATED LION** — 115 HP (the lowest), but the
+      fastest thing in the arena at 3.6 m/s: **it never stops closing**.
+- [ ] **Bleed hurts more than poison**: the rending claws tint you red and
+      tick ~30 damage over 3 s — disengage AND heal, or it compounds.
+- [ ] **The pounce** closes mid-range gaps fast (9 m/s) — dodge sideways
+      on its shorter telegraph.
+- [ ] **THE ENRAGE**: drop it to half health and it **flashes red and
+      speeds up ×1.6** — the fight changes pace completely. Dodge
+      discipline matters more than ever; there's no second phase, just
+      relentless pursuit.
+- [ ] The whole fight should feel like **constant movement pressure** —
+      the highest of the six bosses, without relying on a big HP pool.
+- [ ] Stagger/breakout, retry (the enrage resets with the fight), XP, and
+      the full loop all work against it like the others.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

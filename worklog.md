@@ -432,6 +432,38 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `lion_check.gd` — seven distinct roster entries; the data carries a bleed-status attack, a pounce lunge, the pursuit speed, and the enrage exports; behavior in the arena: the real select path spawns the MUTATED LION (115 HP); the rending claws' hit bleeds the player (the ticks drain, then clear); the pounce crosses its band into a stationary player (−15); damaging the lion past 50% enrages it (speed visibly multiplies, red tint) and it **closes distance on a stationary player** — the pursuit. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-18)*
+
+- `boss_controller.gd` — the enrage (D-101): `enrage_threshold`/`enrage_speed_multiplier` exports, a once-per-fight poll (≤ the threshold fraction of max health → the movement multiplies, red tint, never un-enrages), `is_enraged()`, and a captured spawn speed so reset restores the pre-enrage pace. Every other boss defaults to threshold 0.
+- `player_controller.gd` — the bleed status (D-102): `bleed_for`/`bleed_active` — 5 per 0.5 s for 3 s (30 total, the heaviest DoT), the same timer pipe as poison, retry-clears, red tint.
+- `lion.tscn` — the predator (tawny body, mane box, primitives), 115 HP, 3.6 m/s, stagger 14/2.2, enrage 50%/×1.6, three attacks: the fang bite (12, 0.35 s telegraph), the pounce (15 HEAVY, 9 m/s lunge, 2.5–6.5 m), the rending claws (14 + bleed).
+- `boss_roster.tres` — entry seven ("It hunts you down, bleeds you, and only gets faster. Keep running."); `lion_check.gd` (new); smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Lion check — **PASS**: seven distinct entries; the claws carry `&"bleed"`, the pounce lunges ≥8 m/s across a 6.5 m band, the pursuit speed 3.6 with enrage exports in range; the real select path (six rights → confirm) spawns the MUTATED LION at 115 HP; the claws landed and bled (the ticks drained ≥20, then cleared); the pounce crossed its band into a stationary player (−15); a 60-damage wound crossed the threshold → enraged, the speed multiplied to 5.76, and over 4 s the lion closed ≥2 m of a 7 m gap on a stationary player
+- [x] The check hardenings this sprint (all check-layer; the mechanics were correct on the first run): the claws' damage assert went relative (bleed ticks land inside any window); E's poke-leak fixed with `clear()` + re-pokes (the D pokes would lock the pounce out); the pursuit assert became a **closest-approach over 4 s** — the raw path length under-measured a pursuit that legitimately pauses (string_pause + pounce telegraphs are part of the rhythm)
+- [x] The sweep ALSO caught a **real latent hazard** in the minotaur check: its stepped-out wait read `_current_attack.telegraph_duration` AFTER the player teleport trips the telegraph's distance cancel (`_current_attack` nulls → a null access kills the coroutine → the empty-log hang). The duration is now captured before the teleport; minotaur PASS after
+- [x] Full sweep — **all 32 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Lion *feel* (enrage pressure, bleed-vs-heal rhythm, pounce dodge windows) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- A pursuit assert must measure **closest approach over a long window**, not path length or a short window — aggressive bosses pause legitimately (string_pause, telegraphs) and the pauses are part of the pressure being tested.
+- Any check that teleports the player out of a live telegraph must capture the telegraph's parameters FIRST — the distance cancel nulls `_current_attack` on the next tick.
+- The python-replace silent-fail bit a third time; grep-verify after every programmatic edit.
+
+**Known limitations:**
+
+- The enrage multiplies movement only — no attack-speed or damage multiplier yet (a tuning knob if the enrage feels toothless).
+- Bleed doesn't stack or interact with movement (a move-triggered variant is a future tune).
+- No roar/leap-chain; the mane is a static primitive (art pass).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
