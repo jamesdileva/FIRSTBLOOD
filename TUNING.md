@@ -168,6 +168,18 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] crab_sweep_1/2 | 12/15 dmg, footprints ×(1.9–2.0, 1, ~1.2), recoveries 0.3/0.35 s | Wide two-sweep string; short openings — don't linger at claw range |
 | [E] crab_snap | 22 dmg HEAVY, telegraph 0.35 s | Point-blank fast snap — the shortest warning of any boss |
 
+## Mutated Lion — `game/scenes/bosses/lion.tscn` (Sprint 35)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 115 | The pressure is movement, not HP |
+| [E] `movement_speed` | 3.6 m/s | The pursuit — it never stops closing |
+| [E] `enrage_threshold` | 50% | Crossed once: it enrages, never un-enrages |
+| [E] `enrage_speed_multiplier` | ×1.6 (→ 5.76 m/s) | Red tint, relentless — dodge discipline only |
+| [E] Stagger threshold | 14, window 2.2 s | Frail when you can pin it |
+| [E] lion_bite | 12 dmg, telegraph 0.35 s | The constant chip at claw range |
+| [E] lion_pounce | 15 dmg HEAVY, 9 m/s lunge, 2.5–6.5 m band | Mid-range gap-closer |
+| [E] lion_claws | 14 dmg + bleed (5 per 0.5 s, 3 s — 30 total), red tint | The heaviest DoT; heal or disengage |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

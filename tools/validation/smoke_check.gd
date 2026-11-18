@@ -71,6 +71,7 @@ const REQUIRED_PATHS := [
 	"res://game/scenes/bosses/medusa.tscn",
 	"res://game/scenes/bosses/spider.tscn",
 	"res://game/scenes/bosses/crab.tscn",
+	"res://game/scenes/bosses/lion.tscn",
 	"res://game/scripts/bosses/boss_controller.gd",
 	"res://game/scripts/bosses/boss_brain.gd",
 	"res://game/scripts/bosses/boss_attack_data.gd",

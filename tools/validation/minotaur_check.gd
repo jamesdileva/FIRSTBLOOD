@@ -201,9 +201,13 @@ func _run() -> void:
 				break
 			await physics_frame
 		if stepped_out:
-			# the "dodge": leave the marked zone before it detonates
+			# the "dodge": leave the marked zone before it detonates. The
+			# teleport trips the telegraph's distance cancel (_current_attack
+			# nulls) — capture the duration BEFORE moving or the wait reads
+			# a null and the coroutine dies.
+			var sweep_telegraph: float = boss._current_attack.telegraph_duration
 			player.global_position = player.global_position + Vector3(5.5, 0, 0)
-			await _wait(int(boss._current_attack.telegraph_duration * 60.0) + 40)
+			await _wait(int(sweep_telegraph * 60.0) + 40)
 			if not is_equal_approx(float(player_health.current_health), 100.0):
 				failures.append("a player outside the footprint took %.1f from the slam" % [
 					100.0 - float(player_health.current_health),

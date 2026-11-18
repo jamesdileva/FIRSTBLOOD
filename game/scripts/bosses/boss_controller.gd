@@ -22,6 +22,11 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUAR
 ## EXCEPT while STAGGERED: the shell cracks, the punish window takes full
 ## damage. 0 = unarmored (every other boss).
 @export var armor := 0.0
+## Sprint 35 (D-101): the enrage — crossed once at this fraction of max
+## health (0 = never), the boss's movement multiplies and it tints red.
+## The pursuit is feet, not HP.
+@export var enrage_threshold := 0.0
+@export var enrage_speed_multiplier := 1.0
 @export var acceleration := 20.0
 @export var deceleration := 25.0
 @export var turn_speed := 8.0
@@ -83,6 +88,9 @@ var _base_hitbox_size := Vector3.ZERO
 var _mirror_left := 0.0
 var _mirror_power := 0.0
 var _shape_fired := false
+## Sprint 35 (D-101): the enrage state.
+var _enraged := false
+var _spawn_speed := 0.0
 
 const BOSS_PROJECTILE_SPEED := 10.0
 var state_elapsed := 0.0
@@ -107,6 +115,7 @@ func _ready() -> void:
 	_rng.randomize()
 	if attacks.is_empty():
 		push_warning("BossController has no attacks — it will observe but never fight.")
+	_spawn_speed = movement_speed
 	_build_telegraph_visuals()
 	_build_guard_visuals()
 	_build_stagger_visuals()
@@ -139,6 +148,11 @@ func _physics_process(delta: float) -> void:
 		if _mirror_left <= 0.0:
 			_mirror_left = 0.0
 			_apply_mirror_tint(false)
+	# Sprint 35 (D-101): the enrage poll — crossed once, never un-enrages
+	# within the fight.
+	if not _enraged and enrage_threshold > 0.0 and not is_dead() \
+			and _health.current_health <= _health.max_health * enrage_threshold:
+		_enrage()
 	if _target == null or not is_instance_valid(_target):
 		_target = get_tree().get_first_node_in_group("player") as Node3D
 	match state:
@@ -225,6 +239,9 @@ func reset() -> void:
 	_mirror_power = 0.0
 	_shape_fired = false
 	_apply_mirror_tint(false)
+	_enraged = false
+	if _spawn_speed > 0.0:
+		movement_speed = _spawn_speed
 	state = State.OBSERVE
 
 func _observe_physics(delta: float) -> void:
@@ -462,6 +479,21 @@ func _spawn_attack_projectile(attack: BossAttackData) -> void:
 
 func is_mirroring() -> bool:
 	return _mirror_left > 0.0
+
+## Sprint 35 (D-101): the enrage — movement multiplies, the body tints red.
+## The multiplier applies to the CURRENT speed so a parked/frozen boss
+## keeps its state; reset restores the captured spawn speed.
+func _enrage() -> void:
+	_enraged = true
+	movement_speed *= enrage_speed_multiplier
+	var body := get_node_or_null("Visual/Body") as MeshInstance3D
+	if body != null:
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.85, 0.25, 0.15)
+		body.material_override = material
+
+func is_enraged() -> bool:
+	return _enraged
 
 func _apply_mirror_tint(mirroring: bool) -> void:
 	var body := get_node_or_null("Visual/Body") as MeshInstance3D

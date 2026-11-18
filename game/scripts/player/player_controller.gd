@@ -101,6 +101,13 @@ var _poison_source: Node
 @export var poison_duration := 4.0
 @export var poison_tick_interval := 0.5
 @export var poison_tick_damage := 3.0
+## Sprint 35 (D-102): the bleed status — the lion's heavier, shorter DoT.
+var _bleed_left := 0.0
+var _bleed_tick_left := 0.0
+var _bleed_source: Node
+@export var bleed_duration := 3.0
+@export var bleed_tick_interval := 0.5
+@export var bleed_tick_damage := 5.0
 ## Sprint 20 (D-066): stats DERIVED from the progression level — never
 ## accumulated, so a scene reload re-applies exactly once.
 var _base_movement_speed := 0.0
@@ -208,6 +215,19 @@ func _physics_process(delta: float) -> void:
 			_health.apply_damage(tick)
 		if _poison_left <= 0.0:
 			_poison_left = 0.0
+			clear_body_tint()
+	if _bleed_left > 0.0:
+		_bleed_left -= delta
+		_bleed_tick_left -= delta
+		if _bleed_tick_left <= 0.0:
+			_bleed_tick_left = bleed_tick_interval
+			var tick := DamageEvent.new()
+			tick.source = _bleed_source
+			tick.amount = bleed_tick_damage
+			tick.attack_id = &"bleed_tick"
+			_health.apply_damage(tick)
+		if _bleed_left <= 0.0:
+			_bleed_left = 0.0
 			clear_body_tint()
 	# Sprint 32 (D-095): the petrify status — a full body-lock that skips
 	# the state machine (retry still works above; gravity still applies).
@@ -330,6 +350,19 @@ func poison_for(duration: float, source: Node) -> void:
 func poison_active() -> bool:
 	return _poison_left > 0.0
 
+## D-102: the bleed status — heavier per tick than poison, shorter.
+func bleed_for(duration: float, source: Node) -> void:
+	if _health.is_dead():
+		return
+	if _bleed_left <= 0.0:
+		set_body_tint(Color(0.8, 0.3, 0.25))
+		_bleed_tick_left = bleed_tick_interval
+	_bleed_left = maxf(_bleed_left, duration)
+	_bleed_source = source
+
+func bleed_active() -> bool:
+	return _bleed_left > 0.0
+
 func _status_speed_scale() -> float:
 	return web_slow_factor if _web_left > 0.0 else 1.0
 
@@ -346,6 +379,7 @@ func reset_for_retry() -> void:
 	_petrify_left = 0.0
 	_web_left = 0.0
 	_poison_left = 0.0
+	_bleed_left = 0.0
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
@@ -389,6 +423,8 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 			web_for(web_duration)
 		&"poison":
 			poison_for(poison_duration, event.source)
+		&"bleed":
+			bleed_for(bleed_duration, event.source)
 
 ## D-081: flat armor soak on whatever reaches the body, floored at 1 —
 ## gear never fully negates a hit. Blocked NORMAL hits never reach this.
