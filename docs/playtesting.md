@@ -328,6 +328,25 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Stagger/breakout, retry (clears webs/poison), XP, and the full loop
       all work against it like the others.
 
+### The Giant Crab (Sprint 34)
+
+- [ ] Sixth boss card: **GIANT CRAB** — 130 HP, slow, and **armored**: your
+      swings deal ~3 less per hit against its shell.
+- [ ] **The stagger is the payoff**: crack it (a full combo staggers it)
+      and the shell **breaks** — hits inside the punish window deal FULL
+      damage. Before the stagger, the shell grinds you down; inside it,
+      unload everything.
+- [ ] **Sweeping claws**: a two-sweep string with visibly **wider**
+      danger zones than the other bosses' swings — the marked slabs reach
+      wider than its body. Step BACK out of them, not sideways along them.
+- [ ] **Shorter openings**: its recoveries are shorter than the other
+      bosses' — the gap after its strings is brief. Its **snap** (a fast
+      point-blank heavy) has the shortest warning of any boss attack.
+- [ ] The fight should feel like **attrition and timing**: respect the
+      shell, dodge the wide sweeps, and save your burst for the crack.
+- [ ] Stagger/breakout, retry (the shell re-hardens), XP, and the full
+      loop all work against it like the others.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

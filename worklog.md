@@ -387,6 +387,35 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `crab_check.gd` — six distinct roster entries; the data carries armor + wide sweep footprints + short recoveries; behavior in the arena: the real select path spawns the GIANT CRAB (130 HP, armor 3), a 15-damage strike lands as 12 (the soak), the shell cracks on stagger (a stagger-heavy strike triggers it; the next 15 lands FULL), the armor re-hardens after the window, and the sweep's scaled footprint lands its 12 point-blank. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-18)*
+
+- `boss_controller.gd` — `@export var armor` (D-099): a flat soak (floor 1) in the resolve's default path — the STAGGERED branch is the crack (full damage inside the punish window); the soak touches `amount` only, so stagger buildup flows untouched. Every other boss defaults to 0.
+- `crab.tscn` — the armored wall (wide flat metallic shell, two claws, four legs — primitives), 130 HP, 2.4 m/s, stagger 18 with a longer 2.4 s window, armor 3, and three attacks: the two-sweep claw string (wide footprints ×(1.9/2.0, 1, 1.1/1.2) — D-092's scaling reused; sweep_2 is followup-only), and the point-blank snap (22 HEAVY, a 0.35 s telegraph — the shortest warning of any boss).
+- `boss_roster.tres` — entry six ("An armored shell soaks your swings. Crack it in the stagger."); `crab_check.gd` (new); smoke list +1 path.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Crab check — **PASS**: six distinct entries; the crab carries armor 3, wide sweep footprints, a chained second sweep, and short recoveries (the gladiator provably has armor 0); the real select path (five rights → confirm) spawns the GIANT CRAB at 130 HP; a 15 strike landed as 12 (the soak); a stagger-heavy strike cracked the shell and the next 15 landed FULL; after the window the shell re-hardened (a 10 strike → 7); the sweep's scaled footprint landed its 12 point-blank
+- [x] The first run's four failures were ALL the check's own arithmetic (it asserted remaining-HP formulas instead of damage deltas, and a float-dust `<` on the scaled footprint) — the mechanic was correct on the first run; the asserts now use before/after damage deltas with tolerances
+- [x] Full sweep — **all 31 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Crab *feel* (the soak's grind, sweep-dodge spacing, the crack-window payoff) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- When a mechanic mutates a shared value (HP), assert **deltas captured around the event**, not absolute expected values — the max-health base made three asserts wrong in one run.
+- Float-dust `<` on a computed product (`x < 1.8 * 1.9`) fails on exact equality — tolerance-compare.
+
+**Known limitations:**
+
+- The armor is a flat soak (the player-gear pattern); percentage mitigation stays post-MVP.
+- The sweeps are static wide slabs — no claw-swing animation arcs (art pass).
+- The shell "crack" is mechanical only (full damage in the window) — no visual shell-break state (art pass / a future polish sprint).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
