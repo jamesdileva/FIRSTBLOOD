@@ -158,6 +158,16 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] spider_venom | 10 dmg bite + poison (3 per 0.5 s, 4 s — 24 total) | Green tint; poison ticks can kill |
 | [E] spider_pounce | 14 dmg HEAVY, 8 m/s lunge, 2.5–6 m band | Mid-range gap-closer; dodge sideways |
 
+## Giant Crab — `game/scenes/bosses/crab.tscn` (Sprint 34)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 130 | A long grind through the shell |
+| [E] `armor` | 3 | Flat soak (floor 1) on everything EXCEPT staggered hits |
+| [E] `movement_speed` | 2.4 m/s | Slow and deliberate |
+| [E] Stagger threshold | 18, window 2.4 s | The crack: the shell breaks and the punish window takes FULL damage |
+| [E] crab_sweep_1/2 | 12/15 dmg, footprints ×(1.9–2.0, 1, ~1.2), recoveries 0.3/0.35 s | Wide two-sweep string; short openings — don't linger at claw range |
+| [E] crab_snap | 22 dmg HEAVY, telegraph 0.35 s | Point-blank fast snap — the shortest warning of any boss |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

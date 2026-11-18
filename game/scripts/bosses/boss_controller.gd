@@ -18,6 +18,10 @@ enum State { OBSERVE, APPROACH, SELECT_ATTACK, TELEGRAPH, ATTACK, RECOVERY, GUAR
 @export var boss_title := "NEW GLADIATOR"
 @export var attacks: Array[BossAttackData] = []
 @export var movement_speed := 3.0
+## Sprint 34 (D-099): flat shell soak on incoming damage (floored at 1) —
+## EXCEPT while STAGGERED: the shell cracks, the punish window takes full
+## damage. 0 = unarmored (every other boss).
+@export var armor := 0.0
 @export var acceleration := 20.0
 @export var deceleration := 25.0
 @export var turn_speed := 8.0
@@ -574,6 +578,9 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 			boss_blocked.emit(event)
 			return
 		event.amount *= guard_heavy_multiplier
+	# Sprint 34 (D-099): the shell soak — the stagger branch above is the
+	# crack (full damage inside the punish window).
+	event.amount = maxf(event.amount - armor, 1.0)
 	_health.apply_damage(event)
 	_stagger.add_stagger(event)
 
