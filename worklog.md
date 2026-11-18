@@ -373,6 +373,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 036 · 2026-11-18 · Giant Crab (Sprint 34, Phase 13)
+
+**Goal:** An armored defense-oriented boss — armor, sweeping claws, shorter openings; positioning and punish timing differ from other bosses (roadmap Sprint 34).
+
+**Scope:** `BossController` gains `@export var armor` with a shell soak in the default damage path (floor 1, the D-081 semantics — and **the shell cracks during STAGGERED**: the punish window takes full damage, the stagger buildup is unaffected by the soak); `crab.tscn` — the armored wall (wide flat shell, two claws — primitives), 130 HP, 2.4 m/s, stagger 18 but a longer 2.4 s window (the reward), **shorter openings** (recoveries 0.3–0.5 s vs the gladiator's 0.4–0.8, a short 0.35 s snap telegraph), and three attacks: the two-sweep claw string (wide footprints ×(1.9–2.0, 1, ~1.2) — the minotaur's footprint scaling reused), and the point-blank snap; roster entry six; new `crab_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** armor phases/enrage, shell-throwing, bubbles, real crab art, per-boss armor on other bosses (the export defaults to 0 — only the crab sets it).
+
+**Decisions (planned):**
+
+- **D-099 (armor is a soak that cracks):** the crab's `armor` soaks every hit outside STAGGERED (floored at 1 like the player's gear armor, D-081) and does nothing inside the punish window — the stagger becomes the damage window by construction. The soak touches `amount` only, so stagger buildup flows untouched (armored, but staggcrackable).
+- **D-100 (shorter openings = data, not states):** the crab's recoveries and its snap telegraph are simply shorter numbers — the "fewer punish windows" feel comes from tuning, and its ONE big window (the 2.4 s stagger) is longer than the others'. Wide sweeps punish lateral hugging; the snap punishes lingering point-blank.
+
+**Verification (planned):** `crab_check.gd` — six distinct roster entries; the data carries armor + wide sweep footprints + short recoveries; behavior in the arena: the real select path spawns the GIANT CRAB (130 HP, armor 3), a 15-damage strike lands as 12 (the soak), the shell cracks on stagger (a stagger-heavy strike triggers it; the next 15 lands FULL), the armor re-hardens after the window, and the sweep's scaled footprint lands its 12 point-blank. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
