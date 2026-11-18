@@ -325,6 +325,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 035 · 2026-11-18 · Giant Spider (Sprint 33, Phase 13)
+
+**Goal:** A control/mobility boss — webs, poison, pounce; mobility and status pressure create a distinct encounter (roadmap Sprint 33). Summons are the roadmap's "possible" — deferred, not silently skipped.
+
+**Scope:** the player gains two more DamageEvent-carried statuses (D-097: the same pipe the petrify opened — **web**, a movement slow, and **poison**, the first damage-over-time, ticking honestly through HealthComponent and able to kill); the delivery hook becomes a status match; `spider.tscn` — the eight-legged horror (primitives: dark abdomen, head, six legs), 110 HP, fast (3.2 m/s), very frail (stagger 10), three attacks: the **web spit** (projectile, 6 dmg + web slow ×0.4 for 2.5 s, 3–8 m), the **venom bite** (10 dmg + poison: 3 per 0.5 s for 4 s), and the **pounce** (14 dmg, 8 m/s lunge across a 2.5–6 m band — the charge's data sibling, D-098); roster entry five; new `spider_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** summons (a spawn system is its own sprint), web-zone pools (a persistent AoE), wall-crawling, poison stacking.
+
+**Decisions (planned):**
+
+- **D-097 (statuses ride the one pipe):** web and poison reuse the `status_effect` → resolution-match mechanism the petrify opened — each is a small timer on the player, the poison ticks honest `DamageEvent`s through HealthComponent (it can kill, it earns the boss nothing fake). The web slow applies at the movement choke point (`_neutral_movement`) so blocks/dodges compound with it naturally.
+- **D-098 (the pounce is the charge's sibling):** same lunge data with a shorter band and faster rhythm — the spider's answer to mid-range kiting. With webs slowing escapes and poison punishing trades, the encounter pressures MOBILITY itself: the player must keep moving *well*, not just move.
+
+**Verification (planned):** `spider_check.gd` — five distinct roster entries; the data carries a web-status projectile, a poison-status bite, and a pounce lunge; behavior in the arena: the web bolt lands and the player's speed visibly halves (then recovers), the venom bite poisons (the HP drains in honest ticks, then clears), and the pounce crosses its band into a stationary player. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
