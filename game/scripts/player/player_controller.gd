@@ -89,6 +89,18 @@ var _spawn_position := Vector3.ZERO
 ## rooted for `petrify_duration`; retry clears it.
 var _petrify_left := 0.0
 @export var petrify_duration := 1.5
+## Sprint 33 (D-097): status effects carried by DamageEvents — web (a
+## movement slow) and poison (the first damage-over-time; the ticks are
+## honest DamageEvents through HealthComponent and can kill).
+var _web_left := 0.0
+var _poison_left := 0.0
+var _poison_tick_left := 0.0
+var _poison_source: Node
+@export var web_duration := 2.5
+@export var web_slow_factor := 0.4
+@export var poison_duration := 4.0
+@export var poison_tick_interval := 0.5
+@export var poison_tick_damage := 3.0
 ## Sprint 20 (D-066): stats DERIVED from the progression level — never
 ## accumulated, so a scene reload re-applies exactly once.
 var _base_movement_speed := 0.0
@@ -177,6 +189,26 @@ func _physics_process(delta: float) -> void:
 	# boss-dead case with no reset). A stray R mid-fight does nothing.
 	if Input.is_action_just_pressed("retry") and _fight_over():
 		_retry()
+	# Sprint 33 (D-097): the status timers — the poison ticks even while
+	# petrified (poison is poison); web slows whatever movement follows.
+	if _web_left > 0.0:
+		_web_left -= delta
+		if _web_left <= 0.0:
+			_web_left = 0.0
+			clear_body_tint()
+	if _poison_left > 0.0:
+		_poison_left -= delta
+		_poison_tick_left -= delta
+		if _poison_tick_left <= 0.0:
+			_poison_tick_left = poison_tick_interval
+			var tick := DamageEvent.new()
+			tick.source = _poison_source
+			tick.amount = poison_tick_damage
+			tick.attack_id = &"poison_tick"
+			_health.apply_damage(tick)
+		if _poison_left <= 0.0:
+			_poison_left = 0.0
+			clear_body_tint()
 	# Sprint 32 (D-095): the petrify status — a full body-lock that skips
 	# the state machine (retry still works above; gravity still applies).
 	if _petrify_left > 0.0:
@@ -273,6 +305,38 @@ func petrify_for(duration: float) -> void:
 func petrify_active() -> bool:
 	return _petrify_left > 0.0
 
+## D-097: the web status — movement scaled down for the duration.
+func web_for(duration: float) -> void:
+	if _health.is_dead():
+		return
+	if _web_left <= 0.0:
+		set_body_tint(Color(0.85, 0.88, 0.92))
+	_web_left = maxf(_web_left, duration)
+
+func web_active() -> bool:
+	return _web_left > 0.0
+
+## D-097: the poison status — a damage-over-time ticking through
+## HealthComponent (it can kill; the HUD bar follows like any damage).
+func poison_for(duration: float, source: Node) -> void:
+	if _health.is_dead():
+		return
+	if _poison_left <= 0.0:
+		set_body_tint(Color(0.45, 0.75, 0.3))
+		_poison_tick_left = poison_tick_interval
+	_poison_left = maxf(_poison_left, duration)
+	_poison_source = source
+
+func poison_active() -> bool:
+	return _poison_left > 0.0
+
+func _status_speed_scale() -> float:
+	return web_slow_factor if _web_left > 0.0 else 1.0
+
+## The check-visible effective ground speed (statuses included).
+func effective_speed() -> float:
+	return movement_speed * _status_speed_scale()
+
 func reset_for_retry() -> void:
 	_health.reset()
 	if _mana != null:
@@ -280,6 +344,8 @@ func reset_for_retry() -> void:
 	if _magic != null and _magic.reflect_active():
 		_magic.end_reflect()
 	_petrify_left = 0.0
+	_web_left = 0.0
+	_poison_left = 0.0
 	_body_mesh.material_override = null
 	_facing_mesh.material_override = null
 	_visual.rotation.x = 0.0
@@ -313,10 +379,16 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 		return
 	event.amount = _soak_armor(event.amount)
 	hit_taken.emit(event)
-	# D-095: a clean hit can carry a status (the Medusa's petrify gaze);
-	# blocked/mitigated paths never reach here.
-	if event.status_effect == &"petrify":
-		petrify_for(petrify_duration)
+	# D-095/D-097: a clean hit can carry a status (the Medusa's petrify
+	# gaze, the spider's web and venom); blocked/mitigated paths never
+	# reach here.
+	match event.status_effect:
+		&"petrify":
+			petrify_for(petrify_duration)
+		&"web":
+			web_for(web_duration)
+		&"poison":
+			poison_for(poison_duration, event.source)
 
 ## D-081: flat armor soak on whatever reaches the body, floored at 1 —
 ## gear never fully negates a hit. Blocked NORMAL hits never reach this.
@@ -421,7 +493,7 @@ func _neutral_movement(delta: float, input_dir: Vector2, speed_multiplier := 1.0
 		velocity.y -= _gravity * delta
 	# Brake harder than we accelerate so releasing input stops the player on a
 	# dime instead of sliding (roadmap: "does not slide uncontrollably").
-	var speed := movement_speed * speed_multiplier
+	var speed := movement_speed * speed_multiplier * _status_speed_scale()
 	var rate := acceleration if direction != Vector3.ZERO else deceleration
 	velocity.x = move_toward(velocity.x, direction.x * speed, rate * delta)
 	velocity.z = move_toward(velocity.z, direction.z * speed, rate * delta)

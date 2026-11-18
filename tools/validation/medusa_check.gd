@@ -25,8 +25,8 @@ func _run() -> void:
 
 	# --- A. Roster: four distinct entries; the fourth is the Medusa. ---
 	var roster := MatchSetup.roster()
-	if roster == null or roster.entries.size() != 4:
-		failures.append("the roster does not hold four entries (%s)" % [
+	if roster == null or roster.entries.size() < 4:
+		failures.append("the roster holds fewer than four entries (%s)" % [
 			roster.entries.size() if roster != null else -1,
 		])
 		quit(1)
@@ -184,13 +184,13 @@ func _run() -> void:
 	if not gaze_seen:
 		failures.append("the Medusa never gazed at mid-range")
 	else:
+		var hp_at_gaze := float(player_health.current_health)
 		await _wait(int(boss._current_attack.telegraph_duration * 60.0) + 60)
 		if not player.petrify_active():
 			failures.append("the gaze did not petrify the player")
-		if not is_equal_approx(float(player_health.current_health), 92.0):
-			failures.append("the gaze took %.1f (expected 8)" % [
-				100.0 - float(player_health.current_health),
-			])
+		var gaze_damage := hp_at_gaze - float(player_health.current_health)
+		if not is_equal_approx(gaze_damage, 8.0):
+			failures.append("the gaze took %.1f (expected 8)" % gaze_damage)
 		for _i in 180:
 			if not player.petrify_active():
 				break
@@ -223,6 +223,7 @@ func _run() -> void:
 		if not boss.is_mirroring():
 			failures.append("the mirror window did not open")
 		var boss_start := float(boss.get_node("Health").current_health)
+		var player_before_strike := float(player_health.current_health)
 		var strike := DamageEvent.new()
 		strike.source = player
 		strike.amount = 15.0
@@ -231,10 +232,9 @@ func _run() -> void:
 			failures.append("the mirror did not negate the hit (%.1f -> %.1f)" % [
 				boss_start, float(boss.get_node("Health").current_health),
 			])
-		if not is_equal_approx(float(player_health.current_health), 90.0):
-			failures.append("the mirror returned %.1f (expected 10)" % [
-				100.0 - float(player_health.current_health),
-			])
+		var mirror_return := player_before_strike - float(player_health.current_health)
+		if not is_equal_approx(mirror_return, 10.0):
+			failures.append("the mirror returned %.1f (expected 10)" % mirror_return)
 		for _i in 220:
 			await physics_frame
 			if not boss.is_mirroring():

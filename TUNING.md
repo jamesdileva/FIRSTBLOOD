@@ -148,6 +148,16 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] med_cleave | 16 dmg HEAVY, telegraph 0.5 s | Hugging isn't free either |
 | [E] med_mirror | 3.0 s: negates hits, returns 10 | Silver tint — STOP attacking until it drops |
 
+## Giant Spider — `game/scenes/bosses/spider.tscn` (Sprint 33)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 110 | Frail and fast — the fight is about your feet |
+| [E] `movement_speed` | 3.2 m/s | The fastest boss; it repositions constantly |
+| [E] Stagger threshold | 10 | The easiest stagger — if you can catch it |
+| [E] spider_web | 6 dmg bolt + web slow (×0.4 for 2.5 s), 3–8 m | A pale-blue tint while webbed |
+| [E] spider_venom | 10 dmg bite + poison (3 per 0.5 s, 4 s — 24 total) | Green tint; poison ticks can kill |
+| [E] spider_pounce | 14 dmg HEAVY, 8 m/s lunge, 2.5–6 m band | Mid-range gap-closer; dodge sideways |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|
