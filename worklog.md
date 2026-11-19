@@ -480,6 +480,37 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `set_check.gd` — the set catalog loads (the Trainee Set, 2 pieces); headless aggregation: one piece → no bonus, both pieces → the attack total includes the +4; the real player composition (the level-1 attack payload = items 2 + set 4 = 6); unequip one piece → the bonus drops; the real armory path (equip both → fight → the spawned player carries the set-boosted payload). The existing gear_check must survive untouched (its swap phase deactivates the set by design). Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-19)*
+
+- `gear_data.gd` — `set_id` (the guide §24 field, deferred from Sprint 26); `set_data.gd`/`set_catalog.gd` — the guide's SetData shape (required_pieces + the same modifier fields as GearData, so the aggregation is one code path) and its catalog; `gear_sets.tres` — the starter **TRAINEE SET** (the existing Trainee's Cap + Wrist Wraps tagged, 2 pieces → +4 attack).
+- `gear_library.gd` — `active_sets(ids)`: the single rule (count equipped pieces per set_id ≥ required_pieces → active) used by both consumers.
+- `equipment_component.gd` — `_total` adds active-set contributions: the player's stat composition, the HUD, and every downstream consumer get set bonuses with ZERO new wiring (the D-079 promise held again).
+- `armory.gd` — the totals line includes set contributions and names active sets ("TRAINEE SET ACTIVE").
+- `set_check.gd` (new); smoke list +3 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Set check — **PASS first run**: the catalog loads (the Trainee Set, 2 pieces, +4 attack); a lone set piece grants nothing; both pieces put the +4 through the equipment totals (attack 6 = 2 item + 4 set) without polluting the other totals; unequipping one piece drops it; the real player composition carried it (the level-1 payload 6, the cap's 106 max health); the real armory path (wear both → the totals line names "TRAINEE SET ACTIVE" → fight) spawned a player with the set-boosted payload
+- [x] The gear_check survived untouched (its swap phase deactivates the set by design — the wraps alone never trigger it)
+- [x] The sweep caught the **lion check's flake** (a third cooldown poke-leak: D/E poked the pounce at 999 s and F never freed it — the lion could never pounce in the pursuit window; the failing runs closed exactly 1.0 m, the approach's momentum). Fixed with `clear()` + targeted re-pokes in F; the lion check passed ×3 after
+- [x] Full sweep — **all 33 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Set *feel* (wearing the Trainee Set's chunkier hits) — folded into the batch playtest list
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The cooldown poke-leak recurred a THIRD time (the lion's F phase) — the rule is now law: **any check phase that needs an attack available must start from `_cooldowns.clear()` + explicit pokes of what it wants EXCLUDED**, never from incremental un-poking.
+- The derived-bonus pattern (D-103) needed zero save changes and zero player-controller changes — the aggregation seam (the equipment totals) absorbed the feature.
+
+**Known limitations:**
+
+- Set bonuses are flat stats only; triggered effects (the Flame/Gladiator sets' special behaviors) arrive with Sprints 37/38.
+- One set in the catalog; the armory shows the set's name but no per-piece set progress display.
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

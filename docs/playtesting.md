@@ -364,6 +364,18 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Stagger/breakout, retry (the enrage resets with the fight), XP, and
       the full loop all work against it like the others.
 
+### Gear sets (Sprint 36)
+
+- [ ] The armory now has **sets**: wear the **Trainee's Cap AND the Wrist
+      Wraps together** and the totals line names **TRAINEE SET ACTIVE** —
+      your swings gain an extra **+4 attack** on top of both pieces.
+- [ ] Unequip either piece and the set bonus vanishes (the totals line
+      loses it too).
+- [ ] The set bonus flows everywhere gear does: the F1 payload, the
+      arena, the real fight.
+- [ ] Sets are derived from what you wear — no extra saves, no funny
+      business across restarts.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
