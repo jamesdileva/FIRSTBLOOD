@@ -466,6 +466,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 038 · 2026-11-19 · Set Framework (Sprint 36, Phase 14 — Build Identity)
+
+**Goal:** Support gear sets and set bonuses — equipping a set changes configured gameplay effects; an extensible set system (roadmap Sprint 36). Fully headless-verifiable: no playtest data required (the user deferred playtest-dependent sprints explicitly).
+
+**Scope:** `GearData` gains `set_id` (the guide §24 field, deferred from Sprint 26 — now this sprint's business); new `SetData`/`SetCatalog` resources (the guide's SetData shape: name, required_pieces, bonuses — the bonuses reuse the gear modifier fields so the aggregation is ONE code path); `GearLibrary.active_sets(ids)` — the shared rule (count equipped pieces per set_id ≥ required_pieces → active); `EquipmentComponent._total` adds active-set contributions (the player composition, the HUD, and every consumer get set bonuses with ZERO new wiring — the D-079 promise holds); the armory's totals line includes them; the starter **TRAINEE SET** (the existing Trainee's Cap + Wrist Wraps tagged: 2 pieces → +4 attack) so the framework ships with a real, wearable set; new `set_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** the Flame/Gladiator sets (Sprints 37/38), set-specific triggered effects (a "bonuses" field beyond flat stats), set UI beyond the totals line, respecialization costs.
+
+**Decisions (planned):**
+
+- **D-103 (set bonuses are derived, never stored):** the save stores item ids only; active sets are computed from what's equipped — equipping/unequipping grants/removes bonuses automatically, and retry/reload/restart all re-derive identically. No save-format change (version stays 1).
+- **D-104 (the guide's SetData shape, one aggregation path):** `SetData` carries `required_pieces` plus the same modifier fields as `GearData` — the totals functions sum gear + active sets in one place, so a future triggered-effect bonus extends the same structure. `GearData.set_id` tags pieces; adding a set = a resource + tags on pieces, zero combat code.
+
+**Verification (planned):** `set_check.gd` — the set catalog loads (the Trainee Set, 2 pieces); headless aggregation: one piece → no bonus, both pieces → the attack total includes the +4; the real player composition (the level-1 attack payload = items 2 + set 4 = 6); unequip one piece → the bonus drops; the real armory path (equip both → fight → the spawned player carries the set-boosted payload). The existing gear_check must survive untouched (its swap phase deactivates the set by design). Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
