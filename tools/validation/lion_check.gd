@@ -191,6 +191,9 @@ func _run() -> void:
 		if boss.state == boss.State.OBSERVE and boss._current_attack == null:
 			break
 		await physics_frame
+	boss._cooldowns.clear()  # the pounce must be FREE for the pursuit window
+	boss._cooldowns[&"lion_bite"] = 999.0
+	boss._cooldowns[&"lion_claws"] = 999.0
 	# un-park and wound the lion: the enrage poll crosses at <= 57.5 HP
 	boss.movement_speed = 3.6
 	var wound := DamageEvent.new()

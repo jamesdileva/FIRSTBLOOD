@@ -76,4 +76,7 @@ func _total(property: String) -> float:
 	var sum := 0.0
 	for item in equipped.values():
 		sum += item.get(property)
+	# Sprint 36 (D-103): active set bonuses stack on top of the pieces'.
+	for set_data in GearLibrary.active_sets(id_list()):
+		sum += set_data.get(property)
 	return sum

@@ -180,6 +180,12 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] lion_pounce | 15 dmg HEAVY, 9 m/s lunge, 2.5–6.5 m band | Mid-range gap-closer |
 | [E] lion_claws | 14 dmg + bleed (5 per 0.5 s, 3 s — 30 total), red tint | The heaviest DoT; heal or disengage |
 
+## Gear sets — `game/resources/gear/gear_sets.tres` (Sprint 36)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] TRAINEE SET | Trainee's Cap + Wrist Wraps (2 pieces) | Active sets grant +4 ATTACK on top of the pieces; the armory totals line names it |
+| [E] SetData fields | required_pieces + the gear modifier fields | Adding a set = a resource + `set_id` tags on pieces — zero combat code |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

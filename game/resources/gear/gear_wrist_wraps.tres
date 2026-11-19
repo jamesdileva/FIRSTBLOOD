@@ -7,4 +7,5 @@ script = ExtResource("1")
 id = "wrist_wraps"
 display_name = "WRIST WRAPS"
 slot = &"HANDS"
+set_id = "trainee"
 attack_bonus = 2.0

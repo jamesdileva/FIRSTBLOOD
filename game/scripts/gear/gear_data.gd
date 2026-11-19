@@ -9,6 +9,9 @@ extends Resource
 @export var id := ""
 @export var display_name := "UNNAMED"
 @export var slot := &"BODY"
+## Sprint 36 (D-104): the piece's set tag (guide §24's set_id) — pieces
+## sharing a set_id count toward that set's required_pieces. Empty = no set.
+@export var set_id := ""
 @export var hp_bonus := 0.0
 @export var armor := 0.0
 @export var attack_bonus := 0.0

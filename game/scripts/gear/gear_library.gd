@@ -7,6 +7,7 @@ extends RefCounted
 ## additive — old saves load with an empty loadout.
 
 const CATALOG_PATH := "res://game/resources/gear/gear_catalog.tres"
+const SETS_PATH := "res://game/resources/gear/gear_sets.tres"
 
 static var loadout: Array[StringName] = []
 static var _loaded := false
@@ -44,6 +45,26 @@ static func resolve(ids: Array) -> Array[GearData]:
 		if by_id.has(StringName(id)):
 			items.append(by_id[StringName(id)])
 	return items
+
+static func set_catalog() -> SetCatalog:
+	return load(SETS_PATH) as SetCatalog
+
+## Sprint 36 (D-103): which sets are ACTIVE for an id list — count the
+## equipped pieces per set_id, a set qualifies at its required_pieces.
+## The single rule both the EquipmentComponent totals and the armory use.
+static func active_sets(ids: Array) -> Array[SetData]:
+	var active: Array[SetData] = []
+	var sets_catalog := set_catalog()
+	if sets_catalog == null:
+		return active
+	var counts := {}
+	for item in resolve(ids):
+		if item.set_id != "":
+			counts[item.set_id] = int(counts.get(item.set_id, 0)) + 1
+	for set_data in sets_catalog.sets:
+		if int(counts.get(set_data.id, 0)) >= set_data.required_pieces:
+			active.append(set_data)
+	return active
 
 static func set_loadout(ids: Array[StringName]) -> void:
 	loadout = ids.duplicate()

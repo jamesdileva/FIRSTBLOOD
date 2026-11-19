@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SetCatalog" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/set_catalog.gd" id="1"]
+[ext_resource type="Script" path="res://game/scripts/gear/set_data.gd" id="2"]
+
+[sub_resource type="Resource" id="set_trainee"]
+script = ExtResource("2")
+id = "trainee"
+display_name = "TRAINEE SET"
+required_pieces = 2
+attack_bonus = 4.0
+
+[resource]
+script = ExtResource("1")
+sets = [SubResource("set_trainee")]

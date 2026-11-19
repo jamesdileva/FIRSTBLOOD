@@ -7,4 +7,5 @@ script = ExtResource("1")
 id = "trainees_cap"
 display_name = "TRAINEE'S CAP"
 slot = &"HEAD"
+set_id = "trainee"
 hp_bonus = 6.0

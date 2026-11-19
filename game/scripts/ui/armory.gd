@@ -138,6 +138,7 @@ func _build() -> void:
 func _refresh() -> void:
 	var worn_ids := _loadout_ids()
 	var worn_items := GearLibrary.resolve(worn_ids)
+	var active_sets := GearLibrary.active_sets(worn_ids)
 	for i in _rows.size():
 		var item: GearData = _catalog.items[i]
 		var is_worn: bool = worn_ids.has(StringName(item.id))
@@ -157,6 +158,13 @@ func _refresh() -> void:
 		attack += item.attack_bonus
 		move += item.movement_bonus
 		aspd += item.attack_speed_bonus
+	# Sprint 36 (D-103): active set bonuses read like gear bonuses.
+	for set_data in active_sets:
+		hp += set_data.hp_bonus
+		armor += set_data.armor
+		attack += set_data.attack_bonus
+		move += set_data.movement_bonus
+		aspd += set_data.attack_speed_bonus
 	var totals := get_node("Layout/Totals") as Label
 	var parts: PackedStringArray = []
 	if hp != 0.0:
@@ -169,4 +177,6 @@ func _refresh() -> void:
 		parts.append("SPEED +%.2f" % move)
 	if aspd != 0.0:
 		parts.append("SWING +%.0f%%" % (aspd * 100.0))
+	for set_data in active_sets:
+		parts.append("%s ACTIVE" % set_data.display_name)
 	totals.text = "WEARING:  " + ("  ·  ".join(parts) if not parts.is_empty() else "(nothing)")
