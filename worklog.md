@@ -605,6 +605,22 @@ Result: **PASS (automated)**.
 - The speed bonuses are flat (no percentage multiplier); the movement/attack-speed numbers are D-066-consistent.
 - No gladiator-themed visual (the pauldrons/greaves are stat pieces; the art pass dresses them).
 
+## 041 · 2026-11-21 · Multiple Finishers (Sprint 39, Phase 15 — Advanced Combat)
+
+**Goal:** Configurable finisher sequences — finishers chain automatically according to data configuration; expanded combo expression without a larger action bar (roadmap Sprint 39).
+
+**Scope:** `ComboData.finisher` (single) becomes `finisher_chain: Array[ComboStepData]` — the finisher steps flow automatically after the last light step, per the data; the player gains `_finisher_index` (the chain position) and `_current_step()` returns the CURRENT chain step during the finisher (the payload, the timings, the animation, and the blast gate all read it — no `combo.finisher` special-casing anywhere); the blast gate generalizes to the chain step's own blast fields (any chain step can carry a blast); the data: the default combo's chain becomes **[finisher_01 (25 dmg) → finisher_02 (15 dmg, a quick followthrough carrying the Gladiator Set's 10/2.2 blast)]** — the 2-step chain proves the automatic chaining; the gladius/spear combos: 1-element chains (the framework handles any length); the consumers: weapon_data's summary (the chain's last step's damage), the checks (the combo_check's expected chain, the gladiator/weapon checks' finisher refs, the damage totals 61 → 76/90); TUNING.md; playtesting.md.
+**Non-goals:** input-triggered finisher selection (the chain is automatic per the roadmap), per-finisher animations beyond the existing placeholder set, new weapons.
+
+**Decisions (planned):**
+
+- **D-109 (the chain replaces the single finisher):** `finisher_chain` replaces `finisher` — a 1-element chain IS the old single finisher (the gladius/spear combos), a 2-element chain proves the automatic chaining (the default combo). The player's flow: after the last light step, `_finisher_index` walks the chain; each step's payload/timings/animation come from `_current_step()` — one code path, any chain length.
+- **D-110 (the blast rides the chain step's own data):** the Gladiator Set's explosion gate generalizes from `combo.finisher.blast_damage` to the CURRENT chain step's blast fields — any finisher step can carry a blast, the data decides. The default combo's blast caps the sequence (finisher_02, the last step).
+
+**Verification (planned):** the combo_check's expected chain gains finisher_02 (the 5-swing automatic sequence); the gladiator_set_check's totals shift (the un-set 76, the gladiator 90 = 76 + 4 level-up + 10 blast on the chain's last step); the weapon_check's finisher refs follow the chain. Full sweep + gdUnit4 + frame-run.
+
+---
+
 
 ---
 
