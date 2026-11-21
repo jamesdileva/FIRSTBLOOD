@@ -619,6 +619,40 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** the combo_check's expected chain gains finisher_02 (the 5-swing automatic sequence); the gladiator_set_check's totals shift (the un-set 76, the gladiator 90 = 76 + 4 level-up + 10 blast on the chain's last step); the weapon_check's finisher refs follow the chain. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-21)*
+
+- `combo_data.gd` — `finisher` (single) → `finisher_chain: Array[ComboStepData]` (D-109): the finisher steps flow in order after the last light step with no input.
+- `player_controller.gd` — `_finisher_index` (the chain position); `_current_step()` returns the CURRENT chain step during the finisher (the payload, the timings, the animation, and the blast gate all read it — one code path, any chain length); `_play_finisher` starts the chain (the `_in_finisher` flip FIRST — the payload push reads `_current_step()`); `_advance_after_step` advances the chain automatically (the next step plays with no input; the last step ends the sequence); the blast gate reads the chain step's own blast fields (D-110: any chain step can carry a blast).
+- The data: the default combo's chain = **[finisher_01 (25, HEAVY) → finisher_02 (15, NORMAL, the Gladiator Set's 10/2.2 blast)]** — the 2-step chain proves the automatic chaining; the gladius/spear: 1-element chains; `weapon_data.gd`'s summary reads the chain's last step's damage.
+- The checks: the combo_check's expected chain + the mash cycle (5 swings) + the chain-gap asserts; the attack_check's spam payloads (+15); the gladiator_set_check's totals (76 un-set / 94 gladiator — the level-up's +2 lands on 4 swings: the C1 combo's 76 XP pushes the level-up to light_01's hit in C2); the weapon_check's chain refs.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Combo check — **PASS**: the 5-swing expected chain ([light_01, light_02, light_03, finisher_01, finisher_02]), the chain's gap asserts (the finisher_01→02 gap: the full 0.74 s recovery ≈ 49 ticks + hit-stop), the mash cycle (5 swings, wrap-around), the buffered chaining, the grace reset, the late-input ignored
+- [x] Attack check — **PASS** (the spam payloads + finisher_02's 15)
+- [x] Gladiator set check — **PASS**: the un-set combo 76; the gladiator combo 94 (76 + 8 from the mid-combo level-up [the level-up fires at light_01's hit in C2 — the C1 combo's 76 XP + 10 crosses the 80 threshold] + 10 blast on the chain's last step)
+- [x] Full sweep — **all 34 validation checks PASS** (the weapon/set/flame checks' finisher refs updated to the chain)
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Finisher chain *feel* (the 2-step sequence's rhythm, the blast's payoff at the end) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- `_play_finisher` must flip `_in_finisher` BEFORE `_push_step_payload(_current_step())` — the payload push reads `_current_step()`, which gates on `_in_finisher` to return the chain step (the pre-flip push would push the last LIGHT step's payload).
+- The python-replace silent-fail: the blast gate's old text had drifted (the D-107 comment rewrite) — grep-verify every programmatic edit; the Edit tool for anything with escapes.
+- The chain steps play their FULL recovery before advancing (the finisher_01's 0.74 s ≈ 49 ticks) — the checks' gap ranges must cover the finisher steps' longer recoveries.
+
+**Known limitations:**
+
+- The finisher chain is 2 steps on the default combo only; the gladius/spear carry 1-step chains (the framework handles any length).
+- The chain steps share the finisher_01/02 placeholder animations (the art pass differentiates them).
+- No input-triggered finisher selection (the chain is automatic per the roadmap).
+
+---
+
 ---
 
 

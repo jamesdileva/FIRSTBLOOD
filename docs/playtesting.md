@@ -409,6 +409,21 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       (light_01 → 02 → 03 → finisher → blast), the stagger/breakout
       rhythm is unchanged, and retry/restart all work normally.
 
+### Multiple finishers (Sprint 39)
+
+- [ ] The default sword's combo now ends in a **two-finisher sequence**:
+      light_01 → light_02 → light_03 → **finisher (25, heavy)** →
+      **finisher followthrough (15, quick)** — the second finisher flows
+      automatically, no extra input.
+- [ ] The **Gladiator Set's blast caps the sequence**: the finisher_02's
+      hit explodes for 10 (with the set on) — the explosion rewards the
+      full 5-swing sequence.
+- [ ] The mashing wraps through the 5-swing cycle smoothly — the player
+      never gets stuck, the chain never deadlocks.
+- [ ] The gladius and the spear keep their **single-finisher** chains —
+      the weapons feel different.
+- [ ] Retry/restart all work normally through the longer sequence.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
