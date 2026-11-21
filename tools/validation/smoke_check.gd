@@ -52,6 +52,8 @@ const REQUIRED_PATHS := [
 	"res://game/scripts/combat/projectile.gd",
 	"res://game/resources/gear/gear_catalog.tres",
 	"res://game/resources/gear/gear_sets.tres",
+	"res://game/resources/gear/gear_ember_crown.tres",
+	"res://game/resources/gear/gear_flame_bracers.tres",
 	"res://game/scripts/gear/set_data.gd",
 	"res://game/scripts/gear/set_catalog.gd",
 	"res://game/resources/gear/gear_trainees_cap.tres",

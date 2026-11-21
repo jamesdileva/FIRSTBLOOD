@@ -14,3 +14,8 @@ extends Resource
 ## returned) and `duration` is seconds for timed effects (freeze, reflect).
 @export var power := 0.0
 @export var duration := 0.0
+## Sprint 37 (D-105): the Flame Set's fire variant — when a set with the
+## `&"flame_bolt"` effect is active, the projectile explodes on impact:
+## `blast_damage` to every enemy hurtbox within `blast_radius` (0 = never).
+@export var blast_damage := 0.0
+@export var blast_radius := 0.0

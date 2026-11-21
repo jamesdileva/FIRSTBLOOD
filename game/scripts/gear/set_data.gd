@@ -9,6 +9,10 @@ extends Resource
 @export var id := ""
 @export var display_name := "UNNAMED"
 @export var required_pieces := 2
+## Sprint 37 (D-105): the set's behavior key — consumers (the magic cast,
+## future systems) read active sets' effects and configure themselves.
+## Empty = stat bonuses only.
+@export var effect := StringName("")
 @export var hp_bonus := 0.0
 @export var armor := 0.0
 @export var attack_bonus := 0.0

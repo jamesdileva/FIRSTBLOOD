@@ -9,3 +9,5 @@ display_name = "FIREBOLT"
 mana_cost = 20.0
 effect = &"fire"
 power = 16.0
+blast_damage = 8.0
+blast_radius = 2.5

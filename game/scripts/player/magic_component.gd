@@ -105,6 +105,11 @@ func _spawn_fire_projectile(spell: SpellData) -> void:
 	var projectile := Projectile.new()
 	projectile.velocity = direction * PROJECTILE_SPEED
 	projectile.position = origin + direction * 0.6
+	# Sprint 37 (D-105): the Flame Set's effect key switches the bolt to its
+	# explosive variant — the numbers are the fire spell's own data.
+	if _has_set_effect(&"flame_bolt"):
+		projectile.explode_damage = spell.blast_damage
+		projectile.explode_radius = spell.blast_radius
 	var hitbox := HitboxComponent.new()
 	hitbox.name = "Hitbox"
 	hitbox.faction = CombatTypes.Faction.PLAYER
@@ -128,6 +133,17 @@ func _spawn_fire_projectile(spell: SpellData) -> void:
 	projectile.add_child(hitbox)
 	projectile.add_child(mesh)
 	player.get_parent().add_child(projectile)
+
+## Sprint 37 (D-105): the player's active sets — bridged from the sibling
+## EquipmentComponent; the fire cast reads their effect keys.
+func _has_set_effect(key: StringName) -> bool:
+	var equipment := get_node_or_null("../Equipment") as EquipmentComponent
+	if equipment == null:
+		return false
+	for set_data in GearLibrary.active_sets(equipment.id_list()):
+		if set_data.effect == key:
+			return true
+	return false
 
 func _flash_tint(color: Color, seconds: float) -> void:
 	_set_player_tint(color)

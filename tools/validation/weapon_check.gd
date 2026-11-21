@@ -115,9 +115,13 @@ func _run() -> void:
 	if armory == null:
 		failures.append("the armory action did not open the armory")
 	else:
-		# rows are in catalog order: cap(0) cuirass(1) wraps(2) sandals(3)
-		# dull_sword(4) gladius(5) spear(6) -> six downs, then wear
-		for _step in 6:
+		# find the spear's row in the live catalog order (the catalog grows
+		# across sprints — hardcoded down-counts go stale)
+		var spear_row := 0
+		for i in armory._catalog.items.size():
+			if armory._catalog.items[i].id == "trainers_spear":
+				spear_row = i
+		for _step in spear_row:
 			Input.parse_input_event(_key(KEY_DOWN, true))
 			await _wait(2)
 			Input.parse_input_event(_key(KEY_DOWN, false))

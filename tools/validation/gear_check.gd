@@ -29,15 +29,17 @@ func _run() -> void:
 		printerr("GEAR CHECK FAILURE: the gear catalog failed to load")
 		quit(1)
 		return
-	var slots := {}
+	var seen_ids := {}
 	for item in gear_catalog.items:
 		if item.id.is_empty():
 			failures.append("a catalog piece has no id")
 		if item.display_name.is_empty():
 			failures.append("gear piece %s has no display name" % item.id)
-		if slots.has(item.slot) and item.slot != &"WEAPON":
-			failures.append("duplicate slot %s in the catalog" % item.slot)
-		slots[item.slot] = true
+		# slots repeat legitimately (sets add alternatives per slot; the
+		# equipment enforces one-worn-per-slot at runtime)
+		if seen_ids.has(item.id):
+			failures.append("duplicate id %s in the catalog" % item.id)
+		seen_ids[item.id] = true
 		for value in [item.hp_bonus, item.armor, item.attack_bonus, item.movement_bonus, item.attack_speed_bonus]:
 			if value < 0.0:
 				failures.append("gear piece %s has a negative modifier" % item.id)

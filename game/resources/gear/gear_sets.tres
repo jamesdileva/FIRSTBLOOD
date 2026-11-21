@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SetCatalog" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="SetCatalog" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/gear/set_catalog.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/gear/set_data.gd" id="2"]
@@ -10,6 +10,13 @@ display_name = "TRAINEE SET"
 required_pieces = 2
 attack_bonus = 4.0
 
+[sub_resource type="Resource" id="set_flame"]
+script = ExtResource("2")
+id = "flame"
+display_name = "FLAME SET"
+required_pieces = 2
+effect = &"flame_bolt"
+
 [resource]
 script = ExtResource("1")
-sets = [SubResource("set_trainee")]
+sets = [SubResource("set_trainee"), SubResource("set_flame")]

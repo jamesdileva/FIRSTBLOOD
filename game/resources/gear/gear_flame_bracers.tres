@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "flame_bracers"
+display_name = "FLAME BRACERS"
+slot = &"HANDS"
+set_id = "flame"
+attack_bonus = 1.0
