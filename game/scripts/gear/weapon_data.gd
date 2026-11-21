@@ -17,8 +17,8 @@ func summary() -> String:
 	var damages: PackedStringArray = []
 	for step in combo.steps:
 		damages.append("%.0f" % step.damage)
-	if combo.finisher != null:
-		damages.append("%.0f F" % combo.finisher.damage)
+	for step in combo.finisher_chain:
+		damages.append("%.0f F" % step.damage)
 	if damages.is_empty():
 		return text
 	var swings := "swings " + "/".join(damages)

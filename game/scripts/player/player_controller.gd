@@ -62,6 +62,7 @@ var _gravity: float = float(ProjectSettings.get_setting("physics/3d/default_grav
 var _dodge_direction := Vector3.ZERO
 var _combo_index := 0
 var _in_finisher := false
+var _finisher_index := 0
 var _buffered := false
 var _grace_left := 0.0
 var state_elapsed := 0.0
@@ -179,21 +180,26 @@ func _ensure_combo() -> void:
 	push_warning("ComboData missing — using fallback single-step combo.")
 
 func _current_step() -> ComboStepData:
+	# Sprint 39 (D-109): during the finisher, the CURRENT chain step — the
+	# payload, the timings, the animation, and the blast gate all read it.
+	if _in_finisher and _finisher_index < combo.finisher_chain.size():
+		return combo.finisher_chain[_finisher_index]
 	return combo.steps[_combo_index]
 
 func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void:
 	attack_connected.emit(event, target)
 	# Sprint 15: the attacker reports the landing — hit-stop, shake, burst.
 	HitFeedback.register_hit(target.global_position + Vector3.UP * 1.2, event.hit_type)
-	# Sprint 38 (D-107): the Gladiator Set's finisher explosion — the
-	# FINISHER's own blast data detonates at the hit when the set's effect
-	# key is among the player's active sets (`_current_step()` still points
-	# at light_03 during the finisher — its blast fields are 0). The blast
-	# lands through the same receive_damage path as everything else.
-	if _in_finisher and combo.finisher != null and combo.finisher.blast_damage > 0.0 \
+	# Sprint 38/39 (D-107/109): the Gladiator Set's finisher explosion — the
+	# CURRENT chain step's own blast data detonates at the hit when the
+	# set's effect key is among the player's active sets (`_current_step()`
+	# returns the active finisher-chain step). The blast lands through the
+	# same receive_damage path as everything else.
+	var step := _current_step()
+	if _in_finisher and step != null and step.blast_damage > 0.0 \
 			and _has_set_effect(&"gladiator_finisher"):
 		CombatBlast.detonate(self, target.global_position + Vector3.UP * 1.2,
-				combo.finisher.blast_radius, combo.finisher.blast_damage, self,
+				step.blast_radius, step.blast_damage, self,
 				CombatTypes.hurtbox_layer(CombatTypes.Faction.BOSS), &"finisher_blast")
 
 ## Sprint 38: the player's active sets — bridged from the Equipment node.
@@ -609,13 +615,16 @@ func _play_combo_step() -> void:
 
 func _play_finisher() -> void:
 	# Fires only from chain completion (D-024) — no early trigger path exists.
-	_push_step_payload(combo.finisher)
-	_face_nearest_foe()
+	# Sprint 39 (D-109): the chain's steps flow automatically per the data.
+	# _in_finisher flips FIRST so _current_step() returns chain[0].
+	_finisher_index = 0
 	_in_finisher = true
+	_push_step_payload(_current_step())
+	_face_nearest_foe()
 	_grace_left = 0.0
 	state = State.ATTACK
 	state_elapsed = 0.0
-	play_animation(combo.finisher.animation)
+	play_animation(_current_step().animation)
 	finisher_started.emit()
 
 ## D-039 (soft-facing): swings go where the fight is. Standing still freezes
@@ -733,8 +742,16 @@ func _attack_physics(delta: float) -> void:
 func _advance_after_step() -> void:
 	var next := _combo_index + 1
 	if _in_finisher:
-		# The finisher always ends the sequence — it cannot loop (Sprint 07).
+		# Sprint 39 (D-109): the finisher chain advances automatically —
+		# the next step plays with no input; the last step ends the sequence.
+		_finisher_index += 1
+		if _finisher_index < combo.finisher_chain.size():
+			_push_step_payload(_current_step())
+			play_animation(_current_step().animation)
+			state_elapsed = 0.0
+			return
 		_in_finisher = false
+		_finisher_index = 0
 		_combo_index = 0
 		state = State.IDLE
 	elif _buffered and next < combo.steps.size():
@@ -746,7 +763,7 @@ func _advance_after_step() -> void:
 		_combo_index = next
 		_grace_left = combo.reset_timeout
 		state = State.IDLE
-	elif combo.finisher != null:
+	elif not combo.finisher_chain.is_empty():
 		# Chain completed: the automatic finisher fires with no extra input
 		# (D-024) — attack -> chain -> finisher is the core offense loop.
 		_play_finisher()

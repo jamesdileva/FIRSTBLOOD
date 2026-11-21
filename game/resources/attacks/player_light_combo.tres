@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ComboData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="ComboData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/combat/combo_data.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/combat/combo_step_data.gd" id="2"]
@@ -39,8 +39,10 @@ recovery = 0.3
 buffer_open = 0.05
 buffer_close = 0.44
 
-; The finisher fires automatically after light_03 (D-024). Its buffer window
-; is empty by design (close < open): no press is buffered during a finisher.
+; The finisher SEQUENCE fires automatically after light_03 (D-024, Sprint 39):
+; the steps chain with no extra input. finisher_02 carries the Gladiator
+; Set's blast (the explosion caps the sequence). Their buffer windows are
+; empty by design (close < open): no press is buffered during a finisher.
 [sub_resource type="Resource" id="Resource_finisher"]
 script = ExtResource("2")
 attack_id = &"finisher_01"
@@ -48,16 +50,28 @@ animation = &"finisher_01"
 damage = 25.0
 stagger_damage = 15.0
 hit_type = 1
-blast_damage = 10.0
-blast_radius = 2.2
 startup = 0.18
 active = 0.16
 recovery = 0.4
 buffer_open = 0.05
 buffer_close = 0.0
 
+[sub_resource type="Resource" id="Resource_finisher_02"]
+script = ExtResource("2")
+attack_id = &"finisher_02"
+animation = &"finisher_02"
+damage = 15.0
+stagger_damage = 9.0
+startup = 0.15
+active = 0.12
+recovery = 0.3
+buffer_open = 0.05
+buffer_close = 0.0
+blast_damage = 10.0
+blast_radius = 2.2
+
 [resource]
 script = ExtResource("1")
 steps = [SubResource("Resource_step1"), SubResource("Resource_step2"), SubResource("Resource_step3")]
-finisher = SubResource("Resource_finisher")
+finisher_chain = [SubResource("Resource_finisher"), SubResource("Resource_finisher_02")]
 reset_timeout = 0.35

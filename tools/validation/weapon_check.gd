@@ -39,8 +39,8 @@ func _run() -> void:
 			failures.append("weapon %s carries no combo" % weapon.id)
 		elif weapon.combo.steps.is_empty():
 			failures.append("weapon %s's combo has no steps" % weapon.id)
-		elif weapon.combo.finisher == null:
-			failures.append("weapon %s's combo has no finisher" % weapon.id)
+		elif weapon.combo.finisher_chain.is_empty():
+			failures.append("weapon %s's combo has no finisher chain" % weapon.id)
 	if weapons.size() < 2:
 		failures.append("the catalog holds fewer than two weapons (%d)" % weapons.size())
 	var dull := _weapon(weapons, "dull_sword")

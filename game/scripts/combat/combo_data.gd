@@ -6,8 +6,9 @@ extends Resource
 ## alive for a follow-up press after a step ends without buffered input.
 
 @export var steps: Array[ComboStepData] = []
-## The automatic finisher (Sprint 07): plays after the last chain step with
-## no extra input (D-024). Null means the chain simply ends. Post-MVP this
-## becomes configurable sequences (Sprint 39).
-@export var finisher: ComboStepData
+## The automatic finisher SEQUENCE (Sprint 39, D-109): the steps play in
+## order after the last chain step with no extra input (D-024). Empty means
+## the chain simply ends. Any length — a 1-element chain is the old single
+## finisher, a 2-element chain proves the automatic chaining.
+@export var finisher_chain: Array[ComboStepData] = []
 @export var reset_timeout := 0.35

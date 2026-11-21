@@ -57,10 +57,10 @@ func _run() -> void:
 			])
 	# the finisher steps carry the blast
 	var finisher_combo := load("res://game/resources/attacks/player_light_combo.tres") as ComboData
-	if finisher_combo == null or finisher_combo.finisher == null:
-		failures.append("the default combo's finisher is missing")
-	elif finisher_combo.finisher.blast_damage < 10.0:
-		failures.append("the finisher carries no blast (%.1f)" % finisher_combo.finisher.blast_damage)
+	if finisher_combo == null or finisher_combo.finisher_chain.is_empty():
+		failures.append("the default combo's finisher chain is missing")
+	elif finisher_combo.finisher_chain[-1].blast_damage < 10.0:
+		failures.append("the chain's last step carries no blast (%.1f)" % finisher_combo.finisher_chain[-1].blast_damage)
 
 	# --- B. The arena: the REAL combo inputs, with and without the set. ---
 	# One player for both combos: the un-set baseline first, then the set
@@ -92,10 +92,10 @@ func _run() -> void:
 	await _settle_player(arena_player, boss.global_position + Vector3(-1.8, 0.5, 0))
 	arena_player.rotation.y = -PI / 2.0
 
-	# without the set: a full combo takes exactly 61 (10+12+14+25)
+	# without the set: a full combo takes exactly 76 (10+12+14+25+15)
 	var total := await _full_combo_damage(arena_player, boss_health)
-	if not is_equal_approx(total, 61.0):
-		failures.append("the un-set full combo took %.1f (expected 61)" % total)
+	if not is_equal_approx(total, 76.0):
+		failures.append("the un-set full combo took %.1f (expected 76)" % total)
 
 	# with the set: the speed asserts + the same combo takes 75
 	# (61 + 4 from the mid-combo level-up + 10 finisher blast)
@@ -119,11 +119,12 @@ func _run() -> void:
 		if boss.state == boss.State.OBSERVE:
 			break
 		await physics_frame
-	# the combo's own damage is XP: the second combo levels the player
-	# mid-drive (+2 attack from D-066) — the honest total is 75, not 71
+	# the combo's own damage is XP: the second combo levels the player at
+	# light_01's hit (the C1 combo's 76 XP + 10 crosses the 80 threshold) —
+	# the +2 attack lands on the last FOUR swings: 76 + 8 + 10 blast = 94
 	total = await _full_combo_damage(arena_player, boss_health)
-	if not is_equal_approx(total, 75.0):
-		failures.append("the gladiator full combo took %.1f (expected 75 = 61 + 4 level-up + 10 blast)" % total)
+	if not is_equal_approx(total, 94.0):
+		failures.append("the gladiator full combo took %.1f (expected 94 = 76 + 8 level-up + 10 blast)" % total)
 
 	arena.free()
 	MatchSetup.selected = null
@@ -132,7 +133,7 @@ func _run() -> void:
 		DirAccess.remove_absolute(check_save)
 
 	if failures.is_empty():
-		print("GLADIATOR SET CHECK: PASS (set data, speed 5.65/x1.05, un-set combo 61 vs gladiator 75, combat rules hold)")
+		print("GLADIATOR SET CHECK: PASS (set data, speed 5.65/x1.05, un-set combo 76 vs gladiator 94, combat rules hold)")
 		quit(0)
 	else:
 		for failure in failures:
