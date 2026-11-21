@@ -185,6 +185,28 @@ func _on_attack_hit_landed(event: DamageEvent, target: HurtboxComponent) -> void
 	attack_connected.emit(event, target)
 	# Sprint 15: the attacker reports the landing — hit-stop, shake, burst.
 	HitFeedback.register_hit(target.global_position + Vector3.UP * 1.2, event.hit_type)
+	# Sprint 38 (D-107): the Gladiator Set's finisher explosion — the
+	# FINISHER's own blast data detonates at the hit when the set's effect
+	# key is among the player's active sets (`_current_step()` still points
+	# at light_03 during the finisher — its blast fields are 0). The blast
+	# lands through the same receive_damage path as everything else.
+	if _in_finisher and combo.finisher != null and combo.finisher.blast_damage > 0.0 \
+			and _has_set_effect(&"gladiator_finisher"):
+		CombatBlast.detonate(self, target.global_position + Vector3.UP * 1.2,
+				combo.finisher.blast_radius, combo.finisher.blast_damage, self,
+				CombatTypes.hurtbox_layer(CombatTypes.Faction.BOSS), &"finisher_blast")
+
+## Sprint 38: the player's active sets — bridged from the Equipment node.
+func _has_set_effect(key: StringName) -> bool:
+	if _equipment == null:
+		return false
+	var sets := GearLibrary.active_sets(_equipment.id_list())
+	for set_data in sets:
+		if set_data.effect == key:
+			print("[SETFX] ", key, " TRUE via ", set_data.display_name, " inst=", get_instance_id())
+			return true
+	print("[SETFX] ", key, " false; sets=", sets.size(), " ids=", _equipment.id_list(), " inst=", get_instance_id())
+	return false
 
 func _physics_process(delta: float) -> void:
 	# Sprint 15 hit-stop: the whole actor freezes while the window holds.

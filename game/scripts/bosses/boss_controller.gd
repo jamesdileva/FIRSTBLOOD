@@ -593,6 +593,7 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 			source_health.apply_damage(returned)
 		return
 	if state == State.STAGGERED:
+		print("[BOSSDMG] staggered-bracket:", event.attack_id, event.amount)
 		_health.apply_damage(event)
 		_flinch = minf(_flinch + 0.6, 1.0)  # Sprint 15 hit reaction
 		if is_dead():
@@ -613,6 +614,8 @@ func _resolve_incoming_damage(event: DamageEvent) -> void:
 	# Sprint 34 (D-099): the shell soak — the stagger branch above is the
 	# crack (full damage inside the punish window).
 	event.amount = maxf(event.amount - armor, 1.0)
+	print("[BOSSDMG] default:", event.attack_id, event.amount, " armor=", armor,
+			" src_inst=", event.source.get_instance_id() if event.source != null else -1)
 	_health.apply_damage(event)
 	_stagger.add_stagger(event)
 

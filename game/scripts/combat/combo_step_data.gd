@@ -17,6 +17,11 @@ extends Resource
 ## and consumed when the step ends, chaining into the next step (D-023).
 @export var buffer_open := 0.05
 @export var buffer_close := 0.30
+## Sprint 38 (D-107): the Gladiator Set's finisher explosion — when the
+## player's active sets contain the gating effect key, a step that lands
+## with these set detonates a CombatBlast at the hit (0 = never).
+@export var blast_damage := 0.0
+@export var blast_radius := 0.0
 
 func total_duration() -> float:
 	return startup + active + recovery

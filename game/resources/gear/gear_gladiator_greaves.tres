@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gladiator_greaves"
+display_name = "GLADIATOR GREAVES"
+slot = &"FEET"
+set_id = "gladiator"
+movement_bonus = 0.25

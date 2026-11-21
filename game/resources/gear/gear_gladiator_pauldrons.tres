@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="GearData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/scripts/gear/gear_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "gladiator_pauldrons"
+display_name = "GLADIATOR PAULDRONS"
+slot = &"BODY"
+set_id = "gladiator"
+hp_bonus = 5.0
+movement_bonus = 0.1
