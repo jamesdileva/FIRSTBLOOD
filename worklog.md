@@ -560,6 +560,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 040 · 2026-11-21 · Gladiator Set (Sprint 38, Phase 14 — Build Identity)
+
+**Goal:** A speed-focused identity — movement/attack speed increase and a finisher explosion working together without breaking combat rules (roadmap Sprint 38).
+
+**Scope:** the **GLADIATOR SET** (2 new pieces: **GLADIATOR PAULDRONS** BODY hp+5/move+0.1, **GLADIATOR GREAVES** FEET move+0.25; the set grants move+0.3/attack-speed+0.05 with the effect key `&"gladiator_finisher"`) — the speed half is PURE DATA through the Sprint 36 aggregation; `ComboStepData` gains `blast_damage`/`blast_radius` (the finisher steps carry 10/2.2 — all three combos' finishers, so the identity works with any weapon); new `CombatBlast.detonate` (combat/blast.gd) — the radial query + the events + the flash, extracted from the projectile so BOTH consumers share one implementation; the player's finisher hit handler detonates when the hit is a finisher, the step carries a blast, and the player's active sets contain the gladiator effect key; the gladiator-provoked stagger/breakout interplay asserted as-is (no special-casing); new `gladiator_set_check.gd` (the full-combo damage totals with/without the set); smoke list; TUNING.md; playtesting.md.
+**Non-goals:** attack-speed telegraph changes (the swing DATA is untouched), enrage-style multipliers, real pauldron art, per-weapon finisher variations.
+
+**Decisions (planned):**
+
+- **D-107 (the speed half is data, the explosion half is a generic blast):** the movement/attack-speed increase needs ZERO code — the set's own `movement_bonus`/`attack_speed_bonus` flow through the Sprint 36 aggregation. The finisher explosion is a generic mechanism (any step carrying blast fields detonates when the player's active sets contain the gating effect key) — the blast implementation is ONE static shared by the projectile and the melee finisher.
+- **D-108 (the combat rules hold by construction):** the blast lands through the same `receive_damage` path as everything else — the hit-once guard, the stagger buildup, and the breakout all see honest events; the check asserts EXACT combo totals (61 without the set, 71 with) so a double-hit or a blast duplication fails loudly.
+
+**Verification (planned):** `gladiator_set_check.gd` — the set data (2 tagged pieces, the effect key, the speed bonuses); the real player's stats with the set (movement 5.65, attack-speed ×1.05); the arena with the REAL combo inputs: without the set a full combo takes exactly 61, with the set 71 (the finisher + the blast catching the boss) — and the gladiator's own stagger/breakout fires mid-combo as usual. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
