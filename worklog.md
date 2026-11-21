@@ -574,6 +574,38 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `gladiator_set_check.gd` — the set data (2 tagged pieces, the effect key, the speed bonuses); the real player's stats with the set (movement 5.65, attack-speed ×1.05); the arena with the REAL combo inputs: without the set a full combo takes exactly 61, with the set 71 (the finisher + the blast catching the boss) — and the gladiator's own stagger/breakout fires mid-combo as usual. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-21)*
+
+- `blast.gd` — `CombatBlast.detonate` (D-107): the ONE radial-damage implementation (the shape query, the honest events, the flash) shared by the projectile's firebolt blast and the finisher's explosion — the projectile's inline version extracted into it.
+- `combo_step_data.gd` — `blast_damage`/`blast_radius` (the finisher steps carry 10/2.2 — all three combos' finishers, so the identity works with any weapon); `player_controller.gd` — the finisher blast gate reads `combo.finisher` explicitly (NOT `_current_step()`, which still points at light_03 during the finisher) and detonates when the player's active sets contain `&"gladiator_finisher"`.
+- The GLADIATOR SET: **GLADIATOR PAULDRONS** (BODY, hp+5/move+0.1) + **GLADIATOR GREAVES** (FEET, move+0.25), both `set_id "gladiator"`; the set grants move+0.3/attack-speed+0.05 (the speed half is pure data through the Sprint 36 aggregation) + the effect key (the explosion half).
+- `gladiator_set_check.gd` (new): one arena player drives BOTH combos (the un-set baseline 61, then the set equips on the SAME player → the speed asserts + 75 with the blast and the mid-combo level-up); smoke list +3 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Gladiator set check — **PASS**: the set data (the effect key, the speed bonuses); the arena with the REAL combo inputs — without the set a full combo dealt exactly 61; equipping the set multiplied the speed to 5.65 (×1.05 attack speed) and the same combo dealt 75 (61 + 4 from the mid-combo level-up + 10 finisher blast) — the combat rules held by construction (the exact totals: no double-hits, no blast duplication)
+- [x] The first runs' findings, all check-layer: the original two-player structure (a bare B player + the arena player) made `get_first_node_in_group("player")` return the B player (never freed) for phase C's combos — the C1 "un-set" combo was actually driving the set-wearing B player (71 = 61 + blast). **The restructure eliminated the B player entirely**: one arena player drives both combos (the un-set baseline, then the set equips on the SAME player). The blast's gate also had a real bug: `_current_step()` returns light_03 during the finisher (blast fields 0) — the gate now reads `combo.finisher` explicitly
+- [x] Full sweep — **all 34 validation checks PASS** (the gear/weapon/set checks survived the catalog growth: the gear check asserts unique ids, the weapon check finds rows dynamically)
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Gladiator Set *feel* (the speed identity's readability, the finisher blast's payoff) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- **Never create a second player instance in a check that drives combos via global input** — `Input.action_press` reaches every listening player, and an unfreed first player in the "player" group hijacks `get_first_node_in_group` for every later phase. One arena player, two combos (the baseline, then the equips on the same player).
+- The finisher's `_current_step()` still points at the last LIGHT step during the finisher — the finisher's own data must be read via `combo.finisher` explicitly.
+- The mid-combo level-up (+2 attack from D-066) shifts the combo's damage totals — the checks' expected values must account for the XP the combos themselves generate.
+
+**Known limitations:**
+
+- The finisher blast's stagger damage is 0 (deliberate: the blast is a damage payoff, not a stagger builder).
+- The speed bonuses are flat (no percentage multiplier); the movement/attack-speed numbers are D-066-consistent.
+- No gladiator-themed visual (the pauldrons/greaves are stat pieces; the art pass dresses them).
+
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

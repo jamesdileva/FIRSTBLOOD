@@ -392,6 +392,23 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Without the set the firebolt is the plain 16 — the identity is the
       set's, not the spell's.
 
+### The Gladiator Set (Sprint 38)
+
+- [ ] The armory lists two more pieces: the **GLADIATOR PAULDRONS**
+      (BODY, +5 HP/+0.1 speed) and the **GLADIATOR GREAVES** (FEET,
+      +0.25 speed) — wear both and the totals line names **GLADIATOR
+      SET ACTIVE** (+0.3 speed, +5% swing).
+- [ ] The speed is real: **your gladiator moves visibly faster** and
+      swings ~5% quicker with the set on.
+- [ ] **The finisher explodes**: the combo's automatic finisher blasts
+      everything near the hit for **10 extra damage** — an orange flash
+      at the impact, on top of the finisher's own 25.
+- [ ] The blast works with **any weapon** (the default sword, the
+      gladius, the spear — all three finishers carry it).
+- [ ] The explosion doesn't break the combo: the chain still flows
+      (light_01 → 02 → 03 → finisher → blast), the stagger/breakout
+      rhythm is unchanged, and retry/restart all work normally.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
