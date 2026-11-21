@@ -527,6 +527,37 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `flame_set_check.gd` — the Flame Set data (2 tagged pieces, the effect key) and the fire spell's blast fields; behavior in the arena with the real LB+B cast: without the set the firebolt deals 16; equipping the Flame Set pieces makes the same cast deal 24 (the direct hit plus the blast catching the boss in its radius); the real armory path (equip both → fight → cast) spawns the explosive firebolt. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-21)*
+
+- `set_data.gd` — `effect` (D-105: a set can DECLARE a behavior key); `spell_data.gd` — `blast_damage`/`blast_radius` (the fire spell carries its own variant numbers); `projectile.gd` — the optional explosion: on hit, a radial shape-query damages every enemy hurtbox in the radius through the honest `receive_damage` path (the primary included — 24 single-target), plus an expanding orange flash freed before the next swing; `magic_component.gd` — the fire cast reads the player's active sets for `&"flame_bolt"` and configures the spawn (the guide's no-hard-coded-set-effects rule holds by shape: the set declares, the spell carries, the projectile does).
+- The FLAME SET: **EMBER CROWN** (HEAD, hp+4) + **FLAME BRACERS** (HANDS, atk+1), both `set_id "flame"`, 2 pieces → the blast; no flat set stats (the blast IS the bonus); the fire spell's data: blast 8 in 2.5 m.
+- The gear catalog grows to 9 items; `flame_set_check.gd` (new); smoke list +2 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Flame set check — **PASS**: the set data and the blast fields; the arena mechanics with the REAL LB+B cast — without the set the firebolt dealt 16, with the Flame Set pieces the same cast dealt 24 (16 direct + 8 blast catching the boss); the real armory path (equip both → fight → cast) spawned the explosive firebolt (−24)
+- [x] The first runs' findings, all check/harness-layer: the cast helper needed `await` (it's a coroutine), the cast needed a landing wait (the ground-neutral gate), B's assert used the wrong max-HP base, and B's live-player equips polluted the loadout the armory phase then "unequipped" — the armory's toggles were CORRECT the whole time. The blast itself worked on the first run
+- [x] The sweep then caught two catalog-growth casualties in the older checks: the gear_check's slot-uniqueness rule (sets legitimately share slots — it now asserts unique **ids**) and the weapon_check's hardcoded spear row (the flame pieces shifted it — it now finds the row dynamically). Both fixed; all four gear-family checks PASS
+- [x] Full sweep — **all 34 checks PASS** (the minotaur's single sweep-load timeout verified ×3 solo after — its hang mechanism was fixed in Sprint 35)
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Flame Set *feel* (the blast's readability, the explosion's payoff vs 20 mana) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- A helper with `await` inside is a coroutine — every call site needs `await` or the parse fails at the call, not the definition.
+- When a check phase mutates shared state (the loadout) via live-node equips, later phases inherit it — clear at phase boundaries (`set_loadout([])`).
+- The catalog grows across sprints: armory navigation must find rows dynamically (by item id), never by hardcoded down-counts.
+
+**Known limitations:**
+
+- The blast damages one faction layer (BOSS hurtboxes); multi-faction blasts await a second enemy.
+- The flash is a static expanding sphere — a real explosion VFX is art-pass work.
+- The blast's stagger damage is 0 (deliberate: spells don't build the punish window).
+
 ---
 
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)

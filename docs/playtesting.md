@@ -376,6 +376,22 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] Sets are derived from what you wear — no extra saves, no funny
       business across restarts.
 
+### The Flame Set (Sprint 37)
+
+- [ ] The armory lists two new fire pieces: the **EMBER CROWN** (HEAD,
+      +4 HP) and the **FLAME BRACERS** (HANDS, +1 attack) — wear both and
+      the totals line names **FLAME SET ACTIVE**.
+- [ ] With the set on, **FIREBOLT (LB + B) explodes on impact**: the bolt
+      deals its 16 AND blasts everything near the hit for 8 more — a
+      single-target cast went from 16 to **24**, with real multi-target
+      potential when more enemies arrive.
+- [ ] The blast reads as a big orange flash at the impact.
+- [ ] The explosion stacks with everything else: the set's pieces' own
+      bonuses, your level's attack bonus, and gear armor all apply as
+      usual — one cast, 20 mana, just bigger.
+- [ ] Without the set the firebolt is the plain 16 — the identity is the
+      set's, not the spell's.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP
