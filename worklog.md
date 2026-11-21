@@ -513,6 +513,22 @@ Result: **PASS (automated)**.
 
 ---
 
+## 039 · 2026-11-21 · Flame Set (Sprint 37, Phase 14 — Build Identity)
+
+**Goal:** A fire-focused identity — fire magic gains major area/effect changes when the set is equipped (roadmap Sprint 37).
+
+**Scope:** `SetData` gains an `effect` key (the extensible hook: a set can DECLARE a behavior); `SpellData` gains `blast_damage`/`blast_radius` (the fire spell carries its own variant numbers); the `Projectile` gains an optional explosion — on hit, a radial shape-query damages every enemy hurtbox in the radius through the honest `receive_damage` path, plus a flash; the MagicComponent's fire cast reads the player's active sets for `&"flame_bolt"` and configures the bolt; two new fire pieces (**EMBER CROWN** HEAD hp+4, **FLAME BRACERS** HANDS atk+1, both `set_id "flame"`); the **FLAME SET** (2 pieces, effect `&"flame_bolt"`, no flat stats — the blast IS the bonus); the firebolt's blast: 8 damage in 2.5 m (the primary is caught too — 24 total single-target); new `flame_set_check.gd`; smoke list; TUNING.md; playtesting.md.
+**Non-goals:** burning DoT on the blast (a 4th status), the Gladiator Set (Sprint 38), fire-resistance gear, new spells.
+
+**Decisions (planned):**
+
+- **D-105 (the set declares, the spell carries, the projectile does):** the guide's "no set effects hard-coded in the player controller" holds by shape — `SetData.effect` is a data key, `SpellData.blast_*` are the fire spell's own variant numbers, and the projectile implements the blast generically (0 = none). The MagicComponent only BRIDGES: active sets → effect key → configure the spawn.
+- **D-106 (the blast catches the primary):** the explosion damages every enemy hurtbox in the radius INCLUDING the direct-hit target — single-target 24, multi-target potential 16+8×n. It lands through `receive_damage` like everything else, so stagger/XP/feedback all see it honestly.
+
+**Verification (planned):** `flame_set_check.gd` — the Flame Set data (2 tagged pieces, the effect key) and the fire spell's blast fields; behavior in the arena with the real LB+B cast: without the set the firebolt deals 16; equipping the Flame Set pieces makes the same cast deal 24 (the direct hit plus the blast catching the boss in its radius); the real armory path (equip both → fight → cast) spawns the explosive firebolt. Full sweep + gdUnit4 + frame-run.
+
+---
+
 ## 027 · 2026-11-11 · Boss Selection (Sprint 25, post-MVP)
 
 **Goal:** A boss selection screen between the title and the arena, driven by a data roster — selectable encounters without changing the core fight architecture (roadmap Sprint 25). MVP is complete (Sprint 23 gate passed); the user directs post-MVP work explicitly.
