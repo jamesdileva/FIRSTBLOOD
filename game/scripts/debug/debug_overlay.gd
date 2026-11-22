@@ -54,6 +54,7 @@ func _update_text() -> void:
 			player.global_position.x, player.global_position.y, player.global_position.z,
 		])
 		lines.append("Player speed: %.1f m/s" % Vector3(player.velocity.x, 0.0, player.velocity.z).length())
+		lines.append("Sprint: %s" % ("ON" if player._sprinting else "off"))
 	var boss := get_tree().get_first_node_in_group("boss") as Node3D
 	if player != null and boss != null:
 		lines.append("Boss distance: %.1f m" % player.global_position.distance_to(boss.global_position))

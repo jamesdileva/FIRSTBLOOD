@@ -188,6 +188,7 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] FLAME SET | Ember Crown + Flame Bracers (2 pieces), effect `flame_bolt` | Firebolt explodes: +8 blast in 2.5 m (24 single-target) |
 | [E] GLADIATOR SET | Pauldrons + Greaves (2 pieces), effect `gladiator_finisher` | Speed: +0.65 m/s and +5% swing; the finisher blasts 10 in 2.2 m |
 | [E] Finisher chains | default: 2 steps (25+15); gladius/spear: 1 step | Sprint 39: the chain steps flow automatically per the data |
+| [E] Sprint multiplier | ×1.4 (Left Shift / L3, held + move input) | Neutral states only — ATTACK/BLOCK/DODGE excluded by construction |
 
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |

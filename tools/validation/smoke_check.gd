@@ -7,7 +7,7 @@ const REQUIRED_ACTIONS := [
 	"move_left", "move_right", "move_forward", "move_back",
 	"attack", "block", "dodge", "pause", "debug_toggle",
 	"spell_modifier", "spell_a", "spell_b", "spell_x", "spell_y",
-	"camera_left", "camera_right", "camera_up", "camera_down",
+	"camera_left", "camera_right", "camera_up", "camera_down", "sprint",
 	"armory",
 ]
 

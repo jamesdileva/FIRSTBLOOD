@@ -107,6 +107,11 @@ var _bleed_left := 0.0
 var _bleed_tick_left := 0.0
 var _bleed_source: Node
 @export var bleed_duration := 3.0
+## Sprint 40 (D-111): the sprint — held, multiplies the neutral movement.
+## Structurally excluded from ATTACK/BLOCK/DODGE (their handlers never use
+## the sprinted factor) — the combat rules hold by construction.
+@export var sprint_multiplier := 1.4
+var _sprinting := false
 @export var bleed_tick_interval := 0.5
 @export var bleed_tick_damage := 5.0
 ## Sprint 20 (D-066): stats DERIVED from the progression level — never
@@ -476,6 +481,10 @@ func _spell_slot_pressed() -> StringName:
 
 func _neutral_physics(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	# Sprint 40 (D-111/112): the sprint — held + a move direction; applies
+	# only in the neutral movement path (the combat states never route
+	# through the sprinted call).
+	_sprinting = Input.is_action_pressed("sprint") and input_dir != Vector2.ZERO
 	if is_on_floor():
 		# Sprint 29 (D-087): LB held -> the spell layer owns the face press.
 		# A cast happens, or nothing does — a mana-short press never becomes
@@ -495,7 +504,7 @@ func _neutral_physics(delta: float) -> void:
 			_play_combo_step()
 			return
 	_tick_combo_grace(delta)
-	_neutral_movement(delta, input_dir)
+	_neutral_movement(delta, input_dir, sprint_multiplier if _sprinting else 1.0)
 	_update_movement_state()
 
 func _start_block() -> void:
