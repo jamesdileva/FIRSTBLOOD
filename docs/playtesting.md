@@ -424,6 +424,22 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
       the weapons feel different.
 - [ ] Retry/restart all work normally through the longer sequence.
 
+### Sprint ability (Sprint 40)
+
+- [ ] **Hold Left Shift (or L3) while moving** — the gladiator sprints at
+      ~1.4× speed. The F1 overlay shows `Sprint: ON`.
+- [ ] The sprint **only works while moving** — holding it while standing
+      still does nothing.
+- [ ] The sprint is **disabled in combat states**: your swings root you
+      (no sprint-escape mid-swing), blocking keeps its slow walk (the
+      sprint doesn't stack), and dodging uses the dodge's own speed.
+- [ ] After a swing's recovery or a dodge ends, **the sprint resumes
+      automatically** — no re-press needed.
+- [ ] With the **Gladiator Set** on, the sprint reaches ~**7.9 m/s** —
+      the mobility build's signature pace.
+- [ ] The sprint carries into falls (the momentum) — sprinting off a
+      ledge keeps the speed.
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

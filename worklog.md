@@ -667,6 +667,37 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `mobility_check.gd` — the sprint action exists; the ground movement with the sprint held = movement × 1.4 (the real input path); released = ×1.0; during ATTACK the swing roots (the sprint can't un-root); during BLOCK the block's ×0.4 holds (the sprint doesn't stack); during DODGE the dodge's own velocity holds; after the swing's recovery the sprint applies again. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-19)*
+
+- `project.godot` — the `sprint` action (Left Shift + L3).
+- `player_controller.gd` — `sprint_multiplier` (×1.4) and `_sprinting` (held + a move direction — D-112); the neutral movement passes the sprinted factor; the F1 overlay gains a `Sprint: ON/off` line.
+- `mobility_check.gd` (new): the state/recovery rules verified behaviorally.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Mobility check — **PASS**: the sprint held = ×1.4 (the real input path); released = ×1.0; during ATTACK the swing's velocity DECAYS (the sprint doesn't drive it — the pre-swing momentum bleeds off through the deceleration); after the recovery the sprint re-applies (the ramp reaches ×1.4); during BLOCK the block's ×0.4 holds (no stacking); during DODGE the dodge's own velocity holds; the block's RECOVERY window: a dodge during it is ignored (the state rule) — the check waits for the recovery to end
+- [x] Full sweep — **all 35 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Sprint *feel* (the ×1.4's readability, the combat-state gates' rhythm) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- The swing's DECELERATION bleeds pre-swing momentum over ~17 ticks (the deceleration is 25/s) — a mid-swing velocity assert must expect DECAY, not instant zero. The meaningful claim: the sprint doesn't HOLD the speed (`< ×1.4`), not that the velocity is zero.
+- The block's RECOVERY window (a real state) blocks a dodge pressed during it — the check must wait for the state to end, not just release the button.
+- The velocity's ACCELERATION ramp after a status ends takes a few ticks — the resumed-speed assert needs a settle wait after the state break.
+
+**Known limitations:**
+
+- No stamina; the sprint is free (the trade-off is positional: the combat states gate it).
+- No air-specific mobility (the sprint carries into falls via the neutral path — the momentum).
+- The Gladiator Set's speed bonuses stack with the sprint (a mobility build: ~7.9 m/s sprinting — by design, the identity).
+
+---
+
 ---
 
 ---
