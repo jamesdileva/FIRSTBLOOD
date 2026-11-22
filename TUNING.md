@@ -190,6 +190,15 @@ Lunge speeds: light 2.0, light_2 1.0.
 | [E] Finisher chains | default: 2 steps (25+15); gladius/spear: 1 step | Sprint 39: the chain steps flow automatically per the data |
 | [E] Sprint multiplier | ×1.4 (Left Shift / L3, held + move input) | Neutral states only — ATTACK/BLOCK/DODGE excluded by construction |
 
+## Hydra — `game/scenes/bosses/hydra.tscn` (Sprint 41)
+| Knob | Value | Effect |
+|---|---|---|
+| [E] `max_health` | 105 (the sum of the heads) | The head damage drains the main honestly — the boss dies naturally |
+| [E] Head count / HP | 3 × 35 | Each head its own targetable hurtbox with a local gate |
+| [E] Head regeneration | 5 s after a head dies | The gate restores, the hurtbox re-enables; the main does NOT regen |
+| [E] Payload scaling | ×alive/3 | Fewer heads, weaker bites — the head/state change affects combat |
+| [E] hydra_bite / hydra_double | 14 / 10 dmg | The bites fire from the body regardless of head state |
+
 ## Hit feedback — `game/scripts/feedback/hit_feedback.gd` [C]
 | Knob | Value | Effect |
 |---|---|---|

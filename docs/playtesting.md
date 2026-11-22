@@ -440,6 +440,22 @@ Inspector exports on the Player node — the worklog's D-NNN entries name them.
 - [ ] The sprint carries into falls (the momentum) — sprinting off a
       ledge keeps the speed.
 
+### The Hydra (Sprint 41)
+
+- [ ] Eighth boss card: **HYDRA** — 105 HP split across **three heads**,
+      each its own target (aim at the heads, not the body — body shots
+      pass through).
+- [ ] **Head damage drains the boss bar** (the main health) AND the
+      head's own gate — the boss bar shows the real progress.
+- [ ] **Killing a head works**: its head droops dark and stops taking
+      hits — but the boss's **bites weaken** (fewer heads, weaker
+      attacks).
+- [ ] **Heads regrow**: a dead head returns after ~5 s with a full gate —
+      you must kill all three within the window or the progress resets.
+- [ ] **Kill all three** and the Hydra dies naturally — the defeat, the
+      XP, and the victory all work like the other bosses.
+- [ ] The Hydra's stagger/breakout works (head hits build the stagger).
+
 ### Deliberately not visible yet (by design — don't report as bugs)
 
 - (Nothing — through Sprint 23 every MVP system has shipped. Post-MVP

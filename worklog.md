@@ -480,6 +480,37 @@ Result: **PASS (automated)**.
 
 **Verification (planned):** `hydra_check.gd` — eight distinct roster entries; the Hydra's heads (3 × 35, the main 105); the head damage drains both the local gate and the main; killing a head disables its hurtbox (hits pass through) and scales the payload ×2/3; the regeneration restores the local gate and the hurtbox after 5 s; killing all three crosses the main to 0 → the natural DEFEAT. Full sweep + gdUnit4 + frame-run.
 
+**Implemented:** *(2026-11-21)*
+
+- `hydra.gd` (extends BossController) — three head nodes (each its own targetable HurtboxComponent), the LOCAL health gates (35 per head), the head damage draining BOTH the local gate and the main health, a head's death (the hurtbox collision disables, the head tints dark) with a timed regeneration (5 s), the payload scaling ×alive/3 in the `_push_payload` override, the all-heads defeat NATURAL (the main's max = the sum of the heads — the total head damage crosses it exactly).
+- `hydra.tscn` — the multi-neck body (a low wide shell, three neck stalks, three head spheres — primitives), 2 attacks (the bite 14, the double-bite 10), the body's hurtbox collision DISABLED (the heads are the only targets), 105 max health, stagger 20.
+- `boss_roster.tres` — entry eight ("Three heads, each a target. They regrow — kill all three fast."); `hydra_check.gd` (new); smoke list +2 paths.
+
+**Verification:**
+
+- [x] Headless import — PASS, exit 0
+- [x] Hydra check — **PASS**: eight distinct entries; the real select path (seven rights → confirm) spawns the HYDRA at 105 HP with 3 alive heads; a head hit drains BOTH the local gate (35→25) and the main (105→95); killing a head disables its hurtbox collision (hits pass through, no main drain) and scales the bite payload ×2/3 (14→9.33); the regeneration restores the local gate (35) and re-enables the hurtbox after ~5 s; killing all three drains the main past 0 → the natural DEFEAT → VICTORY
+- [x] The first run's failure was a **signal bind-order bug**: `damaged.connect(_on_head_damaged.bind(i))` passes (event, i) — the handler's signature had them swapped (a silent type crash on every head hit). Fixed: the handler's signature (event first, the bound index second)
+- [x] Full sweep — **all 35 validation checks PASS**
+- [x] gdUnit4 — 24/24
+- [x] Frame-run — clean boot
+- [ ] Hydra *feel* (the head-targeting readability, the regen pressure, the scaling's payoff) — a headline item for the next batch playtest
+
+Result: **PASS (automated)**.
+
+**Harness lessons (this sprint):**
+
+- `.bind()` APPENDS the bound args after the signal's own args — the handler's signature must be (the signal's args..., the bound args...). A swapped signature crashes SILENTLY on every emit (the type mismatch kills the call, the signal's other handlers continue) — the damage events vanished without an error surfaced in the failures.
+- The boss's main health as the SUM of the parts: the defeat needs NO special path — the parts' damage drains the sum honestly and the natural death fires exactly when the last part falls.
+
+**Known limitations:**
+
+- Head severing is temporary only (the regeneration always restores); no permanent head-kill state.
+- The heads don't attack independently (the body's bites fire regardless of the head state) — per-head attack animations are art-pass work.
+- The Hydra's body is a static primitive (the shell/necks/heads); no procedural neck animation.
+
+---
+
 ---
 
 ---
