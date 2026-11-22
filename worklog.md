@@ -653,6 +653,24 @@ Result: **PASS (automated)**.
 
 ---
 
+## 042 · 2026-11-19 · Mobility Abilities (Sprint 40, Phase 15 — Advanced Combat)
+
+**Goal:** Expand movement specialization — mobility abilities obey combat state/recovery rules; mobility builds feel meaningfully different (roadmap Sprint 40).
+
+**Scope:** a **sprint** ability — a held input (`sprint`: Left Shift / L3) multiplies the neutral movement by ×1.4 when a move direction is held; the sprint applies ONLY in the neutral movement path (the ground and airborne neutral states — the momentum carries into falls) and is structurally excluded from ATTACK (the swing roots you), BLOCK (the slow walk IS the rule), DODGE (the dodge's own velocity), and STAGGERED/DEAD (the dispatch never reaches the movement) — the combat rules hold BY CONSTRUCTION; the `sprint` input action; `mobility_check.gd` (new: the state/recovery rules verified behaviorally); TUNING.md; playtesting.md.
+**Non-goals:** stamina (no such resource exists), air dashes/teleports (the architecture's later mobility upgrades), a sprint-dodge hybrid, per-set sprint interactions.
+
+**Decisions (planned):**
+
+- **D-111 (the sprint lives in the movement choke point):** the sprint multiplies at `_neutral_movement`'s speed parameter — the same choke point the block's slow walk and the web slow use. The combat states (ATTACK/BLOCK/DODGE) never route through the sprinted call: the rules hold by construction, not by guards.
+- **D-112 (the sprint needs a move direction):** holding sprint while standing still does nothing — the sprint is a movement modifier, not a state. The dodge/block/attack inputs take precedence (their gates `return` before the movement), and the sprint resumes the frame the gates stop firing.
+
+**Verification (planned):** `mobility_check.gd` — the sprint action exists; the ground movement with the sprint held = movement × 1.4 (the real input path); released = ×1.0; during ATTACK the swing roots (the sprint can't un-root); during BLOCK the block's ×0.4 holds (the sprint doesn't stack); during DODGE the dodge's own velocity holds; after the swing's recovery the sprint applies again. Full sweep + gdUnit4 + frame-run.
+
+---
+
+---
+
 ---
 
 
