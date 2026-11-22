@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BossRoster" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="BossRoster" load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://game/scripts/bosses/boss_roster.gd" id="1"]
 [ext_resource type="Script" path="res://game/scripts/bosses/boss_entry.gd" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" path="res://game/scenes/bosses/spider.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://game/scenes/bosses/crab.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://game/scenes/bosses/lion.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://game/scenes/bosses/hydra.tscn" id="14"]
 
 [sub_resource type="Resource" id="entry_new"]
 script = ExtResource("2")
@@ -52,6 +53,12 @@ display_name = "MUTATED LION"
 blurb = "It hunts you down, bleeds you, and only gets faster. Keep running."
 scene = ExtResource("9")
 
+[sub_resource type="Resource" id="entry_hydra"]
+script = ExtResource("2")
+display_name = "HYDRA"
+blurb = "Three heads, each a target. They regrow — kill all three fast."
+scene = ExtResource("14")
+
 [resource]
 script = ExtResource("1")
-entries = [SubResource("entry_new"), SubResource("entry_sparring"), SubResource("entry_minotaur"), SubResource("entry_medusa"), SubResource("entry_spider"), SubResource("entry_crab"), SubResource("entry_lion")]
+entries = [SubResource("entry_new"), SubResource("entry_sparring"), SubResource("entry_minotaur"), SubResource("entry_medusa"), SubResource("entry_spider"), SubResource("entry_crab"), SubResource("entry_lion"), SubResource("entry_hydra")]
