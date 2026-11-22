@@ -466,6 +466,24 @@ Result: **PASS (automated)**.
 
 ---
 
+## 043 · 2026-11-21 · Hydra (Sprint 41, Phase 16 — Advanced Bosses)
+
+**Goal:** A multi-head/regeneration encounter — head/state changes affect combat behavior correctly; a multi-target boss (roadmap Sprint 41).
+
+**Scope:** `hydra.gd` (extends BossController) — three head nodes, each its own targetable HurtboxComponent with a LOCAL health gate (35 per head); a head's damage drains BOTH the local gate and the main health (max 105 = the sum — the boss dies naturally when the total head damage crosses it); a head at 0: dead (its hurtbox collision disables, the head tints dark) with a timed **regeneration** (5 s → the local gate restores, the hurtbox re-enables); the attack payload **scales with the alive heads** (`_push_payload` override: ×alive/3 — fewer heads, weaker bites); `hydra.tscn` — the multi-neck body (primitives: a low wide shell, three neck stalks, three head spheres), 2 attacks (the bite, the double-bite); the roster entry 8; new `hydra_check.gd` (the heads, the regeneration, the scaling, the all-heads defeat); smoke list; TUNING.md; playtesting.md.
+**Non-goals:** head-severing permanence, neck physics, per-head attack animations, real hydra art, a second arena.
+
+**Decisions (planned):**
+
+- **D-113 (the heads are gates, the main is the sum):** the main Health's max = the sum of the head HPs (105 = 3 × 35) — the head damage drains the main honestly, so the boss dies NATURALLY (the main crosses 0 exactly when the total head damage does — no force-kill, no special defeat path). A dead head's regeneration restores its LOCAL gate but not the main: the player's progress persists.
+- **D-114 (the payload scales with the alive heads):** `_push_payload` overrides to ×alive/total — fewer heads, weaker bites: the head/state change affects combat behavior verifiably (the payload assert), and killing heads has immediate combat value beyond the health drain.
+
+**Verification (planned):** `hydra_check.gd` — eight distinct roster entries; the Hydra's heads (3 × 35, the main 105); the head damage drains both the local gate and the main; killing a head disables its hurtbox (hits pass through) and scales the payload ×2/3; the regeneration restores the local gate and the hurtbox after 5 s; killing all three crosses the main to 0 → the natural DEFEAT. Full sweep + gdUnit4 + frame-run.
+
+---
+
+---
+
 ## 038 · 2026-11-19 · Set Framework (Sprint 36, Phase 14 — Build Identity)
 
 **Goal:** Support gear sets and set bonuses — equipping a set changes configured gameplay effects; an extensible set system (roadmap Sprint 36). Fully headless-verifiable: no playtest data required (the user deferred playtest-dependent sprints explicitly).
